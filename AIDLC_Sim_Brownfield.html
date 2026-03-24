@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIDLC Brownfield Simulation — Existing Service</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+:root{
+  --bg:#0D1117;--bg2:#161B22;--bg3:#21262D;
+  --border:#30363D;--border2:#484F58;
+  --green:#3FB950;--green-dim:#1B4D2A;
+  --blue:#58A6FF;--blue-dim:#1B3A6B;
+  --amber:#E3B341;--amber-dim:#4D3800;
+  --coral:#F85149;--coral-dim:#4D1A19;
+  --purple:#BC8CFF;--purple-dim:#2D1F5E;
+  --teal:#39C5CF;--teal-dim:#0D3A3D;
+  --orange:#F0883E;--orange-dim:#3D2000;
+  --white:#E6EDF3;--muted:#8B949E;--dim:#484F58;
+  --font-mono:'JetBrains Mono',monospace;
+  --font-ui:'DM Sans',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--white);font-family:var(--font-ui);font-size:15px;line-height:1.6;min-height:100vh;}
+
+.sim-header{background:linear-gradient(135deg,#3D1A00,#6B3500);padding:28px 48px 24px;display:flex;align-items:flex-start;gap:20px;}
+.sim-header .icon{width:52px;height:52px;background:rgba(255,255,255,0.12);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;margin-top:2px;}
+.sim-header h1{font-size:22px;font-weight:700;color:#fff;margin-bottom:4px;}
+.sim-header p{font-size:14px;color:rgba(255,255,255,0.7);}
+.sim-header .pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+.pill{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);border-radius:12px;padding:3px 10px;font-size:12px;color:rgba(255,255,255,0.85);}
+.pill.scenario{background:rgba(240,136,62,0.2);border-color:var(--orange);}
+
+.sim-body{display:grid;grid-template-columns:270px 1fr;min-height:calc(100vh - 130px);}
+
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:20px 0;overflow-y:auto;}
+.sidebar-section{padding:8px 20px 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--dim);}
+.step-item{display:flex;align-items:flex-start;gap:10px;padding:9px 20px;cursor:pointer;transition:background .15s;border-left:3px solid transparent;}
+.step-item:hover{background:var(--bg3);}
+.step-item.active{background:var(--bg3);border-left-color:var(--orange);}
+.step-item.done{border-left-color:#5A3000;}
+.step-item.done .step-num{background:var(--orange);color:#000;}
+.step-item.active .step-num{background:var(--orange);color:#000;}
+.step-num{min-width:22px;height:22px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--font-mono);color:var(--muted);margin-top:1px;}
+.step-label{font-size:13px;color:var(--muted);line-height:1.35;}
+.step-item.active .step-label,.step-item.done .step-label{color:var(--white);}
+.step-sublabel{font-size:11px;color:var(--dim);margin-top:2px;}
+.phase-divider{margin:8px 20px;padding:5px 8px;background:var(--bg3);border-radius:5px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+
+.main-area{display:flex;flex-direction:column;overflow:hidden;}
+.progress-bar-container{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 28px;display:flex;align-items:center;gap:14px;}
+.progress-bar-outer{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;}
+.progress-bar-inner{height:100%;background:linear-gradient(90deg,var(--orange),var(--amber));border-radius:3px;transition:width .4s ease;}
+.progress-label{font-size:12px;color:var(--muted);font-family:var(--font-mono);white-space:nowrap;}
+
+.step-content-area{flex:1;overflow-y:auto;padding:28px;}
+.step-panel{display:none;}
+.step-panel.active{display:block;}
+
+.step-header{margin-bottom:20px;}
+.phase-tag{display:inline-flex;align-items:center;gap:6px;border-radius:6px;padding:4px 12px;font-size:12px;font-weight:600;margin-bottom:10px;border:1px solid;}
+.phase-tag.brownfield{background:var(--orange-dim);border-color:var(--orange);color:var(--orange);}
+.phase-tag.inception{background:var(--blue-dim);border-color:var(--blue);color:var(--blue);}
+.phase-tag.construction{background:var(--green-dim);border-color:var(--green);color:var(--green);}
+.phase-tag.operations{background:var(--amber-dim);border-color:var(--amber);color:var(--amber);}
+.phase-tag.scenario{background:var(--purple-dim);border-color:var(--purple);color:var(--purple);}
+.step-header h2{font-size:20px;font-weight:700;color:var(--white);margin-bottom:6px;}
+.step-header p{font-size:14px;color:var(--muted);line-height:1.6;}
+
+.terminal{background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:16px 0;}
+.terminal-header{background:var(--bg2);padding:10px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);}
+.dots{display:flex;gap:6px;}
+.dot{width:12px;height:12px;border-radius:50%;}
+.dr{background:#FF5F57;}.dy{background:#FFBD2E;}.dg{background:#28CA41;}
+.t-title{margin-left:8px;font-size:12px;color:var(--muted);font-family:var(--font-mono);}
+.terminal-body{padding:16px 20px;font-family:var(--font-mono);font-size:13px;line-height:1.8;}
+.tp{color:var(--green);}.tc{color:var(--white);}.tcm{color:var(--dim);}
+.to{color:var(--muted);}.ts{color:var(--green);}.tw{color:var(--amber);}
+.ti{color:var(--blue);}.th{color:var(--teal);}.tor{color:var(--orange);}
+.tl{display:flex;gap:8px;margin-bottom:2px;align-items:flex-start;}
+.tl.gap{margin-bottom:10px;}
+
+.copilot-chat{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:16px 0;}
+.copilot-header{padding:12px 16px;font-size:13px;font-weight:600;color:white;display:flex;align-items:center;gap:8px;}
+.ch-brownfield{background:linear-gradient(90deg,#3D1A00,#6B3500);}
+.ch-inception{background:linear-gradient(90deg,#1A237E,#283593);}
+.ch-construction{background:linear-gradient(90deg,#1B5E20,#2E7D32);}
+.ch-operations{background:linear-gradient(90deg,#4A2800,#7A4200);}
+.copilot-body{padding:16px;}
+.chat-msg{margin-bottom:14px;}
+.chat-msg .sender{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+.user .sender{color:var(--amber);}
+.ai .sender{color:var(--blue);}
+.checkpoint .sender{color:var(--green);}
+.brownfield-msg .sender{color:var(--orange);}
+.bubble{border-radius:8px;padding:13px 16px;font-size:13px;line-height:1.7;}
+.user .bubble{background:var(--amber-dim);border:1px solid var(--amber);}
+.ai .bubble{background:var(--blue-dim);border:1px solid var(--blue);}
+.checkpoint .bubble{background:var(--green-dim);border:1px solid var(--green);}
+.brownfield-msg .bubble{background:var(--orange-dim);border:1px solid var(--orange);}
+.bubble ul{padding-left:18px;margin:6px 0;}
+.bubble li{margin-bottom:4px;}
+.bubble code{background:rgba(255,255,255,0.1);border-radius:3px;padding:1px 5px;font-family:var(--font-mono);font-size:12px;}
+
+.doc-preview{background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:16px 0;}
+.doc-header{background:var(--bg2);padding:10px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted);font-family:var(--font-mono);}
+.doc-tab{background:var(--bg);border:1px solid var(--border2);border-bottom:none;padding:4px 12px;font-size:12px;font-family:var(--font-mono);border-radius:4px 4px 0 0;}
+.doc-body{padding:18px 22px;font-family:var(--font-mono);font-size:13px;line-height:1.8;}
+.doc-h1{color:#58A6FF;font-size:15px;font-weight:700;margin-bottom:8px;}
+.doc-h2{color:#3FB950;font-size:13px;font-weight:700;margin:14px 0 6px;}
+.doc-li{padding:2px 0;color:var(--muted);}
+.doc-li::before{content:'- ';color:var(--dim);}
+.doc-warn{padding:2px 0;color:var(--amber);}
+.doc-warn::before{content:'⚠ ';color:var(--amber);}
+
+.callout{border-radius:8px;padding:13px 16px;margin:12px 0;font-size:13px;display:flex;gap:10px;}
+.callout.info{background:var(--blue-dim);border:1px solid var(--blue);}
+.callout.warn{background:var(--amber-dim);border:1px solid var(--amber);}
+.callout.success{background:var(--green-dim);border:1px solid var(--green);}
+.callout.brownfield{background:var(--orange-dim);border:1px solid var(--orange);}
+.callout .icon{font-size:16px;margin-top:1px;flex-shrink:0;}
+.callout p{margin:0;color:var(--white);}
+
+h3.sub{font-size:13px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:1px;margin:18px 0 8px;display:flex;align-items:center;gap:8px;}
+h3.sub::before{content:'';display:inline-block;width:3px;height:13px;background:var(--teal);border-radius:2px;}
+h3.sub.orange{color:var(--orange);}
+h3.sub.orange::before{background:var(--orange);}
+
+.approval-gate{background:var(--green-dim);border:2px solid var(--green);border-radius:10px;padding:18px 22px;margin:16px 0;text-align:center;}
+.approval-gate .gate-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--green);margin-bottom:8px;}
+.approval-gate h4{font-size:16px;font-weight:700;color:var(--white);margin-bottom:6px;}
+.approval-gate p{font-size:13px;color:var(--muted);margin-bottom:12px;}
+
+.diff-view{background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:16px 0;}
+.diff-header{background:var(--bg2);padding:10px 16px;font-size:12px;color:var(--muted);font-family:var(--font-mono);border-bottom:1px solid var(--border);}
+.diff-body{padding:0;font-family:var(--font-mono);font-size:13px;line-height:1.7;}
+.diff-line{padding:2px 20px;display:flex;gap:12px;}
+.diff-add{background:rgba(63,185,80,0.12);color:var(--green);}
+.diff-add::before{content:'+';color:var(--green);min-width:14px;}
+.diff-del{background:rgba(248,81,73,0.1);color:var(--coral);}
+.diff-del::before{content:'-';color:var(--coral);min-width:14px;}
+.diff-ctx{color:var(--dim);}
+.diff-ctx::before{content:' ';min-width:14px;}
+
+.nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding-top:20px;border-top:1px solid var(--border);}
+.btn{padding:9px 22px;border-radius:7px;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-ui);transition:all .15s;}
+.btn-primary{background:var(--orange);color:#000;}
+.btn-primary:hover{filter:brightness(1.15);}
+.btn-secondary{background:var(--bg3);color:var(--white);border:1px solid var(--border2);}
+.btn-secondary:hover{background:var(--bg2);}
+.btn:disabled{opacity:.4;cursor:default;}
+.step-counter{font-size:13px;color:var(--muted);font-family:var(--font-mono);}
+
+.risk-box{background:var(--coral-dim);border:1px solid var(--coral);border-radius:8px;padding:14px 16px;margin:12px 0;font-size:13px;}
+.risk-box h5{color:var(--coral);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+
+strong{color:var(--white);}
+</style>
+</head>
+<body>
+
+<div class="sim-header">
+  <div class="icon">🏢</div>
+  <div>
+    <h1>Simulation 3: Brownfield AIDLC Development</h1>
+    <p>Full walkthrough — adding a new feature to an existing legacy service using AIDLC, including Reverse Engineering</p>
+    <div class="pills">
+      <span class="pill scenario">🏢 Brownfield Project</span>
+      <span class="pill">Azure DevOps</span>
+      <span class="pill">Visual Studio + GitHub Copilot</span>
+      <span class="pill">Jenkins CI/CD</span>
+      <span class="pill">Scenario: Invoice Export Feature (billing-service)</span>
+    </div>
+  </div>
+</div>
+
+<div class="sim-body">
+  <div class="sidebar">
+    <div class="sidebar-section">Scenario</div>
+    <div class="step-item active" id="nav-0" onclick="goTo(0)">
+      <div class="step-num">0</div>
+      <div><div class="step-label">Scenario Overview</div><div class="step-sublabel">Existing codebase challenge</div></div>
+    </div>
+
+    <div class="phase-divider">🔍 Pre-Inception: Reverse Engineering</div>
+    <div class="step-item" id="nav-1" onclick="goTo(1)">
+      <div class="step-num">1</div>
+      <div><div class="step-label">Workspace Detection</div><div class="step-sublabel">Brownfield identified</div></div>
+    </div>
+    <div class="step-item" id="nav-2" onclick="goTo(2)">
+      <div class="step-num">2</div>
+      <div><div class="step-label">Codebase Analysis</div><div class="step-sublabel">AI maps existing code</div></div>
+    </div>
+    <div class="step-item" id="nav-3" onclick="goTo(3)">
+      <div class="step-num">3</div>
+      <div><div class="step-label">Context Map Created</div><div class="step-sublabel">AI understands the system</div></div>
+    </div>
+
+    <div class="phase-divider">📡 Inception Phase</div>
+    <div class="step-item" id="nav-4" onclick="goTo(4)">
+      <div class="step-num">4</div>
+      <div><div class="step-label">Requirements Analysis</div><div class="step-sublabel">Context-aware questions</div></div>
+    </div>
+    <div class="step-item" id="nav-5" onclick="goTo(5)">
+      <div class="step-num">5</div>
+      <div><div class="step-label">Stories + Approval</div><div class="step-sublabel">PO gate ✅</div></div>
+    </div>
+
+    <div class="phase-divider">🏗️ Construction Phase</div>
+    <div class="step-item" id="nav-6" onclick="goTo(6)">
+      <div class="step-num">6</div>
+      <div><div class="step-label">Architecture Fit</div><div class="step-sublabel">Fits existing patterns</div></div>
+    </div>
+    <div class="step-item" id="nav-7" onclick="goTo(7)">
+      <div class="step-num">7</div>
+      <div><div class="step-label">Code Generation</div><div class="step-sublabel">AI generates diff, not greenfield</div></div>
+    </div>
+    <div class="step-item" id="nav-8" onclick="goTo(8)">
+      <div class="step-num">8</div>
+      <div><div class="step-label">Construction Approval</div><div class="step-sublabel">Review gate ✅</div></div>
+    </div>
+
+    <div class="phase-divider">🚀 Operations</div>
+    <div class="step-item" id="nav-9" onclick="goTo(9)">
+      <div class="step-num">9</div>
+      <div><div class="step-label">Deploy &amp; Complete</div><div class="step-sublabel">Jenkins + Azure DevOps PR</div></div>
+    </div>
+  </div>
+
+  <div class="main-area">
+    <div class="progress-bar-container">
+      <div class="progress-bar-outer"><div class="progress-bar-inner" id="progress" style="width:0%"></div></div>
+      <div class="progress-label" id="progress-label">Step 1 / 10</div>
+    </div>
+    <div class="step-content-area">
+
+      <!-- STEP 0: Scenario -->
+      <div class="step-panel active" id="step-0">
+        <div class="step-header">
+          <div class="phase-tag scenario">🏢 Scenario</div>
+          <h2>The Brownfield Challenge</h2>
+          <p>Adding a new feature to an <strong>existing .NET 8 billing service</strong> — a codebase that has been in production for 3 years with multiple developers having contributed to it.</p>
+        </div>
+
+        <div class="callout brownfield">
+          <div class="icon">🏢</div>
+          <p><strong>Why brownfield is different from greenfield:</strong> AIDLC cannot assume a clean slate. Before generating any requirements or code, AI must first understand the existing architecture, patterns, and constraints — otherwise it will generate code that conflicts with existing conventions, creates duplicate abstractions, or misses integration points. The <strong>Reverse Engineering stage</strong> is mandatory for brownfield projects.</p>
+        </div>
+
+        <h3 class="sub">The Business Requirement</h3>
+        <div class="copilot-chat">
+          <div class="copilot-header ch-brownfield">📋 Azure DevOps — Work Item #5234</div>
+          <div class="copilot-body">
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:16px;font-size:14px;">
+              <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">STORY #5234 · PO: Sarah T. · Blocking: Enterprise sales · Priority: Critical</div>
+              <div style="font-size:16px;font-weight:700;color:var(--white);margin-bottom:12px;">Bulk invoice export — CSV and PDF</div>
+              <div style="font-size:13px;color:var(--muted);line-height:1.7;">
+                Enterprise customers need to export invoice history to their accounting systems. They currently export one at a time (2–3 hours of manual work for 100+ invoices/month).<br><br>
+                <strong>Request:</strong> Add a bulk export endpoint to the <em>existing</em> billing-service. Users filter by date range and status, then download as ZIP (individual PDFs) or single CSV.<br><br>
+                <strong>Constraints:</strong> Max 500 invoices. Finance and Admin roles only. Must not degrade existing invoice viewing performance. Asynchronous for large exports.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="sub">The Existing Codebase (from Azure DevOps)</h3>
+        <div class="terminal">
+          <div class="terminal-header"><div class="dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div><div class="t-title">billing-service — repo stats</div></div>
+          <div class="terminal-body">
+            <div class="tl"><span class="to">Language: C# (.NET 8)</span></div>
+            <div class="tl"><span class="to">Age: 3 years, 24 contributors</span></div>
+            <div class="tl"><span class="to">Lines of code: ~38,000</span></div>
+            <div class="tl"><span class="to">Solution projects: 6 (API, Core, Infrastructure, Background, Tests.Unit, Tests.Integration)</span></div>
+            <div class="tl"><span class="to">Known patterns: CQRS (MediatR), Repository, Azure AD, Serilog, xUnit</span></div>
+            <div class="tl"><span class="tw">⚠ Partial migration: some old-style controllers alongside CQRS handlers</span></div>
+            <div class="tl"><span class="tw">⚠ Two different PDF generation libraries used across old features (iTextSharp + PdfSharp)</span></div>
+          </div>
+        </div>
+
+        <div class="risk-box">
+          <h5>🔴 Brownfield Risks</h5>
+          <ul style="padding-left:18px;font-size:13px;color:var(--white);">
+            <li style="margin-bottom:4px;">AI may generate code that clashes with partial migration state (old controllers vs CQRS)</li>
+            <li style="margin-bottom:4px;">Two PDF libraries already present — AI must choose one, not introduce a third</li>
+            <li style="margin-bottom:4px;">Existing endpoint conventions may differ from ideal patterns — AI must match them</li>
+            <li>Performance risk: export query must not block existing invoice views on shared SQL instance</li>
+          </ul>
+        </div>
+
+        <div class="nav-row">
+          <button class="btn btn-secondary" disabled>← Back</button>
+          <span class="step-counter">Step 1 / 10</span>
+          <button class="btn btn-primary" onclick="goTo(1)">Start AIDLC →</button>
+        </div>
+      </div>
+
+      <!-- STEP 1: Workspace Detection -->
+      <div class="step-panel" id="step-1">
+        <div class="step-header">
+          <div class="phase-tag brownfield">🔍 Reverse Engineering — Workspace Detection</div>
+          <h2>AIDLC Detects Brownfield Project</h2>
+          <p>Jamie (developer) opens billing-service in Visual Studio and triggers AIDLC. The workflow immediately detects an existing codebase and activates the Reverse Engineering stage.</p>
+        </div>
+        <div class="copilot-chat">
+          <div class="copilot-header ch-brownfield">🤖 GitHub Copilot Chat — billing-service</div>
+          <div class="copilot-body">
+            <div class="chat-msg user">
+              <div class="sender">Jamie (Developer)</div>
+              <div class="bubble">Using AI-DLC, I need to add a bulk invoice export feature to this service. Enterprise customers need to download invoices as CSV or ZIP of PDFs. See ADO #5234 for full brief.</div>
+            </div>
+            <div class="chat-msg brownfield-msg">
+              <div class="sender">GitHub Copilot — Workspace Detection</div>
+              <div class="bubble">
+                <strong>🔍 Workspace Detection — Brownfield project detected</strong><br><br>
+                I can see an existing .NET 8 solution with 6 projects and ~38,000 lines of code. I'm activating the <strong>Reverse Engineering stage</strong> before proceeding to Requirements Analysis.<br><br>
+                This will take approximately 2–5 minutes. I'll analyse:<br>
+                <ul>
+                  <li>Existing endpoint patterns and routing conventions</li>
+                  <li>Data access patterns (EF Core schema for invoices)</li>
+                  <li>Authentication and authorisation implementation</li>
+                  <li>Existing dependencies (PDF libraries, export utilities)</li>
+                  <li>Integration points (Azure Service Bus, external APIs)</li>
+                </ul>
+                <br>
+                Do not type additional prompts while I analyse. I'll report my findings and flag any concerns before asking requirements questions.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout info">
+          <div class="icon">ℹ️</div>
+          <p><strong>Greenfield vs Brownfield at this step:</strong> A greenfield project skips Reverse Engineering and goes straight to Requirements Analysis. Brownfield always runs Reverse Engineering first. This stage typically takes 2–10 minutes depending on codebase size. Do not interrupt it.</p>
+        </div>
+
+        <div class="nav-row">
+          <button class="btn btn-secondary" onclick="goTo(0)">← Back</button>
+          <span class="step-counter">Step 2 / 10</span>
+          <button class="btn btn-primary" onclick="goTo(2)">See Codebase Analysis →</button>
+        </div>
+      </div>
+
+      <!-- STEP 2: Codebase Analysis -->
+      <div class="step-panel" id="step-2">
+        <div class="step-header">
+          <div class="phase-tag brownfield">🔍 Reverse Engineering — Analysis</div>
+          <h2>AI Analyses the Existing Codebase</h2>
+          <p>Watch AIDLC systematically map the billing-service — identifying existing patterns, potential conflicts, and integration points for the new export feature.</p>
+        </div>
+
+        <div class="terminal">
+          <div class="terminal-header"><div class="dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div><div class="t-title">GitHub Copilot — Reverse Engineering Output</div></div>
+          <div class="terminal-body">
+            <div class="tl gap"><span class="tor">→ Reverse Engineering Stage — billing-service</span></div>
+
+            <div class="tl"><span class="ti">📁 Scanning solution structure...</span></div>
+            <div class="tl"><span class="ts">✓ BillingService.API — 14 controllers, 8 CQRS handlers (mixed pattern detected)</span></div>
+            <div class="tl"><span class="ts">✓ BillingService.Core — 32 domain entities, 47 MediatR commands/queries</span></div>
+            <div class="tl"><span class="ts">✓ BillingService.Infrastructure — EF Core DbContext, 12 repositories</span></div>
+            <div class="tl gap"><span class="ts">✓ BillingService.Background — 3 Azure Service Bus consumers</span></div>
+
+            <div class="tl"><span class="ti">🗄️ Analysing Invoice schema...</span></div>
+            <div class="tl"><span class="ts">✓ Invoice entity: Id, CustomerId, TenantId, Status (enum), TotalAmount, IssuedDate, DueDate, PdfStoragePath</span></div>
+            <div class="tl gap"><span class="ts">✓ InvoiceLineItem entity: FK to Invoice, Description, Quantity, UnitPrice, LineTotal</span></div>
+
+            <div class="tl"><span class="ti">🔑 Analysing auth patterns...</span></div>
+            <div class="tl"><span class="ts">✓ Azure AD with role-based auth: [Authorize(Roles = "Admin,Finance")] on finance endpoints</span></div>
+            <div class="tl gap"><span class="ts">✓ User context extracted via ICurrentUserService (CustomerId, TenantId, Roles)</span></div>
+
+            <div class="tl"><span class="ti">📦 Scanning PDF dependencies...</span></div>
+            <div class="tl"><span class="tw">⚠ TWO PDF libraries detected — CONFLICT</span></div>
+            <div class="tl"><span class="tw">  iTextSharp 5.5.13 — used in InvoicePdfGenerator.cs (3 years old, legacy)</span></div>
+            <div class="tl gap"><span class="tw">  PdfSharp 6.0 — used in StatementPdfExporter.cs (added 8 months ago)</span></div>
+
+            <div class="tl"><span class="ti">🔄 Checking existing export patterns...</span></div>
+            <div class="tl"><span class="ts">✓ StatementExport endpoint found: GET /api/v2/statements/export (uses BackgroundJob pattern)</span></div>
+            <div class="tl gap"><span class="ts">✓ Pattern: POST to start job → returns JobId → GET /api/v2/jobs/{id}/status to poll → GET /api/v2/jobs/{id}/download when complete</span></div>
+
+            <div class="tl"><span class="ti">⚡ Performance analysis...</span></div>
+            <div class="tl"><span class="ts">✓ Invoice table: 2.3M rows, indexed on CustomerId + IssuedDate</span></div>
+            <div class="tl gap"><span class="ts">✓ Existing read queries use AsNoTracking() — confirmed</span></div>
+
+            <div class="tl gap"><span class="ts">✓ Reverse Engineering complete. Generating context map...</span></div>
+          </div>
+        </div>
+
+        <div class="callout warn">
+          <div class="icon">⚠️</div>
+          <p><strong>AI flagged a conflict you may have missed:</strong> Two PDF libraries exist. If AI hadn't run Reverse Engineering, it might have introduced a third. The team now needs to resolve this during Requirements Analysis — use PdfSharp (newer) and plan to migrate the old iTextSharp usage.</p>
+        </div>
+
+        <div class="nav-row">
+          <button class="btn btn-secondary" onclick="goTo(1)">← Back</button>
+          <span class="step-counter">Step 3 / 10</span>
+          <button class="btn btn-primary" onclick="goTo(3)">See Context Map →</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: Context Map -->
+      <div class="step-panel" id="step-3">
+        <div class="step-header">
+          <div class="phase-tag brownfield">🔍 Reverse Engineering — Context Map</div>
+          <h2>AI Creates Context Map Artefact</h2>
+          <p>AIDLC generates a structured context map committing its understanding of the codebase. The architect reviews this before Requirements Analysis begins.</p>
+        </div>
+
+        <h3 class="sub orange">Generated: aidlc-docs/reverse-engineering/context-map.md</h3>
+        <div class="doc-preview">
+          <div class="doc-header"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div><div class="doc-tab">reverse-engineering/context-map.md</div><div style="margin-left:auto;font-size:11px;color:var(--orange);">awaiting architect review</div></div>
+          <div class="doc-body">
+            <div class="doc-h1"># billing-service Context Map</div>
+            <div style="font-size:11px;color:var(--dim);margin-bottom:12px;">Generated by AIDLC Reverse Engineering · awaiting architect validation</div>
+            <div class="doc-h2">## Invoice Data Layer</div>
+            <div class="doc-li">Entity: Invoice (Id, CustomerId, TenantId, Status, TotalAmount, IssuedDate, PdfStoragePath)</div>
+            <div class="doc-li">Repository: IInvoiceRepository — GetById, GetByCustomer, GetPagedByFilter</div>
+            <div class="doc-li">Table: dbo.Invoices — 2.3M rows. Indexed: (CustomerId, IssuedDate). ReadOnly: use AsNoTracking().</div>
+            <div class="doc-h2">## Existing Export Pattern (to follow)</div>
+            <div class="doc-li">POST /api/v2/{resource}/export → starts background job, returns { jobId }</div>
+            <div class="doc-li">GET /api/v2/jobs/{jobId}/status → { status: Pending|Processing|Complete|Failed }</div>
+            <div class="doc-li">GET /api/v2/jobs/{jobId}/download → stream file download</div>
+            <div class="doc-h2">## PDF Library Decision Required</div>
+            <div class="doc-warn">CONFLICT: iTextSharp (legacy, InvoicePdfGenerator.cs) vs PdfSharp 6.0 (newer, StatementPdfExporter.cs)</div>
+            <div class="doc-warn">Recommendation: Use PdfSharp for new feature. Flag iTextSharp migration as tech debt.</div>
+            <div class="doc-h2">## Auth Pattern</div>
+            <div class="doc-li">Decorator: [Authorize(Roles = "Admin,Finance")] on controller action</div>
+            <div class="doc-li">User context: inject ICurrentUserService — provides CustomerId, TenantId, Roles[]</div>
+            <div class="doc-h2">## AI Confidence Flags</div>
+            <div class="doc-warn">Partial CQRS migration: 8 of 22 endpoints still use old controller pattern. For new endpoints: always use CQRS (MediatR command/query). DO NOT add to legacy controllers.</div>
+          </div>
+        </div>
+
+        <div class="copilot-chat">
+          <div class="copilot-header ch-brownfield">🤖 GitHub Copilot</div>
+          <div class="copilot-body">
+            <div class="chat-msg user">
+              <div class="sender">Priya (Architect) validating context map</div>
+              <div class="bubble">Context map is accurate. Confirm: use PdfSharp for new export, iTextSharp migration is a separate backlog item. CQRS-only for new code is correct. You may proceed to Requirements Analysis.</div>
+            </div>
+            <div class="chat-msg brownfield-msg">
+              <div class="sender">AIDLC — Reverse Engineering Complete</div>
+              <div class="bubble">✅ Context map validated by Priya R. (Architect). Logged to audit.md.<br><br>Beginning Inception Phase with full codebase context loaded. My requirements questions will now be specific to billing-service's actual implementation.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-row">
+          <button class="btn btn-secondary" onclick="goTo(2)">← Back</button>
+          <span class="step-counter">Step 4 / 10</span>
+          <button class="btn btn-primary" onclick="goTo(4)">Inception: Requirements →</button>
+        </div>
+      </div>
+
+      <!-- STEP 4: Requirements Analysis -->
+      <div class="step-panel" id="step-4">
+        <div class="step-header">
+          <div class="phase-tag inception">📡 Inception — Requirements Analysis</div>
+          <h2>Context-Aware Requirements Questions</h2>
+          <p>Because AI has analysed the codebase, its clarifying questions are <em>specific</em> — not generic. It already knows the data model, auth patterns, and existing export conventions.</p>
+        </div>
+        <div class="copilot-chat">
+          <div class="copilot-header ch-inception">🤖 GitHub Copilot — Inception Phase (codebase-aware)</div>
+          <div class="copilot-body">
+            <div class="chat-msg ai">
+              <div class="sender">GitHub Copilot — Context-Aware Questions</div>
+              <div class="bubble">
+                Based on my codebase analysis, I have <strong>specific</strong> questions (not generic ones):<br><br>
+                <strong>1. Export pattern alignment:</strong> I found an existing async job pattern at <code>StatementExport</code>: POST to start → poll status → download. Should the invoice bulk export follow this same pattern, or is synchronous acceptable for small exports (&lt;50 invoices)?<br><br>
+                <strong>2. PDF source:</strong> The Invoice entity already has a <code>PdfStoragePath</code> field pointing to Azure Blob. For the ZIP export, should I retrieve the pre-generated PDFs from Blob Storage, or re-generate PDFs from the database data?<br><br>
+                <strong>3. Filter scope:</strong> The existing <code>GetPagedByFilter</code> repository method supports CustomerId + date range + Status. Is this sufficient for the export filter, or do you need additional filter fields (e.g. minimum amount, specific invoice IDs)?<br><br>
+                <strong>4. Role scope:</strong> I see Finance and Admin roles in your auth patterns. The brief says "Finance and Admin only" — confirmed correct, no new roles needed?
+              </div>
+            </div>
+            <div class="chat-msg user">
+              <div class="sender">Sarah (PO) + Jamie</div>
+              <div class="bubble">
+                1. Follow the existing async job pattern for all exports — consistency is more important than latency.<br>
+                2. Use pre-generated PDFs from Blob Storage if they exist (99% of cases). Fallback: re-generate from DB if PdfStoragePath is null (rare edge case for old invoices).<br>
+                3. Existing filter fields are sufficient for MVP.<br>
+                4. Finance and Admin confirmed — no new roles.
+              </div>
+            </div>
+            <div class="chat-msg ai">
+              <div class="sender">GitHub Copilot</div>
+              <div class="bubble">
+                ✅ All questions answered. One additional finding from the schema analysis:<br><br>
+                <strong>⚠️ Scale risk:</strong> A max-500-invoice export generating PDFs from Blob Storage will make up to 500 concurrent Blob reads. I recommend batching reads (50 at a time) to avoid Azure Storage throttling. I'll include this as a technical constraint in the requirements.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout info">
+          <div class="icon">💡</div>
+          <p><strong>Compare to greenfield:</strong> In a greenfield project, AI would ask "what is your authentication model?" and "what's your data schema?". In this brownfield session, AI already knows the answers from Reverse Engineering — it only asks questions about <em>decisions</em> that can't be inferred from code.</p>
+        </div>
+
+        <div class="nav-row">
+          <button class="btn btn-secondary" onclick="goTo(3)">← Back</button>
+          <span class="step-counter">Step 5 / 10</span>
+          <button class="btn btn-primary" onclick="goTo(5)">Stories + Approval Gate →</button>
+        </div>
+      </div>
+
+      <!-- STEP 5: Stories + Approval -->
+      <div class="step-panel" id="step-5">
+        <div class="step-header">
+          <div class="phase-tag inception">📡 Inception — Stories &amp; Approval Gate</div>
+          <h2>Stories Generated, PO Approves</h2>
+          <p>AI generates stories that reference existing billing-service concepts by name. Sarah approves, triggering the Inception gate.</p>
+        </div>
+        <div class="copilot-chat">
+          <div class="copilot-header ch-inception">🤖 GitHub Copilot — Story Generation</div>
+          <div class="copilot-body">
+            <div class="chat-msg ai">
+              <div class="sender">GitHub Copilot</div>
+              <div class="bubble">
+                <strong>Story 1 — Start Export Job</strong><br>
+                <em>As a Finance user, I want to start a bulk invoice export by specifying a date range and status filter, so that I receive a downloadable file without waiting for it to generate.</em><br>
+                <ul>
+                  <li>AC-01: POST /api/v2/invoices/export returns { jobId } and HTTP 202 Accepted</li>
+                  <li>AC-02: Request body matches existing export filter schema (CustomerId, DateFrom, DateTo, Status)</li>
+                  <li>AC-03: Max 500 invoices enforced — HTTP 400 if filter would exceed limit (include count in error)</li>
+                  <li>AC-04: Requires [Authorize(Roles = "Admin,Finance")] — 401 for unauthenticated, 403 for other roles</li>
+                </ul>
+                <strong>Story 2 — Poll Export Status</strong><br>
+                <em>As a Finance user, I want to check whether my export is ready...</em><br>
+                <ul>
+                  <li>AC-01: Reuses existing GET /api/v2/jobs/{jobId}/status endpoint — <strong>no new endpoint needed</strong></li>
+                </ul>
+                <strong>Story 3 — Download Export</strong><br>
+                <em>As a Finance user, I want to download the completed export as CSV or ZIP...</em><br>
+                <ul>
+                  <li>AC-01: Reuses existing GET /api/v2/jobs/{jobId}/download — returns file stream with correct Content-Type</li>
+                  <li>AC-02: ZIP: retrieves from Azure Blob (PdfStoragePath), falls back to PdfSharp re-generation if null</li>
+                  <li>AC-03: Blob reads batched in groups of 50 to avoid throttling</li>
+                </ul>
+              </div>
+            </div>
+            <div class="chat-msg user">
+              <div class="sender">Sarah (PO) — Approval</div>
+              <div class="bubble">AI-DLC, stories are correct and aligned with existing patterns. I approve the Inception phase. Proceed to Construction.</div>
+            </div>
+            <div class="chat-msg checkpoint">
+              <div class="sender">✅ AIDLC — Inception Gate Passed</div>
+              <div class="bubble">Approved by Sarah T. (PO). Logged to audit.md. Beginning Construction.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-row">
+          <button class="btn btn-secondary" onclick="goTo(4)">← Back</button>
+          <span class="step-counter">Step 6 / 10</span>
+          <button class="btn btn-primary" onclick="goTo(6)">Construction: Architecture Fit →</button>
+        </div>
+      </div>
+
+      <!-- STEP 6: Architecture Fit -->
+      <div class="step-panel" id="step-6">
+        <div class="step-header">
+          <div class="phase-tag construction">🏗️ Construction — Architecture Fit</div>
+          <h2>AI Proposes Minimal, Pattern-Consistent Design</h2>
+          <p>Unlike greenfield, AI does not propose a new architecture. It proposes the smallest set of additions that fit the existing patterns, using the context map as its guide.</p>
+        </div>
+        <div class="copilot-chat">
+          <div class="copilot-header ch-construction">🤖 GitHub Copilot — Functional Design (Brownfield)</div>
+          <div class="copilot-body">
+            <div class="chat-msg ai">
+              <div class="sender">GitHub Copilot — Minimal Additions Design</div>
+              <div class="bubble">
+                Based on the context map, I'm proposing the <strong>minimum additions</strong> to implement this feature consistently:<br><br>
+                <strong>New files to create:</strong>
+                <ul>
+                  <li><code>BillingService.Core/Commands/StartInvoiceExportCommand.cs</code> — MediatR command (follows CQRS pattern)</li>
+                  <li><code>BillingService.Core/Commands/StartInvoiceExportCommandHandler.cs</code></li>
+                  <li><code>BillingService.Infrastructure/Export/InvoiceBulkExportJob.cs</code> — background job worker</li>
+                  <li><code>BillingService.Infrastructure/Export/InvoicePdfBlobFetcher.cs</code> — batched Blob retrieval (50/batch)</li>
+                </ul>
+                <strong>Files to modify (minimal change):</strong>
+                <ul>
+                  <li><code>BillingService.API/Controllers/InvoicesController.cs</code> — add single POST /export action</li>
+                  <li><code>BillingService.Infrastructure/Repositories/IInvoiceRepository.cs</code> — add GetForExport(filter) method</li>
+                </ul>
+                <strong>No new solution projects needed.</strong> Reusing existing BackgroundService infrastructure, JobTracking service, and download endpoint.<br><br>
+                <strong>Confirmed: PdfSharp 6.0</strong> for fallback PDF generation. No new dependencies introduced.
+              </div>
+            </div>
+            <div class="chat-msg user">
+              <div class="sender">Priya (Architect)</div>
+              <div class="bubble">Design is correct and minimal. One clarification: InvoicePdfBlobFetcher should use the existing IAzureBlobService interface (Infrastructure layer) rather than calling the Azure SDK directly. Apply that and approve.</div>
+            </div>
+            <div class="chat-msg ai">
+              <div class="sender">GitHub Copilot</div>
+              <div class="bubble">✅ Updated — <code>InvoicePdfBlobFetcher</code> will inject <code>IAzureBlobService</code> (existing interface, already registered in DI). Design approved.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout success">
+          <div class="icon">✓</div>
+          <p><strong>Key brownfield benefit shown here:</strong> Because AI mapped the existing codebase, it correctly identified that the status-polling and download endpoints <em>already exist</em> and only a single new POST endpoint is needed. A naive approach would have created duplicate infrastructure.</p>
+        </div>
+
+        <div class="nav-row">
+          <button class="btn btn-secondary" onclick="goTo(5)">← Back</button>
+          <span class="step-counter">Step 7 / 10</span>
+          <button class="btn btn-primary" onclick="goTo(7)">Code Generation →</button>
+        </div>
+      </div>
+
+      <!-- STEP 7: Code Generation -->
+      <div class="step-panel" id="step-7">
+        <div class="step-header">
+          <div class="phase-tag construction">🏗️ Construction — Code Generation</div>
+          <h2>AI Generates a Diff, Not a New Service</h2>
+          <p>In brownfield mode, AIDLC generates targeted changes — new files and modifications to existing files — respecting the patterns it found during Reverse Engineering.</p>
+        </div>
+
+        <h3 class="sub">New file: StartInvoiceExportCommandHandler.cs</h3>
+        <div class="doc-preview">
+          <div class="doc-header"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div><div class="doc-tab">Core/Commands/StartInvoiceExportCommandHandler.cs</div><div style="margin-left:auto;font-size:11px;color:var(--amber);">NEW file — review required</div></div>
+          <div class="doc-body">
+<span style="color:#858585;font-size:11px;margin-right:16px;">1</span><span style="color:#6A9955;">// AI-DLC generated | Follows existing CQRS pattern | Reviewed by: [pending]</span><br>
+<span style="color:#858585;font-size:11px;margin-right:16px;">2</span><span style="color:#569CD6;">public class</span> <span style="color:#DCDCAA;">StartInvoiceExportCommandHandler</span> : <span style="color:#4EC9B0;">IRequestHandler</span>&lt;<span style="color:#4EC9B0;">StartInvoiceExportCommand</span>, <span style="color:#4EC9B0;">Guid</span>&gt;<br>
+<span style="color:#858585;font-size:11px;margin-right:16px;">3</span>{<br>
+<span style="color:#858585;font-size:11px;margin-right:16px;">4</span>  <span style="color:#569CD6;">private readonly</span> <span style="color:#4EC9B0;">IInvoiceRepository</span> <span style="color:#9CDCFE;">_invoiceRepo</span>;<br>
+<span style="color:#858585;font-size:11px;margin-right:16px;">5</span>  <span style="color:#569CD6;">private readonly</span> <span style="color:#4EC9B0;">IJobTrackingService</span> <span style="color:#9CDCFE;">_jobs</span>; <span style="color:#6A9955;">// existing service, reused</span><br>
+<span style="color:#858585;font-size:11px;margin-right:16px;">6</span>  <span style="color:#569CD6;">private readonly</span> <span style="color:#4EC9B0;">IBackgroundJobQueue</span> <span style="color:#9CDCFE;">_queue</span>;<span style="color:#6A9955;"> // existing queue, reused</span><br>
+<span style="color:#858585;font-size:11px;margin-right:16px;">7</span>  <span style="color:#569CD6;">private readonly</span> <span style="color:#4EC9B0;">ILogger</span>&lt;<span style="color:#4EC9B0;">StartInvoiceExportCommandHandler</span>&gt; <span style="color:#9CDCFE;">_logger</span>;<br>
+<span style="color:#858585;font-size:11px;margin-right:16px;">8</span><br>
+<span style="color:#858585;font-size:11px;margin-right:16px;">9</span>  <span style="color:#569CD6;">public async</span> <span style="color:#4EC9B0;">Task</span>&lt;<span style="color:#4EC9B0;">Guid</span>&gt; <span style="color:#DCDCAA;">Handle</span>(<span style="color:#4EC9B0;">StartInvoiceExportCommand</span> <span style="color:#9CDCFE;">request</span>, <span style="color:#4EC9B0;">CancellationToken</span> <span style="color:#9CDCFE;">ct</span>)<br>
+<span style="color:#858585;font-size:11px;margin-right:16px;">10</span>  {<br>
+<span style="color:#858585;font-size:11px;margin-right:16px;">11</span>    <span style="color:#569CD6;">var</span> <span style="color:#9CDCFE;">count</span> = <span style="color:#569CD6;">await</span> <span style="color:#9CDCFE;">_invoiceRepo</span>.<span style="color:#DCDCAA;">CountForExport</span>(<span style="color:#9CDCFE;">request</span>.<span style="color:#9CDCFE;">Filter</span>, <span style="color:#9CDCFE;">ct</span>);<br>
+<span style="color:#858585;font-size:11px;margin-right:16px;">12</span>    <span style="color:#569CD6;">if</span> (<span style="color:#9CDCFE;">count</span> > <span style="color:#B5CEA8;">500</span>) <span style="color:#569CD6;">throw new</span> <span style="color:#4EC9B0;">ExportLimitExceededException</span>(<span style="color:#9CDCFE;">count</span>, maxAllowed: <span style="color:#B5CEA8;">500</span>);<br>
+<span style="color:#858585;font-size:11px;margin-right:16px;">13</span>    <span style="color:#569CD6;">var</span> <span style="color:#9CDCFE;">jobId</span> = <span style="color:#569CD6;">await</span> <span style="color:#9CDCFE;">_jobs</span>.<span style="color:#DCDCAA;">CreateAsync</span>(<span style="color:#CE9178;">"InvoiceBulkExport"</span>, <span style="color:#9CDCFE;">ct</span>);<br>
+<span style="color:#858585;font-size:11px;margin-right:16px;">14</span>    <span style="color:#9CDCFE;">_queue</span>.<span style="color:#DCDCAA;">Enqueue</span>(<span style="color:#569CD6;">new</span> <span style="color:#4EC9B0;">InvoiceBulkExportJob</span>(<span style="color:#9CDCFE;">jobId</span>, <span style="color:#9CDCFE;">request</span>.<span style="color:#9CDCFE;">Filter</span>, <span style="color:#9CDCFE;">request</span>.<span style="color:#9CDCFE;">Format</span>));<br>
+<span style="color:#858585;font-size:11px;margin-right:16px;">15</span>    <span style="color:#9CDCFE;">_logger</span>.<span style="color:#DCDCAA;">LogInformation</span>(<span style="color:#CE9178;">"Invoice export job {JobId} enqueued for {Count} invoices"</span>, <span style="color:#9CDCFE;">jobId</span>, <span style="color:#9CDCFE;">count</span>);<br>
+<span style="color:#858585;font-size:11px;margin-right:16px;">16</span>    <span style="color:#569CD6;">return</span> <span style="color:#9CDCFE;">jobId</span>;<br>
+<span style="color:#858585;font-size:11px;margin-right:16px;">17</span>  }<br>
+<span style="color:#858585;font-size:11px;margin-right:16px;">18</span>}
+          </div>
+        </div>
+
+        <h3 class="sub">Modification: InvoicesController.cs (diff view)</h3>
+        <div class="diff-view">
+          <div class="diff-header">InvoicesController.cs — targeted modification only</div>
+          <div class="diff-body">
+            <div class="diff-line diff-ctx">  [HttpGet("{id}")]</div>
+            <div class="diff-line diff-ctx">  public async Task&lt;IActionResult&gt; GetInvoice(Guid id) { ... }</div>
+            <div class="diff-line diff-ctx"> </div>
+            <div class="diff-line diff-add"> [HttpPost("export")]</div>
+            <div class="diff-line diff-add"> [Authorize(Roles = "Admin,Finance")]</div>
+            <div class="diff-line diff-add"> public async Task&lt;IActionResult&gt; StartExport([FromBody] ExportInvoicesRequest request)</div>
+            <div class="diff-line diff-add"> {</div>
+            <div class="diff-line diff-add">     var jobId = await _mediator.Send(new StartInvoiceExportCommand(request, _currentUser));</div>
+            <div class="diff-line diff-add">     return Accepted(new { jobId });</div>
+            <div class="diff-line diff-add"> }</div>
+            <div class="diff-line diff-ctx"> </div>
+            <div class="diff-line diff-ctx">  [HttpGet("{id}/pdf")]</div>
+            <div class="diff-line diff-ctx">  public async Task&lt;IActionResult&gt; GetPdf(Guid id) { ... }</div>
+          </div>
+        </div>
+
+        <div class="callout success">
+          <div class="icon">✓</div>
+          <p><strong>Jamie's review:</strong> AI correctly reused <code>IJobTrackingService</code> and <code>IBackgroundJobQueue</code> from the existing codebase. The handler follows the same CQRS pattern as adjacent handlers. <code>ExportLimitExceededException</code> follows the project's domain exception naming convention. Structured logging uses correct format. <strong>Ready for Mob Construction review.</strong></p>
+        </div>
+
+        <div class="nav-row">
+          <button class="btn btn-secondary" onclick="goTo(6)">← Back</button>
+          <span class="step-counter">Step 8 / 10</span>
+          <button class="btn btn-primary" onclick="goTo(8)">Construction Approval →</button>
+        </div>
+      </div>
+
+      <!-- STEP 8: Construction Approval -->
+      <div class="step-panel" id="step-8">
+        <div class="step-header">
+          <div class="phase-tag construction">🏗️ Construction — Approval Gate</div>
+          <h2>Mob Construction Review and Approval</h2>
+          <p>The team reviews all changes together. One issue is found and corrected before approval.</p>
+        </div>
+        <div class="copilot-chat">
+          <div class="copilot-header ch-construction">🤖 Mob Construction Session (Teams call)</div>
+          <div class="copilot-body">
+            <div class="chat-msg user">
+              <div class="sender">Jamie — Reviewing InvoicePdfBlobFetcher.cs</div>
+              <div class="bubble">I see the batching code does 50 Blob reads per batch using Task.WhenAll. That's correct. But the batch loop isn't cancellation-token-aware — if the job is cancelled mid-export, it'll keep running. Can you add CancellationToken propagation to the batch loop?</div>
+            </div>
+            <div class="chat-msg ai">
+              <div class="sender">GitHub Copilot</div>
+              <div class="bubble">✅ Updated — <code>InvoicePdfBlobFetcher</code> now passes <code>ct</code> to each batch and checks <code>ct.IsCancellationRequested</code> between batches. If cancelled, cleans up partially fetched blobs and rethrows <code>OperationCanceledException</code>.</div>
+            </div>
+            <div class="chat-msg user">
+              <div class="sender">Priya (Architect) + Jamie (Lead Dev)</div>
+              <div class="bubble">AI-DLC, we approve the Construction phase. All files reviewed. The cancellation fix is correct. Please generate Operations artefacts for existing Jenkinsfile — this is a new endpoint in an existing service, no new infrastructure needed.</div>
+            </div>
+            <div class="chat-msg checkpoint">
+              <div class="sender">✅ AIDLC — Construction Gate Passed</div>
+              <div class="bubble">Approved by Jamie K. (Lead Dev) + Priya R. (Architect). Logged to audit.md. Beginning Operations phase — modifying existing Jenkinsfile only (no new IaC required for endpoint addition).</div>
+            </div>
+          </div>
+        </div>
+        <div class="nav-row">
+          <button class="btn btn-secondary" onclick="goTo(7)">← Back</button>
+          <span class="step-counter">Step 9 / 10</span>
+          <button class="btn btn-primary" onclick="goTo(9)">Deploy →</button>
+        </div>
+      </div>
+
+      <!-- STEP 9: Deploy -->
+      <div class="step-panel" id="step-9">
+        <div class="step-header">
+          <div class="phase-tag operations">🚀 Operations — Deploy</div>
+          <h2>PR to Azure DevOps, Jenkins Deploys</h2>
+          <p>Jamie raises the PR. AIDLC confirms no Jenkinsfile changes are needed — the existing pipeline handles this deployment automatically.</p>
+        </div>
+        <div class="terminal">
+          <div class="terminal-header"><div class="dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div><div class="t-title">PowerShell — billing-service</div></div>
+          <div class="terminal-body">
+            <div class="tl"><span class="tp">$</span><span class="tc"> git add .</span></div>
+            <div class="tl"><span class="tp">$</span><span class="tc"> git commit -m "feat: bulk invoice export endpoint #5234 (AIDLC)</span></div>
+            <div class="tl"><span class="tc">  - Add StartInvoiceExportCommand/Handler (CQRS, MediatR)</span></div>
+            <div class="tl"><span class="tc">  - Add InvoiceBulkExportJob (PdfSharp, batched Blob reads)</span></div>
+            <div class="tl"><span class="tc">  - Add InvoicePdfBlobFetcher (IAzureBlobService, CT-aware)</span></div>
+            <div class="tl"><span class="tc">  - Modify InvoicesController: POST /export endpoint</span></div>
+            <div class="tl gap"><span class="tc">  - Reverse engineering: context-map.md committed to aidlc-docs/"</span></div>
+            <div class="tl gap"><span class="tp">$</span><span class="tc"> git push origin feat/invoice-bulk-export-5234</span></div>
+            <div class="tl gap"><span class="th">→ PR #428 created: "feat: bulk invoice export #5234" — reviewers: Priya, Sarah</span></div>
+            <div class="tl"><span class="tcm"># Jenkins triggered on PR merge to develop</span></div>
+            <div class="tl"><span class="ti">→ Jenkins: billing-service #187 triggered</span></div>
+            <div class="tl"><span class="ts">✓ Build: PASSED</span></div>
+            <div class="tl"><span class="ts">✓ Unit Tests: 94 passed, 0 failed (+12 new tests for export feature)</span></div>
+            <div class="tl"><span class="ts">✓ SAST (Checkmarx): 0 high/critical findings</span></div>
+            <div class="tl"><span class="ts">✓ Deploy-Dev: DEPLOYED</span></div>
+            <div class="tl"><span class="ts">✓ Integration Tests: PASSED (export endpoint verified)</span></div>
+            <div class="tl"><span class="tw">⏸ Deploy-Prod: awaiting approval...</span></div>
+            <div class="tl"><span class="ts">✓ Deploy-Prod: APPROVED → DEPLOYED</span></div>
+          </div>
+        </div>
+
+        <div style="background:var(--orange-dim);border:2px solid var(--orange);border-radius:12px;padding:24px;margin:16px 0;text-align:center;">
+          <div style="font-size:32px;margin-bottom:8px;">🎉</div>
+          <h3 style="font-size:18px;color:var(--orange);margin-bottom:8px;">Brownfield AIDLC Complete</h3>
+          <p style="font-size:14px;color:var(--muted);">Bulk invoice export added to an existing 3-year-old service — following established patterns, reusing existing infrastructure, with full audit trail.</p>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px;text-align:center;">
+            <div><div style="font-size:22px;font-weight:800;color:var(--orange);">4</div><div style="font-size:12px;color:var(--muted);">New files only (not a rewrite)</div></div>
+            <div><div style="font-size:22px;font-weight:800;color:var(--orange);">1</div><div style="font-size:12px;color:var(--muted);">Modified file (targeted change)</div></div>
+            <div><div style="font-size:22px;font-weight:800;color:var(--orange);">0</div><div style="font-size:12px;color:var(--muted);">New dependencies introduced</div></div>
+            <div><div style="font-size:22px;font-weight:800;color:var(--orange);">2</div><div style="font-size:12px;color:var(--muted);">Conflicts caught before code (PDF lib + CQRS)</div></div>
+          </div>
+        </div>
+
+        <div class="callout brownfield">
+          <div class="icon">🏢</div>
+          <p><strong>Brownfield vs Greenfield — Key Difference Seen:</strong> The Reverse Engineering stage added ~10 minutes but prevented two significant issues (PDF library conflict, duplicate infrastructure creation). In a manual SDLC approach, these conflicts would typically surface in code review or — worse — in production. The context-aware requirements questions also saved the Mob Elaboration from asking basics already answerable from the code.</p>
+        </div>
+
+        <div class="nav-row">
+          <button class="btn btn-secondary" onclick="goTo(8)">← Back</button>
+          <span class="step-counter">Step 10 / 10</span>
+          <button class="btn btn-primary" onclick="goTo(0)" style="background:var(--teal);">↩ Restart</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const TOTAL=10;let cur=0;
+function goTo(n){
+  document.getElementById('step-'+cur).classList.remove('active');
+  document.getElementById('nav-'+cur).classList.remove('active');
+  if(cur<n)document.getElementById('nav-'+cur).classList.add('done');
+  cur=n;
+  document.getElementById('step-'+cur).classList.add('active');
+  document.getElementById('nav-'+cur).classList.add('active');
+  document.getElementById('nav-'+cur).classList.remove('done');
+  const pct=Math.round((cur/(TOTAL-1))*100);
+  document.getElementById('progress').style.width=pct+'%';
+  document.getElementById('progress-label').textContent='Step '+(cur+1)+' / '+TOTAL;
+  document.querySelector('.step-content-area').scrollTop=0;
+}
+</script>
+</body>
+</html>

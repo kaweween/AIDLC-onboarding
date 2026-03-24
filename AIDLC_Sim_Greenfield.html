@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIDLC Greenfield Simulation — New Service</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+:root{
+  --bg:#0D1117;--bg2:#161B22;--bg3:#21262D;
+  --border:#30363D;--border2:#484F58;
+  --green:#3FB950;--green-dim:#1B4D2A;
+  --blue:#58A6FF;--blue-dim:#1B3A6B;
+  --amber:#E3B341;--amber-dim:#4D3800;
+  --coral:#F85149;--coral-dim:#4D1A19;
+  --purple:#BC8CFF;--purple-dim:#2D1F5E;
+  --teal:#39C5CF;--teal-dim:#0D3A3D;
+  --white:#E6EDF3;--muted:#8B949E;--dim:#484F58;
+  --font-mono:'JetBrains Mono',monospace;
+  --font-ui:'DM Sans',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--white);font-family:var(--font-ui);font-size:15px;line-height:1.6;min-height:100vh;}
+
+.sim-header{background:linear-gradient(135deg,#0A3D26,#028090);padding:28px 48px 24px;display:flex;align-items:flex-start;gap:20px;}
+.sim-header .icon{width:52px;height:52px;background:rgba(255,255,255,0.12);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;margin-top:2px;}
+.sim-header h1{font-size:22px;font-weight:700;color:#fff;margin-bottom:4px;}
+.sim-header p{font-size:14px;color:rgba(255,255,255,0.7);}
+.sim-header .pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+.pill{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);border-radius:12px;padding:3px 10px;font-size:12px;color:rgba(255,255,255,0.85);}
+.pill.scenario{background:rgba(63,185,80,0.2);border-color:var(--green);}
+
+.sim-body{display:grid;grid-template-columns:270px 1fr;min-height:calc(100vh - 130px);}
+
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:20px 0;overflow-y:auto;}
+.sidebar-section{padding:8px 20px 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--dim);}
+.step-item{display:flex;align-items:flex-start;gap:10px;padding:9px 20px;cursor:pointer;transition:background .15s;border-left:3px solid transparent;}
+.step-item:hover{background:var(--bg3);}
+.step-item.active{background:var(--bg3);border-left-color:var(--green);}
+.step-item.done{border-left-color:var(--green-dim);}
+.step-item.done .step-num{background:var(--green);color:#000;}
+.step-item.active .step-num{background:var(--green);color:#000;}
+.step-num{min-width:22px;height:22px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--font-mono);color:var(--muted);margin-top:1px;}
+.step-label{font-size:13px;color:var(--muted);line-height:1.35;}
+.step-item.active .step-label,.step-item.done .step-label{color:var(--white);}
+.step-sublabel{font-size:11px;color:var(--dim);margin-top:2px;}
+.phase-divider{margin:8px 20px;padding:5px 8px;background:var(--bg3);border-radius:5px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+
+.main-area{display:flex;flex-direction:column;overflow:hidden;}
+.progress-bar-container{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 28px;display:flex;align-items:center;gap:14px;}
+.progress-bar-outer{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;}
+.progress-bar-inner{height:100%;background:linear-gradient(90deg,var(--green),var(--teal));border-radius:3px;transition:width .4s ease;}
+.progress-label{font-size:12px;color:var(--muted);font-family:var(--font-mono);white-space:nowrap;}
+
+.step-content-area{flex:1;overflow-y:auto;padding:28px;}
+.step-panel{display:none;}
+.step-panel.active{display:block;}
+
+.step-header{margin-bottom:20px;}
+.phase-tag{display:inline-flex;align-items:center;gap:6px;border-radius:6px;padding:4px 12px;font-size:12px;font-weight:600;margin-bottom:10px;border:1px solid;}
+.phase-tag.inception{background:var(--blue-dim);border-color:var(--blue);color:var(--blue);}
+.phase-tag.construction{background:var(--green-dim);border-color:var(--green);color:var(--green);}
+.phase-tag.operations{background:var(--amber-dim);border-color:var(--amber);color:var(--amber);}
+.phase-tag.scenario{background:var(--purple-dim);border-color:var(--purple);color:var(--purple);}
+.step-header h2{font-size:20px;font-weight:700;color:var(--white);margin-bottom:6px;}
+.step-header p{font-size:14px;color:var(--muted);line-height:1.6;}
+
+.terminal{background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:16px 0;}
+.terminal-header{background:var(--bg2);padding:10px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);}
+.dots{display:flex;gap:6px;}
+.dot{width:12px;height:12px;border-radius:50%;}
+.dr{background:#FF5F57;}.dy{background:#FFBD2E;}.dg{background:#28CA41;}
+.t-title{margin-left:8px;font-size:12px;color:var(--muted);font-family:var(--font-mono);}
+.terminal-body{padding:16px 20px;font-family:var(--font-mono);font-size:13px;line-height:1.8;}
+.tp{color:var(--green);}.tc{color:var(--white);}.tcm{color:var(--dim);}
+.to{color:var(--muted);}.ts{color:var(--green);}.tw{color:var(--amber);}
+.ti{color:var(--blue);}.th{color:var(--teal);}
+.tl{display:flex;gap:8px;margin-bottom:2px;align-items:flex-start;}
+.tl.gap{margin-bottom:10px;}
+
+.copilot-chat{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:16px 0;}
+.copilot-header{padding:12px 16px;font-size:13px;font-weight:600;color:white;display:flex;align-items:center;gap:8px;}
+.copilot-header.inception-h{background:linear-gradient(90deg,#1A237E,#283593);}
+.copilot-header.construction-h{background:linear-gradient(90deg,#1B5E20,#2E7D32);}
+.copilot-header.operations-h{background:linear-gradient(90deg,#4A2800,#7A4200);}
+.copilot-body{padding:16px;}
+.chat-msg{margin-bottom:14px;}
+.chat-msg .sender{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+.user .sender{color:var(--amber);}
+.ai .sender{color:var(--blue);}
+.checkpoint .sender{color:var(--green);}
+.bubble{border-radius:8px;padding:13px 16px;font-size:13px;line-height:1.7;}
+.user .bubble{background:var(--amber-dim);border:1px solid var(--amber);}
+.ai .bubble{background:var(--blue-dim);border:1px solid var(--blue);}
+.checkpoint .bubble{background:var(--green-dim);border:1px solid var(--green);}
+.bubble ul{padding-left:18px;margin:6px 0;}
+.bubble li{margin-bottom:4px;}
+.bubble code{background:rgba(255,255,255,0.1);border-radius:3px;padding:1px 5px;font-family:var(--font-mono);font-size:12px;}
+.bubble .approval-box{background:rgba(63,185,80,0.1);border:1px solid var(--green);border-radius:6px;padding:10px 12px;margin-top:10px;font-size:12px;}
+
+.doc-preview{background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:16px 0;}
+.doc-header{background:var(--bg2);padding:10px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted);font-family:var(--font-mono);}
+.doc-tab{background:var(--bg);border:1px solid var(--border2);border-bottom:none;padding:4px 12px;font-size:12px;font-family:var(--font-mono);border-radius:4px 4px 0 0;}
+.doc-body{padding:18px 22px;font-family:var(--font-mono);font-size:13px;line-height:1.8;}
+.doc-h1{color:#58A6FF;font-size:15px;font-weight:700;margin-bottom:8px;}
+.doc-h2{color:#3FB950;font-size:13px;font-weight:700;margin:14px 0 6px;}
+.doc-body .kw{color:#569CD6;}.doc-body .str{color:#CE9178;}.doc-body .cmt{color:#6A9955;}.doc-body .val{color:#B5CEA8;}.doc-body .sym{color:#D4D4D4;}
+.doc-li{padding:2px 0;color:var(--muted);}
+.doc-li::before{content:'- ';color:var(--dim);}
+
+.filetree{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;font-family:var(--font-mono);font-size:13px;margin:14px 0;}
+.ft-header{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:10px;}
+.ft-line{padding:2px 0;color:var(--muted);}
+.ft-folder{color:var(--blue);}.ft-file{color:var(--green);}.ft-file.new{color:var(--amber);}
+.ft-indent{display:inline-block;width:20px;}
+.new-badge{display:inline-block;background:var(--amber-dim);border:1px solid var(--amber);border-radius:3px;padding:0 5px;font-size:10px;color:var(--amber);margin-left:6px;}
+
+.callout{border-radius:8px;padding:13px 16px;margin:12px 0;font-size:13px;display:flex;gap:10px;}
+.callout.info{background:var(--blue-dim);border:1px solid var(--blue);}
+.callout.warn{background:var(--amber-dim);border:1px solid var(--amber);}
+.callout.success{background:var(--green-dim);border:1px solid var(--green);}
+.callout.tip{background:var(--purple-dim);border:1px solid var(--purple);}
+.callout .icon{font-size:16px;margin-top:1px;flex-shrink:0;}
+.callout p{margin:0;color:var(--white);}
+
+h3.sub{font-size:13px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:1px;margin:18px 0 8px;display:flex;align-items:center;gap:8px;}
+h3.sub::before{content:'';display:inline-block;width:3px;height:13px;background:var(--teal);border-radius:2px;}
+
+.nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding-top:20px;border-top:1px solid var(--border);}
+.btn{padding:9px 22px;border-radius:7px;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-ui);transition:all .15s;}
+.btn-primary{background:var(--green);color:#000;}
+.btn-primary:hover{filter:brightness(1.15);}
+.btn-secondary{background:var(--bg3);color:var(--white);border:1px solid var(--border2);}
+.btn-secondary:hover{background:var(--bg2);}
+.btn:disabled{opacity:.4;cursor:default;}
+.step-counter{font-size:13px;color:var(--muted);font-family:var(--font-mono);}
+
+.approval-gate{background:var(--green-dim);border:2px solid var(--green);border-radius:10px;padding:18px 22px;margin:16px 0;text-align:center;}
+.approval-gate .gate-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--green);margin-bottom:8px;}
+.approval-gate h4{font-size:16px;font-weight:700;color:var(--white);margin-bottom:6px;}
+.approval-gate p{font-size:13px;color:var(--muted);margin-bottom:12px;}
+.btn-approve{background:var(--green);color:#000;padding:8px 24px;border-radius:7px;border:none;font-size:14px;font-weight:700;cursor:pointer;}
+
+strong{color:var(--white);}
+</style>
+</head>
+<body>
+
+<div class="sim-header">
+  <div class="icon">🌱</div>
+  <div>
+    <h1>Simulation 2: Greenfield AIDLC Development</h1>
+    <p>Full walkthrough — building a brand-new notification service from intent to deployed code using AIDLC</p>
+    <div class="pills">
+      <span class="pill scenario">🌱 Greenfield Project</span>
+      <span class="pill">Azure DevOps</span>
+      <span class="pill">Visual Studio + GitHub Copilot</span>
+      <span class="pill">Jenkins CI/CD</span>
+      <span class="pill">Scenario: Notification Service</span>
+    </div>
+  </div>
+</div>
+
+<div class="sim-body">
+  <div class="sidebar">
+    <div class="sidebar-section">Scenario</div>
+    <div class="step-item active" id="nav-0" onclick="goTo(0)">
+      <div class="step-num">0</div>
+      <div><div class="step-label">Scenario Overview</div><div class="step-sublabel">What we're building</div></div>
+    </div>
+
+    <div class="phase-divider">📡 Inception Phase</div>
+    <div class="step-item" id="nav-1" onclick="goTo(1)">
+      <div class="step-num">1</div>
+      <div><div class="step-label">Workspace Detection</div><div class="step-sublabel">Greenfield identified</div></div>
+    </div>
+    <div class="step-item" id="nav-2" onclick="goTo(2)">
+      <div class="step-num">2</div>
+      <div><div class="step-label">Requirements Analysis</div><div class="step-sublabel">AI asks, team answers</div></div>
+    </div>
+    <div class="step-item" id="nav-3" onclick="goTo(3)">
+      <div class="step-num">3</div>
+      <div><div class="step-label">Story Generation</div><div class="step-sublabel">AI generates user stories</div></div>
+    </div>
+    <div class="step-item" id="nav-4" onclick="goTo(4)">
+      <div class="step-num">4</div>
+      <div><div class="step-label">Inception Approval</div><div class="step-sublabel">Human checkpoint ✅</div></div>
+    </div>
+
+    <div class="phase-divider">🏗️ Construction Phase</div>
+    <div class="step-item" id="nav-5" onclick="goTo(5)">
+      <div class="step-num">5</div>
+      <div><div class="step-label">Architecture Proposal</div><div class="step-sublabel">AI proposes design</div></div>
+    </div>
+    <div class="step-item" id="nav-6" onclick="goTo(6)">
+      <div class="step-num">6</div>
+      <div><div class="step-label">Code Generation</div><div class="step-sublabel">AI writes, you review</div></div>
+    </div>
+    <div class="step-item" id="nav-7" onclick="goTo(7)">
+      <div class="step-num">7</div>
+      <div><div class="step-label">Construction Approval</div><div class="step-sublabel">Code review gate ✅</div></div>
+    </div>
+
+    <div class="phase-divider">🚀 Operations Phase</div>
+    <div class="step-item" id="nav-8" onclick="goTo(8)">
+      <div class="step-num">8</div>
+      <div><div class="step-label">IaC &amp; Jenkins Config</div><div class="step-sublabel">AI generates pipeline</div></div>
+    </div>
+    <div class="step-item" id="nav-9" onclick="goTo(9)">
+      <div class="step-num">9</div>
+      <div><div class="step-label">Push &amp; Deploy</div><div class="step-sublabel">Azure DevOps → Jenkins</div></div>
+    </div>
+  </div>
+
+  <div class="main-area">
+    <div class="progress-bar-container">
+      <div class="progress-bar-outer"><div class="progress-bar-inner" id="progress" style="width:0%"></div></div>
+      <div class="progress-label" id="progress-label">Step 1 / 10</div>
+    </div>
+    <div class="step-content-area">
+
+      <!-- STEP 0: Scenario -->
+      <div class="step-panel active" id="step-0">
+        <div class="step-header">
+          <div class="phase-tag scenario">🌱 Scenario</div>
+          <h2>What We're Building</h2>
+          <p>Follow a lead developer through the full AIDLC workflow as they build a brand-new <strong>Notification Service</strong> from scratch — from PO intent statement to Jenkins deployment.</p>
+        </div>
+
+        <h3 class="sub">The Business Requirement (from Product Owner)</h3>
+        <div class="copilot-chat">
+          <div class="copilot-header inception-h">📋 Azure DevOps — Work Item #5012 (from PO)</div>
+          <div class="copilot-body">
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:16px;font-size:14px;">
+              <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">EPIC #5012 · Product Owner: Sarah T. · Priority: High</div>
+              <div style="font-size:16px;font-weight:700;color:var(--white);margin-bottom:12px;">Build a real-time notification service for the platform</div>
+              <div style="font-size:13px;color:var(--muted);line-height:1.7;">
+                <strong style="color:var(--white);">Context:</strong> Currently, users have no way to receive real-time alerts about events in the platform (invoice ready, payment failed, subscription expiring). This is blocking enterprise sales.<br><br>
+                <strong style="color:var(--white);">Request:</strong> Create a new notification service that can send email and in-app notifications triggered by platform events via Azure Service Bus. Must support templates, user preferences, and unsubscribe.<br><br>
+                <strong style="color:var(--white);">Constraints:</strong> Use SendGrid for email. Must work within our Azure AD security model. No notifications for users who have opted out per preference.<br><br>
+                <strong style="color:var(--white);">Success:</strong> 99% email delivery within 30 seconds of event. Zero false notifications.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="sub">Participants in This Simulation</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:12px 0;">
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:13px;"><div style="color:var(--amber);font-weight:700;margin-bottom:4px;">PO: Sarah T.</div>Provides intent, approves Inception gate</div>
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:13px;"><div style="color:var(--blue);font-weight:700;margin-bottom:4px;">Dev: Marcus L.</div>Leads AIDLC session, reviews code</div>
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:13px;"><div style="color:var(--teal);font-weight:700;margin-bottom:4px;">Architect: Priya R.</div>Approves architecture, reviews IaC</div>
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:13px;"><div style="color:var(--green);font-weight:700;margin-bottom:4px;">AI: GitHub Copilot</div>Drives workflow, generates artefacts</div>
+        </div>
+
+        <div class="nav-row">
+          <button class="btn btn-secondary" disabled>← Back</button>
+          <span class="step-counter">Step 1 / 10</span>
+          <button class="btn btn-primary" onclick="goTo(1)">Start AIDLC →</button>
+        </div>
+      </div>
+
+      <!-- STEP 1: Workspace Detection -->
+      <div class="step-panel" id="step-1">
+        <div class="step-header">
+          <div class="phase-tag inception">📡 Inception — Workspace Detection</div>
+          <h2>Marcus Triggers AIDLC</h2>
+          <p>Marcus opens Visual Studio, creates a new empty repo <code>notification-service</code> in Azure DevOps, and triggers the AIDLC workflow.</p>
+        </div>
+
+        <h3 class="sub">In Visual Studio — Copilot Chat</h3>
+        <div class="copilot-chat">
+          <div class="copilot-header inception-h">🤖 GitHub Copilot Chat — notification-service</div>
+          <div class="copilot-body">
+            <div class="chat-msg user">
+              <div class="sender">Marcus (Developer)</div>
+              <div class="bubble">Using AI-DLC, I want to build a new notification service for our platform. It should send email and in-app notifications triggered by Azure Service Bus events. The PO has a detailed brief in Azure DevOps work item #5012 which I've included below: [pastes PO brief]</div>
+            </div>
+            <div class="chat-msg ai">
+              <div class="sender">GitHub Copilot — AIDLC Workspace Detection</div>
+              <div class="bubble">
+                <strong>🔍 Workspace Detection</strong><br><br>
+                I'm scanning this workspace. I can see:<br>
+                <ul>
+                  <li>✅ AIDLC rules loaded (<code>.github/copilot-instructions.md</code>)</li>
+                  <li>🌱 <strong>Greenfield project</strong> — empty repository, no existing source code</li>
+                  <li>📄 Semantic context available — .NET 8, Azure Service Bus, Azure AD, SendGrid integration pattern noted</li>
+                </ul>
+                <br>
+                <strong>Greenfield path selected.</strong> I'll begin Requirements Analysis directly.<br><br>
+                Before I generate requirements, I have some clarifying questions:<br><br>
+                <strong>1. Notification channels:</strong> The brief mentions email and in-app. Should in-app mean: (a) push notifications to a mobile app, (b) a badge/alert within a web UI, or (c) both?<br>
+                <strong>2. Retry logic:</strong> If SendGrid delivery fails, how many retries? What's the SLA for retry delay?<br>
+                <strong>3. Template ownership:</strong> Who manages notification templates — product team via a UI, or developers via code/config?<br>
+                <strong>4. Multi-tenant:</strong> Does this service serve a single organisation or multiple tenants with separate preferences?
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout info">
+          <div class="icon">ℹ️</div>
+          <p><strong>What just happened:</strong> AIDLC performed Workspace Detection automatically — it identified this as a greenfield project (empty repo) and skipped the Reverse Engineering stage. It immediately moved to Requirements Analysis and surfaced clarifying questions the team would typically miss until mid-development.</p>
+        </div>
+
+        <div class="nav-row">
+          <button class="btn btn-secondary" onclick="goTo(0)">← Back</button>
+          <span class="step-counter">Step 2 / 10</span>
+          <button class="btn btn-primary" onclick="goTo(2)">See Requirements Analysis →</button>
+        </div>
+      </div>
+
+      <!-- STEP 2: Requirements Analysis -->
+      <div class="step-panel" id="step-2">
+        <div class="step-header">
+          <div class="phase-tag inception">📡 Inception — Requirements Analysis</div>
+          <h2>Mob Elaboration: Team Answers AI's Questions</h2>
+          <p>The team is on a Teams call (Mob Elaboration session). Marcus, Sarah (PO), and Priya (Architect) answer AI's clarifying questions together.</p>
+        </div>
+        <div class="copilot-chat">
+          <div class="copilot-header inception-h">🤖 Mob Elaboration — Teams Call (Marcus screen sharing)</div>
+          <div class="copilot-body">
+            <div class="chat-msg user">
+              <div class="sender">Sarah (PO) + Marcus answering</div>
+              <div class="bubble">
+                <strong>Answers:</strong><br>
+                1. In-app means a notification bell/badge in our web portal (React). Not mobile push — that's a future phase.<br>
+                2. Retry: 3 attempts, 30-second intervals. After 3 fails, log to Azure dead-letter queue and alert ops.<br>
+                3. Templates: developers manage via code (YAML files in the repo). No admin UI needed for MVP.<br>
+                4. Multi-tenant: single tenant for now, but structure code to support multi-tenant later (use TenantId in all entities even if nullable in MVP).
+              </div>
+            </div>
+            <div class="chat-msg ai">
+              <div class="sender">GitHub Copilot — Generating Requirements</div>
+              <div class="bubble">
+                Thank you. Two more questions before I finalise:<br><br>
+                <strong>5. User preferences:</strong> Should users be able to opt out per-channel (e.g. "email off, in-app on") or only opt out entirely?<br>
+                <strong>6. Audit requirements:</strong> Does the business need a complete record of every notification sent (for compliance/support)?
+              </div>
+            </div>
+            <div class="chat-msg user">
+              <div class="sender">Sarah (PO)</div>
+              <div class="bubble">
+                5. Per-channel opt-out — users should be able to control email and in-app separately.<br>
+                6. Yes — store notification history for 90 days for support queries. Not a hard compliance requirement but operationally important.
+              </div>
+            </div>
+            <div class="chat-msg ai">
+              <div class="sender">GitHub Copilot — Writing requirements.md</div>
+              <div class="bubble">
+                ✅ Generating <code>aidlc-docs/inception/requirements.md</code>...<br><br>
+                I've captured all requirements. Writing the artefact now. I'll also flag one architectural concern for Priya:<br><br>
+                <div class="approval-box">⚠️ <strong>Architectural flag:</strong> Storing notification history for 90 days with potential high volume (thousands/day) will require a partitioned SQL table or a separate time-series store. I'll include both options in the requirements and note it as an open decision for Construction phase.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="sub">Generated: aidlc-docs/inception/requirements.md (excerpt)</h3>
+        <div class="doc-preview">
+          <div class="doc-header"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div><div class="doc-tab">requirements.md</div><div style="margin-left:auto;font-size:11px;">AI-generated · awaiting PO approval</div></div>
+          <div class="doc-body">
+            <div class="doc-h1"># Notification Service — Requirements</div>
+            <div style="font-size:11px;color:var(--dim);margin-bottom:12px;">Generated: AIDLC Inception Phase · Mob Elaboration session · Pending: PO approval</div>
+            <div class="doc-h2">## Functional Requirements</div>
+            <div class="doc-li">FR-01: Service receives events from Azure Service Bus (topic: <code style="font-size:11px;">platform-events</code>)</div>
+            <div class="doc-li">FR-02: Supported notification channels: email (SendGrid) and in-app (web portal badge)</div>
+            <div class="doc-li">FR-03: Users may opt out per-channel independently via preference API</div>
+            <div class="doc-li">FR-04: Template management via YAML files committed to repository</div>
+            <div class="doc-li">FR-05: Notification history stored for 90 days (soft delete after)</div>
+            <div class="doc-li">FR-06: Retry logic: 3 attempts at 30s intervals; dead-letter queue on 3rd failure</div>
+            <div class="doc-h2">## Non-Functional Requirements</div>
+            <div class="doc-li">NFR-01: 99% email delivery within 30 seconds of event receipt</div>
+            <div class="doc-li">NFR-02: Horizontally scalable (Azure Service Bus subscription, competing consumers)</div>
+            <div class="doc-li">NFR-03: TenantId field on all entities (nullable in MVP)</div>
+            <div class="doc-li">NFR-04: Azure AD authentication on all management endpoints</div>
+            <div class="doc-h2">## Open Decisions</div>
+            <div class="doc-li">OD-01: Notification history storage — SQL partitioned table vs Azure Table Storage (resolve in Construction)</div>
+          </div>
+        </div>
+
+        <div class="nav-row">
+          <button class="btn btn-secondary" onclick="goTo(1)">← Back</button>
+          <span class="step-counter">Step 3 / 10</span>
+          <button class="btn btn-primary" onclick="goTo(3)">See Story Generation →</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: Story Generation -->
+      <div class="step-panel" id="step-3">
+        <div class="step-header">
+          <div class="phase-tag inception">📡 Inception — Story Generation</div>
+          <h2>AI Generates User Stories</h2>
+          <p>With approved requirements, AIDLC generates user stories, acceptance criteria, and Azure DevOps work items automatically.</p>
+        </div>
+        <div class="copilot-chat">
+          <div class="copilot-header inception-h">🤖 GitHub Copilot — Story Generation</div>
+          <div class="copilot-body">
+            <div class="chat-msg ai">
+              <div class="sender">GitHub Copilot</div>
+              <div class="bubble">
+                Based on the approved requirements, I'm generating user stories. Creating <code>aidlc-docs/inception/stories.md</code>:<br><br>
+                <strong>Story 1 — Email Notification Delivery</strong><br>
+                <em>As a platform user, I want to receive an email notification when a significant event occurs (e.g., invoice ready), so that I stay informed without logging into the portal.</em><br>
+                <ul>
+                  <li>AC-01: Given a `InvoiceReady` event on the bus, when the service processes it, then email is sent within 30 seconds</li>
+                  <li>AC-02: Given user has opted out of email, when event fires, then no email is sent and opt-out is logged</li>
+                  <li>AC-03: Given SendGrid returns HTTP 5xx, then retry 3× at 30s intervals before dead-lettering</li>
+                </ul>
+                <br>
+                <strong>Story 2 — In-App Notification Badge</strong><br>
+                <em>As a portal user, I want to see a notification badge when I have unread notifications, so that I can see alerts without leaving my current page.</em><br>
+                <ul>
+                  <li>AC-01: Badge count increments when a new in-app notification is created for the logged-in user</li>
+                  <li>AC-02: Badge disappears when user views all notifications (GET /api/v1/notifications?unread=true)</li>
+                </ul>
+                <br>
+                <em>...+ 6 more stories generated (preferences API, template management, history endpoint, admin unsubscribe, dead-letter monitoring, health check endpoint)</em><br><br>
+                <strong>Ready to create Azure DevOps work items?</strong> I can push these directly to your backlog.
+              </div>
+            </div>
+            <div class="chat-msg user">
+              <div class="sender">Sarah (PO) — approving</div>
+              <div class="bubble">Stories 1–6 look good. Story 7 (admin unsubscribe) needs splitting — one story for admin UI, one for API. Please split and re-generate Story 7 before I give final approval.</div>
+            </div>
+            <div class="chat-msg ai">
+              <div class="sender">GitHub Copilot</div>
+              <div class="bubble">✅ Updated — Story 7 split into Story 7a (admin API) and Story 7b (admin portal UI, deferred to Phase 2 per Sarah's direction). Stories.md updated. Ready for final PO approval.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-row">
+          <button class="btn btn-secondary" onclick="goTo(2)">← Back</button>
+          <span class="step-counter">Step 4 / 10</span>
+          <button class="btn btn-primary" onclick="goTo(4)">Inception Approval Gate →</button>
+        </div>
+      </div>
+
+      <!-- STEP 4: Inception Approval -->
+      <div class="step-panel" id="step-4">
+        <div class="step-header">
+          <div class="phase-tag inception">📡 Inception — Approval Gate</div>
+          <h2>PO Signs Off: Inception Complete</h2>
+          <p>Sarah reviews the final requirements and stories, then explicitly approves the Inception phase. AIDLC cannot proceed to Construction without this.</p>
+        </div>
+        <div class="approval-gate">
+          <div class="gate-label">🔒 Human Checkpoint — MANDATORY</div>
+          <h4>Inception Phase Approval Gate</h4>
+          <p>PO must explicitly approve <code>requirements.md</code> and <code>stories.md</code> before Construction begins. AI will not proceed without this confirmation.</p>
+        </div>
+        <div class="copilot-chat">
+          <div class="copilot-header inception-h">🤖 GitHub Copilot</div>
+          <div class="copilot-body">
+            <div class="chat-msg user">
+              <div class="sender">Sarah (PO) — Formal Approval</div>
+              <div class="bubble">AI-DLC, I approve the Inception phase. requirements.md and stories.md are correct and complete. Please proceed to Construction phase.</div>
+            </div>
+            <div class="chat-msg checkpoint">
+              <div class="sender">✅ AIDLC — Inception Gate Passed</div>
+              <div class="bubble">
+                <strong>Inception phase approved by: Sarah T. (Product Owner)</strong><br>
+                Timestamp logged to <code>aidlc-docs/audit.md</code><br><br>
+                ✅ requirements.md — approved<br>
+                ✅ stories.md — approved (8 stories, 1 deferred)<br>
+                ✅ audit.md — updated<br><br>
+                <strong>Beginning Construction Phase</strong> — Functional Design stage.
+              </div>
+            </div>
+          </div>
+        </div>
+        <h3 class="sub">Artefacts committed to repo after Inception</h3>
+        <div class="filetree">
+          <div class="ft-header">aidlc-docs/ — after Inception</div>
+          <div class="ft-line"><span class="ft-folder">📁 aidlc-docs/</span></div>
+          <div class="ft-line"><span class="ft-indent"></span><span class="ft-folder">📁 inception/</span></div>
+          <div class="ft-line"><span class="ft-indent"></span><span class="ft-indent"></span><span class="ft-file new">📄 requirements.md</span> <span class="new-badge">✓ approved</span></div>
+          <div class="ft-line"><span class="ft-indent"></span><span class="ft-indent"></span><span class="ft-file new">📄 stories.md</span> <span class="new-badge">✓ approved</span></div>
+          <div class="ft-line"><span class="ft-indent"></span><span class="ft-file new">📄 audit.md</span> <span class="new-badge">updated</span></div>
+          <div class="ft-line"><span class="ft-indent"></span><span class="ft-file new">📄 aidlc-state.md</span> <span class="new-badge">phase: construction</span></div>
+        </div>
+        <div class="nav-row">
+          <button class="btn btn-secondary" onclick="goTo(3)">← Back</button>
+          <span class="step-counter">Step 5 / 10</span>
+          <button class="btn btn-primary" onclick="goTo(5)">Construction: Architecture →</button>
+        </div>
+      </div>
+
+      <!-- STEP 5: Architecture -->
+      <div class="step-panel" id="step-5">
+        <div class="step-header">
+          <div class="phase-tag construction">🏗️ Construction — Architecture</div>
+          <h2>AI Proposes Architecture (Mob Construction)</h2>
+          <p>Priya (Architect) and Marcus join a Mob Construction session. AI proposes the service architecture based on accumulated requirements context.</p>
+        </div>
+        <div class="copilot-chat">
+          <div class="copilot-header construction-h">🤖 GitHub Copilot — Functional Design</div>
+          <div class="copilot-body">
+            <div class="chat-msg ai">
+              <div class="sender">GitHub Copilot — Proposing Architecture</div>
+              <div class="bubble">
+                Based on requirements and your semantic context (.NET 8, CQRS, Repository pattern), I'm proposing this architecture for <code>notification-service</code>:<br><br>
+                <strong>Solution Structure:</strong>
+                <ul>
+                  <li><code>NotificationService.API</code> — REST endpoints, Azure AD auth, user preferences</li>
+                  <li><code>NotificationService.Worker</code> — Azure Service Bus consumer, processes events</li>
+                  <li><code>NotificationService.Core</code> — Domain, commands/queries via MediatR</li>
+                  <li><code>NotificationService.Infrastructure</code> — EF Core, SendGrid, Service Bus client</li>
+                  <li><code>NotificationService.Tests</code> — xUnit, NSubstitute, FluentAssertions</li>
+                </ul>
+                <br>
+                <strong>Open Decision OD-01 resolution:</strong> I recommend SQL Server with table partitioning by <code>CreatedDate</code> for notification history. Rationale: consistency with your existing stack (avoids a new Azure storage dependency), partitioning handles the 90-day retention efficiently.<br><br>
+                <strong>⚠️ Question for Priya:</strong> Should the Worker use a Service Bus <em>Subscription</em> (fan-out to multiple consumers) or a <em>Queue</em> (single consumer)? The subscription model supports scaling but requires topic configuration on the platform-events bus.
+              </div>
+            </div>
+            <div class="chat-msg user">
+              <div class="sender">Priya (Architect)</div>
+              <div class="bubble">Use subscription — we'll need fan-out when we add audit logging later. I approve the overall architecture and OD-01 resolution. Proceed with code generation.</div>
+            </div>
+          </div>
+        </div>
+        <h3 class="sub">Generated: aidlc-docs/construction/design.md (excerpt)</h3>
+        <div class="doc-preview">
+          <div class="doc-header"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div><div class="doc-tab">construction/design.md</div></div>
+          <div class="doc-body">
+            <div class="doc-h1"># Notification Service — Functional Design</div>
+            <div class="doc-h2">## Solution Projects</div>
+            <div class="doc-li">NotificationService.API (.NET 8 Web API)</div>
+            <div class="doc-li">NotificationService.Worker (.NET 8 Worker Service)</div>
+            <div class="doc-li">NotificationService.Core (Class Library)</div>
+            <div class="doc-li">NotificationService.Infrastructure (Class Library)</div>
+            <div class="doc-h2">## Key Design Decisions</div>
+            <div class="doc-li">CQRS via MediatR — Commands for send/manage, Queries for history/preferences</div>
+            <div class="doc-li">Azure Service Bus Subscription (not Queue) — supports fan-out for future audit service</div>
+            <div class="doc-li">SQL Server with table partitioning by CreatedDate — handles 90-day history retention</div>
+            <div class="doc-li">TenantId (nullable) on all entities — multi-tenant ready</div>
+            <div class="doc-h2">## Approved by</div>
+            <div class="doc-li">Priya R. (Architect) — [timestamp in audit.md]</div>
+          </div>
+        </div>
+        <div class="nav-row">
+          <button class="btn btn-secondary" onclick="goTo(4)">← Back</button>
+          <span class="step-counter">Step 6 / 10</span>
+          <button class="btn btn-primary" onclick="goTo(6)">Code Generation →</button>
+        </div>
+      </div>
+
+      <!-- STEP 6: Code Generation -->
+      <div class="step-panel" id="step-6">
+        <div class="step-header">
+          <div class="phase-tag construction">🏗️ Construction — Code Generation</div>
+          <h2>AI Generates Code — Marcus Reviews</h2>
+          <p>AIDLC generates the service scaffold, key domain classes, and the Service Bus consumer. Marcus reviews every file before approving.</p>
+        </div>
+        <div class="terminal">
+          <div class="terminal-header"><div class="dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div><div class="t-title">VS Copilot Chat — Code Generation Output</div></div>
+          <div class="terminal-body">
+            <div class="tl"><span class="ti">→ Creating solution scaffold...</span></div>
+            <div class="tl"><span class="ts">✓ NotificationService.sln</span></div>
+            <div class="tl"><span class="ts">✓ NotificationService.API/Program.cs (Azure AD auth, Serilog, FluentValidation configured)</span></div>
+            <div class="tl"><span class="ts">✓ NotificationService.Core/Domain/Notification.cs</span></div>
+            <div class="tl"><span class="ts">✓ NotificationService.Core/Domain/UserPreference.cs</span></div>
+            <div class="tl"><span class="ts">✓ NotificationService.Core/Commands/SendNotificationCommand.cs (MediatR)</span></div>
+            <div class="tl"><span class="ts">✓ NotificationService.Infrastructure/Repositories/NotificationRepository.cs</span></div>
+            <div class="tl"><span class="ts">✓ NotificationService.Infrastructure/SendGrid/SendGridEmailSender.cs</span></div>
+            <div class="tl"><span class="ts">✓ NotificationService.Worker/ServiceBusConsumer.cs</span></div>
+            <div class="tl gap"><span class="ts">✓ NotificationService.Tests/SendNotificationCommandHandlerTests.cs</span></div>
+            <div class="tl"><span class="ti">→ Generating EF Core migration...</span></div>
+            <div class="tl"><span class="ts">✓ NotificationService.Infrastructure/Migrations/001_InitialCreate.cs</span></div>
+          </div>
+        </div>
+
+        <h3 class="sub">Marcus reviews: ServiceBusConsumer.cs (key file)</h3>
+        <div class="doc-preview">
+          <div class="doc-header"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div><div class="doc-tab">NotificationService.Worker/ServiceBusConsumer.cs</div><div style="margin-left:auto;font-size:11px;color:var(--amber);">⚠ Review required before merge</div></div>
+          <div class="doc-body">
+<span style="color:#858585;margin-right:16px;font-size:11px;">1</span><span style="color:#569CD6;">public class</span> <span style="color:#DCDCAA;">ServiceBusConsumer</span> : <span style="color:#4EC9B0;">BackgroundService</span><br>
+<span style="color:#858585;margin-right:16px;font-size:11px;">2</span>{<br>
+<span style="color:#858585;margin-right:16px;font-size:11px;">3</span>  <span style="color:#569CD6;">private readonly</span> <span style="color:#4EC9B0;">ServiceBusProcessor</span> <span style="color:#9CDCFE;">_processor</span>;<br>
+<span style="color:#858585;margin-right:16px;font-size:11px;">4</span>  <span style="color:#569CD6;">private readonly</span> <span style="color:#4EC9B0;">IMediator</span> <span style="color:#9CDCFE;">_mediator</span>;<br>
+<span style="color:#858585;margin-right:16px;font-size:11px;">5</span>  <span style="color:#6A9955;">// Retry policy handled by Azure Service Bus — no manual retry needed here</span><br>
+<span style="color:#858585;margin-right:16px;font-size:11px;">6</span>  <span style="color:#6A9955;">// MaxDeliveryCount: 3 in ServiceBusOptions (configured in Operations)</span><br>
+<span style="color:#858585;margin-right:16px;font-size:11px;">7</span><br>
+<span style="color:#858585;margin-right:16px;font-size:11px;">8</span>  <span style="color:#569CD6;">protected override async</span> <span style="color:#4EC9B0;">Task</span> <span style="color:#DCDCAA;">ExecuteAsync</span>(<span style="color:#4EC9B0;">CancellationToken</span> <span style="color:#9CDCFE;">stoppingToken</span>)<br>
+<span style="color:#858585;margin-right:16px;font-size:11px;">9</span>  {<br>
+<span style="color:#858585;margin-right:16px;font-size:11px;">10</span>   <span style="color:#9CDCFE;">_processor</span>.<span style="color:#DCDCAA;">ProcessMessageAsync</span> += <span style="color:#DCDCAA;">ProcessMessageHandler</span>;<br>
+<span style="color:#858585;margin-right:16px;font-size:11px;">11</span>   <span style="color:#9CDCFE;">_processor</span>.<span style="color:#DCDCAA;">ProcessErrorAsync</span> += <span style="color:#DCDCAA;">ProcessErrorHandler</span>;<br>
+<span style="color:#858585;margin-right:16px;font-size:11px;">12</span>   <span style="color:#569CD6;">await</span> <span style="color:#9CDCFE;">_processor</span>.<span style="color:#DCDCAA;">StartProcessingAsync</span>(<span style="color:#9CDCFE;">stoppingToken</span>);<br>
+<span style="color:#858585;margin-right:16px;font-size:11px;">13</span>  }<br>
+          </div>
+        </div>
+        <div class="callout success">
+          <div class="icon">✓</div>
+          <p><strong>Marcus's review note:</strong> AI correctly used Azure Service Bus's built-in retry mechanism (MaxDeliveryCount) rather than implementing manual retry in code — this matches our NFR-06 and is more reliable. Code structure follows CQRS with MediatR as per semantic context. Approved for merge.</p>
+        </div>
+        <div class="nav-row">
+          <button class="btn btn-secondary" onclick="goTo(5)">← Back</button>
+          <span class="step-counter">Step 7 / 10</span>
+          <button class="btn btn-primary" onclick="goTo(7)">Construction Approval →</button>
+        </div>
+      </div>
+
+      <!-- STEP 7: Construction Approval -->
+      <div class="step-panel" id="step-7">
+        <div class="step-header">
+          <div class="phase-tag construction">🏗️ Construction — Approval Gate</div>
+          <h2>Architect + Lead Dev Approve Construction</h2>
+          <p>Priya and Marcus review all generated code in Mob Construction, then sign off. AIDLC moves to Operations phase.</p>
+        </div>
+        <div class="approval-gate">
+          <div class="gate-label">🔒 Human Checkpoint — MANDATORY</div>
+          <h4>Construction Phase Approval Gate</h4>
+          <p>Architect (Priya) and Lead Dev (Marcus) must approve generated code. All files reviewed in Mob Construction session.</p>
+        </div>
+        <div class="copilot-chat">
+          <div class="copilot-header construction-h">🤖 GitHub Copilot</div>
+          <div class="copilot-body">
+            <div class="chat-msg user">
+              <div class="sender">Priya (Architect) + Marcus (Lead Dev)</div>
+              <div class="bubble">AI-DLC, we've reviewed all generated files. Architecture matches design.md. One change: rename <code>SendGridEmailSender</code> to <code>EmailNotificationSender</code> to make it channel-agnostic. Apply that rename and then we approve Construction.</div>
+            </div>
+            <div class="chat-msg ai">
+              <div class="sender">GitHub Copilot</div>
+              <div class="bubble">✅ Renamed <code>SendGridEmailSender</code> → <code>EmailNotificationSender</code> across all files. Interface updated accordingly.</div>
+            </div>
+            <div class="chat-msg user">
+              <div class="sender">Marcus (Lead Dev) — Final Approval</div>
+              <div class="bubble">AI-DLC, Construction phase approved. Please proceed to Operations phase.</div>
+            </div>
+            <div class="chat-msg checkpoint">
+              <div class="sender">✅ AIDLC — Construction Gate Passed</div>
+              <div class="bubble">
+                Construction phase approved by: Marcus L. (Lead Dev) + Priya R. (Architect)<br>
+                Logged to audit.md. Beginning Operations phase — IaC and Jenkins pipeline generation.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="nav-row">
+          <button class="btn btn-secondary" onclick="goTo(6)">← Back</button>
+          <span class="step-counter">Step 8 / 10</span>
+          <button class="btn btn-primary" onclick="goTo(8)">Operations: IaC + Jenkins →</button>
+        </div>
+      </div>
+
+      <!-- STEP 8: Operations -->
+      <div class="step-panel" id="step-8">
+        <div class="step-header">
+          <div class="phase-tag operations">🚀 Operations — IaC &amp; Jenkins</div>
+          <h2>AI Generates Jenkinsfile and IaC</h2>
+          <p>AIDLC uses the accumulated context to generate the Jenkins pipeline and infrastructure configuration. Priya reviews before applying.</p>
+        </div>
+        <div class="copilot-chat">
+          <div class="copilot-header operations-h">🤖 GitHub Copilot — Operations Phase</div>
+          <div class="copilot-body">
+            <div class="chat-msg ai">
+              <div class="sender">GitHub Copilot — Generating Operations Artefacts</div>
+              <div class="bubble">
+                Based on construction artefacts and your semantic context (Jenkins, Checkmarx SAST, Azure Key Vault), I'm generating:<br><br>
+                <strong>Jenkinsfile</strong> — pipeline stages: Build → UnitTest → SAST (Checkmarx) → Deploy-Dev → IntegrationTest → Deploy-Prod<br>
+                <strong>IaC (Azure Bicep)</strong> — Service Bus subscription, SQL Server database, App Service plan, Azure Key Vault secrets mapping<br>
+                <strong>appsettings template</strong> — config referencing Key Vault for SendGrid API key, Service Bus connection string<br><br>
+                ⚠️ <strong>Note:</strong> I've preserved your existing Checkmarx SAST stage — I did not modify security scanning configuration. Deploy-Prod requires manual approval gate in Jenkins per your existing policy.
+              </div>
+            </div>
+          </div>
+        </div>
+        <h3 class="sub">Generated: Jenkinsfile (excerpt)</h3>
+        <div class="terminal">
+          <div class="terminal-header"><div class="dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div><div class="t-title">Jenkinsfile — AI-generated, reviewed by Priya</div></div>
+          <div class="terminal-body">
+            <div class="tl"><span class="tcm">pipeline {</span></div>
+            <div class="tl"><span class="tcm">  agent any</span></div>
+            <div class="tl gap"><span class="tcm">  stages {</span></div>
+            <div class="tl"><span class="tcm">    stage('Build') {</span></div>
+            <div class="tl"><span class="tcm">      steps { sh 'dotnet build --configuration Release' } }</span></div>
+            <div class="tl gap"><span class="tcm">    stage('Unit Tests') {</span></div>
+            <div class="tl"><span class="tcm">      steps { sh 'dotnet test --no-build --logger trx' }</span></div>
+            <div class="tl gap"><span class="tcm">      post { always { junit 'TestResults/*.trx' } } }</span></div>
+            <div class="tl"><span class="ts">    stage('SAST - Checkmarx') {</span><span class="tcm">  </span><span class="tcm">// ← Preserved, not modified by AI</span></div>
+            <div class="tl gap"><span class="tcm">      steps { checkmarxScan projectName: 'notification-service' } }</span></div>
+            <div class="tl"><span class="th">    stage('Deploy Dev') { ... }</span></div>
+            <div class="tl"><span class="th">    stage('Integration Tests') { ... }</span></div>
+            <div class="tl"><span class="tw">    stage('Deploy Prod') {</span><span class="tcm"> // manual approval required</span></div>
+            <div class="tl"><span class="tcm">      input message: 'Approve production deployment?'</span></div>
+            <div class="tl"><span class="tcm">      steps { ... } } }</span></div>
+          </div>
+        </div>
+        <div class="callout success">
+          <div class="icon">✓</div>
+          <p><strong>Priya's review:</strong> Checkmarx stage correctly preserved. Manual approval gate for prod present. Key Vault references correct — no secrets hardcoded. IaC Bicep files reviewed and approved.</p>
+        </div>
+        <div class="nav-row">
+          <button class="btn btn-secondary" onclick="goTo(7)">← Back</button>
+          <span class="step-counter">Step 9 / 10</span>
+          <button class="btn btn-primary" onclick="goTo(9)">Push &amp; Deploy →</button>
+        </div>
+      </div>
+
+      <!-- STEP 9: Deploy -->
+      <div class="step-panel" id="step-9">
+        <div class="step-header">
+          <div class="phase-tag operations">🚀 Operations — Deploy</div>
+          <h2>Push to Azure DevOps, Jenkins Runs</h2>
+          <p>Marcus creates the PR in Azure DevOps, it's reviewed and merged, Jenkins picks it up automatically.</p>
+        </div>
+        <div class="terminal">
+          <div class="terminal-header"><div class="dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div><div class="t-title">PowerShell — Final push</div></div>
+          <div class="terminal-body">
+            <div class="tl"><span class="tcm"># Add, commit and push all generated files</span></div>
+            <div class="tl"><span class="tp">$</span><span class="tc"> git add .</span></div>
+            <div class="tl"><span class="tp">$</span><span class="tc"> git commit -m "feat: add notification service via AIDLC #5012</span></div>
+            <div class="tl"><span class="tc">  - Inception artefacts: requirements.md, stories.md</span></div>
+            <div class="tl"><span class="tc">  - Construction artefacts: design.md, full solution scaffold</span></div>
+            <div class="tl gap"><span class="tc">  - Operations: Jenkinsfile, Bicep IaC, appsettings template"</span></div>
+            <div class="tl gap"><span class="tp">$</span><span class="tc"> git push origin feat/notification-service-aidlc</span></div>
+            <div class="tl"><span class="ts">✓ Pushed. Open PR in Azure DevOps...</span></div>
+            <div class="tl gap"><span class="th">→ PR #412 created: "feat: notification-service" — reviewers: Priya, Sarah</span></div>
+            <div class="tl"><span class="tcm"># After PR merge, Jenkins triggers automatically</span></div>
+            <div class="tl"><span class="ti">→ Jenkins: notification-service #1 triggered</span></div>
+            <div class="tl"><span class="ts">✓ Build: PASSED</span></div>
+            <div class="tl"><span class="ts">✓ Unit Tests: 47 passed, 0 failed</span></div>
+            <div class="tl"><span class="ts">✓ SAST (Checkmarx): 0 high/critical findings</span></div>
+            <div class="tl"><span class="ts">✓ Deploy-Dev: DEPLOYED</span></div>
+            <div class="tl"><span class="ts">✓ Integration Tests: PASSED</span></div>
+            <div class="tl"><span class="tw">⏸ Deploy-Prod: awaiting manual approval...</span></div>
+            <div class="tl"><span class="ts">✓ Deploy-Prod: APPROVED by Priya → DEPLOYED</span></div>
+          </div>
+        </div>
+        <div style="background:var(--green-dim);border:2px solid var(--green);border-radius:12px;padding:24px;margin:16px 0;text-align:center;">
+          <div style="font-size:32px;margin-bottom:8px;">🎉</div>
+          <h3 style="font-size:18px;color:var(--green);margin-bottom:8px;">Greenfield AIDLC Complete</h3>
+          <p style="font-size:14px;color:var(--muted);">Notification service designed, built, tested, and deployed — from PO intent statement to production — following the full AIDLC Inception → Construction → Operations workflow.</p>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px;text-align:center;">
+            <div><div style="font-size:22px;font-weight:800;color:var(--green);">~4 hrs</div><div style="font-size:12px;color:var(--muted);">Mob Elaboration to first commit</div></div>
+            <div><div style="font-size:22px;font-weight:800;color:var(--green);">47</div><div style="font-size:12px;color:var(--muted);">Tests generated &amp; passing</div></div>
+            <div><div style="font-size:22px;font-weight:800;color:var(--green);">0</div><div style="font-size:12px;color:var(--muted);">SAST findings</div></div>
+            <div><div style="font-size:22px;font-weight:800;color:var(--green);">100%</div><div style="font-size:12px;color:var(--muted);">Human-approved at every gate</div></div>
+          </div>
+        </div>
+        <div class="nav-row">
+          <button class="btn btn-secondary" onclick="goTo(8)">← Back</button>
+          <span class="step-counter">Step 10 / 10</span>
+          <button class="btn btn-primary" onclick="goTo(0)" style="background:var(--teal);">↩ Restart</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const TOTAL=10;let cur=0;
+function goTo(n){
+  document.getElementById('step-'+cur).classList.remove('active');
+  document.getElementById('nav-'+cur).classList.remove('active');
+  if(cur<n)document.getElementById('nav-'+cur).classList.add('done');
+  cur=n;
+  document.getElementById('step-'+cur).classList.add('active');
+  document.getElementById('nav-'+cur).classList.add('active');
+  document.getElementById('nav-'+cur).classList.remove('done');
+  const pct=Math.round((cur/(TOTAL-1))*100);
+  document.getElementById('progress').style.width=pct+'%';
+  document.getElementById('progress-label').textContent='Step '+(cur+1)+' / '+TOTAL;
+  document.querySelector('.step-content-area').scrollTop=0;
+}
+</script>
+</body>
+</html>

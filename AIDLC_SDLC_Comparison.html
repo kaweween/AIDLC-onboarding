@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SDLC vs AIDLC — Dynamic Comparison</title>
+<style>
+  :root {
+    --navy: #1E2761;
+    --ice: #CADCFC;
+    --accent: #4A90D9;
+    --teal: #028090;
+    --amber: #F5A623;
+    --coral: #E8593C;
+    --green: #3B6D11;
+    --light-bg: #F4F7FB;
+    --border: #DDE4F0;
+    --text: #1a1a2e;
+    --muted: #5a6a85;
+    --sdlc-color: #B07A10;
+    --sdlc-bg: #FFF8EC;
+    --sdlc-border: #F5D08A;
+    --aidlc-color: #0A5C42;
+    --aidlc-bg: #EAF7F0;
+    --aidlc-border: #7FCCA5;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI',Arial,sans-serif; font-size:15px; color:var(--text); background:var(--light-bg); line-height:1.6; }
+  
+  .header { background:var(--navy); color:white; padding:40px 60px 32px; }
+  .header h1 { font-size:30px; font-weight:700; margin-bottom:6px; }
+  .header p { color:var(--ice); font-size:15px; }
+  
+  /* FILTER BAR */
+  .filter-bar { background:white; border-bottom:1px solid var(--border); padding:14px 40px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; position:sticky; top:0; z-index:20; }
+  .filter-bar span { font-size:13px; font-weight:600; color:var(--muted); margin-right:4px; }
+  .filter-btn { border:1px solid var(--border); border-radius:20px; padding:5px 14px; font-size:13px; cursor:pointer; background:white; color:var(--navy); transition:all 0.15s; font-weight:500; }
+  .filter-btn.active { background:var(--navy); color:white; border-color:var(--navy); }
+  .filter-btn:hover:not(.active) { background:var(--light-bg); }
+  .filter-btn.sdlc-filter.active { background:var(--sdlc-color); border-color:var(--sdlc-color); }
+  .filter-btn.aidlc-filter.active { background:var(--aidlc-color); border-color:var(--aidlc-color); }
+  .filter-btn.risk-filter.active { background:var(--coral); border-color:var(--coral); }
+  .filter-btn.benefit-filter.active { background:var(--teal); border-color:var(--teal); }
+
+  /* LEGEND */
+  .legend { background:white; border-bottom:1px solid var(--border); padding:10px 40px; display:flex; gap:20px; flex-wrap:wrap; }
+  .legend-item { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted); }
+  .legend-dot { width:12px; height:12px; border-radius:50%; }
+  .dot-benefit { background:#028090; }
+  .dot-risk { background:#E8593C; }
+  .dot-neutral { background:#888; }
+  .dot-better { background:#3B6D11; }
+
+  /* MAIN GRID */
+  .main { padding:32px 40px; max-width:1200px; margin:0 auto; }
+
+  /* CONCEPT SECTION */
+  .concept-section { margin-bottom:32px; }
+  .concept-section.hidden { display:none; }
+  
+  .section-title { font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin-bottom:14px; padding-bottom:8px; border-bottom:2px solid var(--border); display:flex; align-items:center; gap:10px; }
+  
+  .row { display:grid; grid-template-columns:200px 1fr 1fr; gap:2px; margin-bottom:3px; align-items:stretch; }
+  .row.header-row { margin-bottom:8px; }
+  
+  .concept-label { background:#F0F4FF; border-radius:6px; padding:12px 14px; display:flex; align-items:center; font-weight:700; font-size:14px; color:var(--navy); }
+  
+  .sdlc-cell { background:var(--sdlc-bg); border:1px solid var(--sdlc-border); border-radius:6px; padding:14px 16px; font-size:14px; }
+  .aidlc-cell { background:var(--aidlc-bg); border:1px solid var(--aidlc-border); border-radius:6px; padding:14px 16px; font-size:14px; }
+  
+  .col-header { display:flex; align-items:center; gap:8px; font-weight:700; font-size:13px; padding:10px 14px; border-radius:6px; }
+  .col-header.sdlc { background:var(--sdlc-color); color:white; }
+  .col-header.aidlc { background:var(--aidlc-color); color:white; }
+  .col-header.empty { background:transparent; }
+
+  /* ANNOTATIONS */
+  .annotation { display:inline-flex; align-items:center; gap:4px; margin-top:8px; padding:3px 8px; border-radius:10px; font-size:12px; font-weight:600; }
+  .ann-benefit { background:#E0F5F0; color:#0A5C42; border:1px solid #7FCCA5; }
+  .ann-risk { background:#FDECEA; color:#922B21; border:1px solid #F1A9A0; }
+  .ann-neutral { background:#F0F0F0; color:#555; border:1px solid #CCC; }
+  .ann-better { background:#E0F0E8; color:#2E6B3E; border:1px solid #80C4A0; }
+
+  /* DELTA INDICATOR */
+  .delta { display:inline-block; border-radius:12px; padding:2px 10px; font-size:12px; font-weight:700; margin-left:8px; }
+  .delta-up { background:#D4F0E8; color:#0A5C42; }
+  .delta-down { background:#FDECEA; color:#922B21; }
+  .delta-same { background:#F0F0F0; color:#555; }
+
+  /* SUMMARY BAR */
+  .summary-bar { background:var(--navy); color:white; border-radius:12px; padding:24px 32px; margin-bottom:32px; display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:20px; }
+  .summary-stat { text-align:center; }
+  .summary-stat .num { font-size:28px; font-weight:800; color:var(--ice); }
+  .summary-stat .label { font-size:12px; color:rgba(255,255,255,0.65); margin-top:4px; }
+
+  /* DETAIL MODAL */
+  .detail-panel { background:white; border:1px solid var(--border); border-radius:10px; padding:20px 24px; margin-top:8px; margin-bottom:12px; display:none; }
+  .detail-panel.open { display:block; }
+  .expand-btn { background:none; border:none; cursor:pointer; font-size:12px; color:var(--accent); font-weight:600; padding:4px 0; display:flex; align-items:center; gap:4px; }
+  .expand-btn::before { content:'▶'; font-size:9px; transition:transform 0.2s; }
+  .expand-btn.open::before { transform:rotate(90deg); }
+
+  /* TOGGLE */
+  .view-toggle { display:flex; gap:8px; margin-left:auto; }
+  .view-btn { border:1px solid var(--border); border-radius:6px; padding:6px 12px; font-size:13px; cursor:pointer; background:white; color:var(--navy); font-weight:600; }
+  .view-btn.active { background:var(--navy); color:white; border-color:var(--navy); }
+
+  /* PRINT / EXPORT */
+  @media print { .filter-bar, .legend { position:static; } .concept-section.hidden { display:block; } }
+
+  strong { color:var(--navy); }
+  .better-tag { display:inline-block; background:#D4F0E8; color:#0A5C42; border-radius:4px; padding:1px 6px; font-size:11px; font-weight:700; margin-left:6px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="font-size:12px;color:var(--ice);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">Internal Reference · March 2026</div>
+  <h1>SDLC vs AIDLC — Dynamic Comparison</h1>
+  <p>A concept-by-concept map with annotated benefits and risks. Filter by role, area, or annotation type.</p>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <span>Show:</span>
+  <button class="filter-btn active" onclick="filterAll()">All</button>
+  <button class="filter-btn benefit-filter" onclick="filterBy('benefit', this)">🟢 Benefits</button>
+  <button class="filter-btn risk-filter" onclick="filterBy('risk', this)">🔴 Risks</button>
+  <button class="filter-btn" onclick="filterBy('process', this)">Process &amp; Rituals</button>
+  <button class="filter-btn" onclick="filterBy('roles', this)">Roles</button>
+  <button class="filter-btn" onclick="filterBy('artefacts', this)">Artefacts</button>
+  <button class="filter-btn" onclick="filterBy('tooling', this)">Tooling</button>
+  <button class="filter-btn" onclick="filterBy('metrics', this)">Metrics</button>
+  <button class="filter-btn" onclick="filterBy('governance', this)">Governance</button>
+</div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot dot-benefit"></div> Benefit of AIDLC over SDLC</div>
+  <div class="legend-item"><div class="legend-dot dot-risk"></div> Risk or challenge in AIDLC</div>
+  <div class="legend-item"><div class="legend-dot dot-better"></div> AIDLC is better in this area</div>
+  <div class="legend-item"><div class="legend-dot dot-neutral"></div> No significant difference or trade-off</div>
+  <div class="legend-item" style="margin-left:auto;"><strong>Click any row</strong> for detail</div>
+</div>
+
+<div class="main">
+
+  <!-- SUMMARY -->
+  <div class="summary-bar">
+    <div class="summary-stat"><div class="num">10–15×</div><div class="label">Productivity gain (full adoption)</div></div>
+    <div class="summary-stat"><div class="num">Hours</div><div class="label">AIDLC Bolt vs 2-week Sprint</div></div>
+    <div class="summary-stat"><div class="num">3</div><div class="label">AIDLC phases vs 5–7 SDLC stages</div></div>
+    <div class="summary-stat"><div class="num">100%</div><div class="label">Human approval at every phase gate</div></div>
+    <div class="summary-stat"><div class="num">MIT-0</div><div class="label">Open-source licence on AIDLC rules</div></div>
+  </div>
+
+  <!-- SECTION: PROCESS & RITUALS -->
+  <div class="concept-section" data-category="process">
+    <div class="section-title">⚙️ Process &amp; Rituals</div>
+
+    <!-- Column headers -->
+    <div class="row header-row">
+      <div class="col-header empty"></div>
+      <div class="col-header sdlc">Traditional SDLC / Agile-Scrum</div>
+      <div class="col-header aidlc">AIDLC (AI-Driven)</div>
+    </div>
+
+    <!-- Work cycle -->
+    <div class="row" onclick="toggleDetail('d-cycle')">
+      <div class="concept-label">Work cycle</div>
+      <div class="sdlc-cell">
+        <strong>Sprint</strong> — fixed 2-week iteration. Team commits to a sprint backlog at the start. No changes mid-sprint.
+        <div><span class="annotation ann-neutral">⟳ Fixed cadence</span></div>
+      </div>
+      <div class="aidlc-cell">
+        <strong>Bolt</strong> — variable duration (hours to days). Scoped to a single feature or unit of work. No fixed time-box.
+        <div>
+          <span class="annotation ann-benefit">✓ Faster delivery</span>
+          <span class="annotation ann-risk">⚠ Harder to plan capacity</span>
+          <span class="better-tag">AIDLC wins</span>
+        </div>
+      </div>
+    </div>
+    <div class="detail-panel" id="d-cycle">
+      <p><strong>Why Bolts are shorter:</strong> AI can generate a complete feature's requirements, design, code, and tests in hours — not weeks. The 2-week sprint was calibrated to human development speed. There's no reason to maintain that timebox when AI accelerates every stage.</p>
+      <p><strong>Risk:</strong> Without a fixed sprint boundary, capacity planning and resource allocation become harder. Teams need new ways to forecast effort (AI-based complexity estimation) and communicate progress to stakeholders (continuous demo rather than sprint review).</p>
+      <p><strong>For our team:</strong> Start with "soft Bolts" — retain 2-week reporting cycles to management while using AIDLC internally. Gradually reduce the reporting cadence as confidence builds.</p>
+    </div>
+
+    <!-- Planning -->
+    <div class="row" onclick="toggleDetail('d-plan')">
+      <div class="concept-label">Planning &amp; Elaboration</div>
+      <div class="sdlc-cell">
+        <strong>Sprint Planning + Backlog Grooming</strong> — PO writes stories, team estimates, SM facilitates. Multiple sessions. 2–4 hours per sprint.
+        <div><span class="annotation ann-neutral">⟳ Human-authored</span></div>
+      </div>
+      <div class="aidlc-cell">
+        <strong>Mob Elaboration</strong> — AI drafts requirements and stories from a PO intent statement. Whole team validates in one 90–120 min session.
+        <div>
+          <span class="annotation ann-benefit">✓ Faster, higher completeness</span>
+          <span class="annotation ann-risk">⚠ PO must prepare clear intent</span>
+          <span class="better-tag">AIDLC wins</span>
+        </div>
+      </div>
+    </div>
+    <div class="detail-panel" id="d-plan">
+      <p><strong>Why AIDLC wins:</strong> AI generates stories at a speed and completeness that would take a PO days to match. It asks clarifying questions that surface hidden requirements the team would otherwise only discover during development. Edge cases, NFRs, and acceptance criteria are generated automatically.</p>
+      <p><strong>Risk:</strong> If the PO's intent statement is vague, the AI generates vague requirements. "Garbage in, garbage out" still applies. Teams need to invest in writing strong problem statements — this is a new skill for many POs.</p>
+      <p><strong>For Azure DevOps:</strong> AI-generated stories can be pushed directly into Azure DevOps work items via GitHub Copilot. The manual story creation step in ADO boards is eliminated.</p>
+    </div>
+
+    <!-- Daily rituals -->
+    <div class="row" onclick="toggleDetail('d-standup')">
+      <div class="concept-label">Daily rituals</div>
+      <div class="sdlc-cell">
+        <strong>Daily stand-up</strong> — 15 min. What did I do, what will I do, any blockers? Status-oriented.
+        <div><span class="annotation ann-neutral">⟳ Status reporting</span></div>
+      </div>
+      <div class="aidlc-cell">
+        <strong>Mob check-in (optional)</strong> — Shorter, ad-hoc. Focus on human blockers to AI approval requests. AI maintains context continuity between sessions automatically.
+        <div>
+          <span class="annotation ann-benefit">✓ Less ceremony overhead</span>
+          <span class="annotation ann-risk">⚠ Team visibility may decrease</span>
+        </div>
+      </div>
+    </div>
+    <div class="detail-panel" id="d-standup">
+      <p><strong>Why stand-ups change:</strong> AIDLC's persistent artefacts (<code>aidlc-state.md</code>, <code>audit.md</code>) provide real-time visibility into what AI has done and what's waiting for human input. Status reporting becomes less necessary because status is always visible.</p>
+      <p><strong>Risk:</strong> Some teams use stand-ups for social bonding and team cohesion, not just status. Eliminating them entirely without replacement can hurt team culture. Recommend keeping a 10-min daily touchpoint even if status reporting is reduced.</p>
+    </div>
+
+    <!-- Review / Retrospective -->
+    <div class="row" onclick="toggleDetail('d-retro')">
+      <div class="concept-label">Review &amp; Retrospective</div>
+      <div class="sdlc-cell">
+        <strong>Sprint Review</strong> (stakeholder demo) + <strong>Retrospective</strong> — every 2 weeks. Fixed calendar events.
+        <div><span class="annotation ann-neutral">⟳ Fixed cadence</span></div>
+      </div>
+      <div class="aidlc-cell">
+        <strong>Continuous demo</strong> as Bolts complete + <strong>Retrospective</strong> kept. Retrospective now also reviews AI quality, steering rule improvements, approval latency.
+        <div>
+          <span class="annotation ann-benefit">✓ Faster stakeholder feedback</span>
+          <span class="annotation ann-risk">⚠ Stakeholder availability needed</span>
+        </div>
+      </div>
+    </div>
+    <div class="detail-panel" id="d-retro">
+      <p><strong>Why continuous demos work:</strong> When a feature completes in 2 days, waiting 12 days for a sprint review to show it is wasteful. Stakeholders get faster feedback loops, which means requirements errors are caught earlier.</p>
+      <p><strong>Risk:</strong> Stakeholders may feel overwhelmed by the pace. POs need to manage stakeholder availability and set expectations about the new cadence before the transition.</p>
+      <p><strong>AIDLC retrospectives:</strong> Add new agenda items — AI quality (did AI generate correct code?), steering rule gaps (what did AI consistently get wrong?), approval latency (who was blocking approvals?).</p>
+    </div>
+  </div>
+
+  <!-- SECTION: ROLES -->
+  <div class="concept-section" data-category="roles">
+    <div class="section-title">👥 Roles &amp; Responsibilities</div>
+
+    <div class="row header-row">
+      <div class="col-header empty"></div>
+      <div class="col-header sdlc">Traditional SDLC / Agile-Scrum</div>
+      <div class="col-header aidlc">AIDLC (AI-Driven)</div>
+    </div>
+
+    <div class="row" onclick="toggleDetail('d-dev')">
+      <div class="concept-label">Developer / Engineer</div>
+      <div class="sdlc-cell">
+        <strong>Primary producer</strong> — writes code, documentation, unit tests. Time split: 60–70% coding, 20–30% meetings/admin, 10% review.
+      </div>
+      <div class="aidlc-cell">
+        <strong>Quality gatekeeper</strong> — reviews and approves AI-generated code, guides AI through Construction phase, updates steering rules.
+        <div>
+          <span class="annotation ann-benefit">✓ More strategic work</span>
+          <span class="annotation ann-risk">⚠ Must understand AI output</span>
+        </div>
+      </div>
+    </div>
+    <div class="detail-panel" id="d-dev">
+      <p><strong>Key shift:</strong> Developers go from spending most of their time writing code to spending most of their time reviewing, guiding, and improving AI-generated code. This is a fundamentally different skill set — closer to technical leadership than solo coding.</p>
+      <p><strong>Benefit:</strong> Developers spend less time on routine implementation (CRUD endpoints, boilerplate, configuration) and more time on complex problem-solving, system design, and architectural decisions.</p>
+      <p><strong>Risk:</strong> Junior developers may not develop fundamental coding skills if they only review AI code. Teams should maintain deliberate practice of coding from scratch alongside AIDLC.</p>
+      <p><strong>Rule:</strong> Every developer must understand and be able to explain every line of AI-generated code that they approve to merge. No exceptions.</p>
+    </div>
+
+    <div class="row" onclick="toggleDetail('d-po-role')">
+      <div class="concept-label">Product Owner</div>
+      <div class="sdlc-cell">
+        <strong>Story author</strong> — writes user stories, acceptance criteria, refines backlog. Significant documentation time.
+      </div>
+      <div class="aidlc-cell">
+        <strong>Intent provider + validator</strong> — writes problem statements, validates AI-generated stories, makes prioritisation decisions.
+        <div>
+          <span class="annotation ann-benefit">✓ Less documentation, more decision-making</span>
+          <span class="annotation ann-risk">⚠ Must write clear intent statements</span>
+          <span class="better-tag">AIDLC wins</span>
+        </div>
+      </div>
+    </div>
+    <div class="detail-panel" id="d-po-role">
+      <p><strong>Key shift:</strong> PO's time shifts from writing (stories, acceptance criteria) to validating (AI-generated stories, acceptance criteria). The cognitive load changes — less writing, more judgment.</p>
+      <p><strong>New critical skill:</strong> Writing effective intent statements. A vague intent statement produces vague requirements. POs who master this see the biggest time savings.</p>
+      <p><strong>Bottleneck risk:</strong> POs are the primary approval gate for the Inception phase. If POs are unavailable or slow to approve, the entire team's velocity is zero. AIDLC requires POs to be more available and responsive, not less.</p>
+    </div>
+
+    <div class="row" onclick="toggleDetail('d-arch-role')">
+      <div class="concept-label">Architect</div>
+      <div class="sdlc-cell">
+        <strong>System designer</strong> — creates architecture documents, reviews PRs, participates in design meetings. Often bottleneck.
+      </div>
+      <div class="aidlc-cell">
+        <strong>AI guide + context owner</strong> — maintains semantic context documents, approves AI-proposed architectures in Mob Construction, encodes standards in steering rules.
+        <div>
+          <span class="annotation ann-benefit">✓ Less solo design work</span>
+          <span class="annotation ann-risk">⚠ Must keep steering rules current</span>
+        </div>
+      </div>
+    </div>
+    <div class="detail-panel" id="d-arch-role">
+      <p><strong>Key shift:</strong> Architects move from designing in isolation to guiding AI proposals in real-time. The "blank page" problem largely disappears — AI always provides a starting proposal.</p>
+      <p><strong>New responsibility:</strong> Architects become owners of the "semantic context" — a curated document of architectural decisions, patterns, constraints, and standards that AI uses as its context. This needs regular maintenance.</p>
+      <p><strong>Benefit:</strong> AI-generated architecture proposals are always based on the full requirements context (from Inception), not just what the architect was told in a brief meeting. Architectural decisions are better informed.</p>
+    </div>
+
+    <div class="row" onclick="toggleDetail('d-sm-role')">
+      <div class="concept-label">Scrum Master</div>
+      <div class="sdlc-cell">
+        <strong>Ceremony facilitator</strong> — runs sprint planning, stand-ups, reviews, retrospectives. Removes impediments.
+      </div>
+      <div class="aidlc-cell">
+        <strong>Mob session facilitator</strong> — facilitates Mob Elaboration and Mob Construction sessions, monitors approval latency, manages human-AI collaboration rhythm.
+        <div>
+          <span class="annotation ann-neutral">⟳ Role evolves, not eliminated</span>
+          <span class="annotation ann-risk">⚠ New facilitation skills needed</span>
+        </div>
+      </div>
+    </div>
+    <div class="detail-panel" id="d-sm-role">
+      <p><strong>Key shift:</strong> Many traditional ceremonies disappear or shrink. SMs spend less time running fixed-calendar events and more time facilitating dynamic, AI-involved collaborative sessions.</p>
+      <p><strong>New metric to own:</strong> Approval latency — the time between AI requesting human input and receiving it. High latency = low velocity. SM should track and report this weekly.</p>
+      <p><strong>New facilitation skill:</strong> Managing human-AI sessions requires different skills than managing human-only sessions. SMs need to learn how to time-box AI interactions, structure multi-role input to AI prompts, and keep Mob sessions productive.</p>
+    </div>
+  </div>
+
+  <!-- SECTION: ARTEFACTS -->
+  <div class="concept-section" data-category="artefacts">
+    <div class="section-title">📄 Artefacts &amp; Documentation</div>
+
+    <div class="row header-row">
+      <div class="col-header empty"></div>
+      <div class="col-header sdlc">Traditional SDLC / Agile-Scrum</div>
+      <div class="col-header aidlc">AIDLC (AI-Driven)</div>
+    </div>
+
+    <div class="row" onclick="toggleDetail('d-req')">
+      <div class="concept-label">Requirements</div>
+      <div class="sdlc-cell">Human-written user stories in Azure DevOps. Variable quality. Documentation is often incomplete or out of date.</div>
+      <div class="aidlc-cell">AI-generated <code>requirements.md</code> committed to repo. Comprehensive, structured, automatically linked to code. Human-approved.
+        <div>
+          <span class="annotation ann-benefit">✓ More complete, always up to date</span>
+          <span class="annotation ann-better">AIDLC wins</span>
+        </div>
+      </div>
+    </div>
+    <div class="detail-panel" id="d-req">
+      <p>AIDLC auto-generates detailed requirements including functional requirements, edge cases, non-functional requirements, and acceptance criteria. These are stored in version control alongside the code, making traceability automatic. In traditional SDLC, requirements and code often diverge over time because requirements live in a separate system (Azure DevOps) and are not updated as code evolves.</p>
+    </div>
+
+    <div class="row" onclick="toggleDetail('d-design')">
+      <div class="concept-label">Design documents</div>
+      <div class="sdlc-cell">Architecture Decision Records (ADRs) manually written by architects. Often delayed or skipped for small features.</div>
+      <div class="aidlc-cell">AI-generated design artefacts (<code>design.md</code>) for every feature, based on approved requirements. Architect approves.
+        <div>
+          <span class="annotation ann-benefit">✓ Design documentation for every feature</span>
+          <span class="annotation ann-risk">⚠ Potential for design document inflation</span>
+          <span class="better-tag">AIDLC wins</span>
+        </div>
+      </div>
+    </div>
+    <div class="detail-panel" id="d-design">
+      <p>In traditional SDLC, design documentation is often skipped for "smaller" features. This is one of the primary sources of technical debt — decisions are made without documentation, and future maintainers have no record of why something was built a certain way. AIDLC generates design artefacts for every feature, making this the default rather than the exception.</p>
+      <p><strong>Risk:</strong> If AI generates verbose design documents for trivial changes, teams may start ignoring them. Teams should configure steering rules to calibrate design document depth to work item complexity.</p>
+    </div>
+
+    <div class="row" onclick="toggleDetail('d-audit')">
+      <div class="concept-label">Audit trail</div>
+      <div class="sdlc-cell">Azure DevOps work item history + Git commit history. Gap between requirement decision and code implementation is often unclear.</div>
+      <div class="aidlc-cell"><code>audit.md</code> — timestamped log of every AI action, every question asked, every human approval. Automatically generated and committed.
+        <div>
+          <span class="annotation ann-benefit">✓ Full decision trail, automatic</span>
+          <span class="annotation ann-better">AIDLC wins</span>
+        </div>
+      </div>
+    </div>
+    <div class="detail-panel" id="d-audit">
+      <p>The <code>audit.md</code> file is one of AIDLC's most valuable outputs for regulated environments. It provides a complete record of who approved what, when, and after what context. This is typically very difficult to reconstruct in traditional SDLC where decisions are made in verbal conversations or ephemeral chat messages.</p>
+      <p><strong>Compliance note:</strong> For teams with regulatory requirements (SOC 2, ISO 27001, GDPR), the AIDLC audit log may significantly strengthen your compliance posture. Consult your compliance team about using it as part of your audit evidence.</p>
+    </div>
+  </div>
+
+  <!-- SECTION: TOOLING -->
+  <div class="concept-section" data-category="tooling">
+    <div class="section-title">🔧 Tooling — Our Stack (Azure DevOps · Jenkins · VS · MS365)</div>
+
+    <div class="row header-row">
+      <div class="col-header empty"></div>
+      <div class="col-header sdlc">Traditional SDLC / Agile-Scrum</div>
+      <div class="col-header aidlc">AIDLC (AI-Driven)</div>
+    </div>
+
+    <div class="row" onclick="toggleDetail('d-ide')">
+      <div class="concept-label">IDE usage (VS / XCode)</div>
+      <div class="sdlc-cell">Developer writes code manually. AI used as passive autocomplete (Copilot suggestions, occasional chat).</div>
+      <div class="aidlc-cell">GitHub Copilot in VS becomes the primary AIDLC interface. AIDLC triggered via chat. Rules loaded from <code>.github/copilot-instructions.md</code>.
+        <div>
+          <span class="annotation ann-benefit">✓ No new IDE required</span>
+          <span class="annotation ann-better">Compatible with our stack</span>
+        </div>
+      </div>
+    </div>
+    <div class="detail-panel" id="d-ide">
+      <p>A key advantage for our team: we don't need to change our IDE. Visual Studio with GitHub Copilot Business/Enterprise already supports the AIDLC workflow. The steering rules are loaded from the repo, so every developer who opens the repo gets AIDLC automatically.</p>
+      <p>XCode users: the AIDLC workflow also works with Claude via CLAUDE.md at project root, or with any agent that reads project-level instruction files. XCode users may use CLI-based agents alongside XCode.</p>
+    </div>
+
+    <div class="row" onclick="toggleDetail('d-ado')">
+      <div class="concept-label">Azure DevOps (backlog)</div>
+      <div class="sdlc-cell">PO manually creates work items, stories, acceptance criteria. Team updates status. Sprint boards managed manually.</div>
+      <div class="aidlc-cell">AI-generated work items pushed to Azure DevOps via Copilot integration. Status updated automatically as AIDLC phases progress. <code>aidlc-docs/</code> folder in repo links back to ADO items.
+        <div>
+          <span class="annotation ann-benefit">✓ Less manual ADO management</span>
+          <span class="annotation ann-risk">⚠ Integration setup required</span>
+        </div>
+      </div>
+    </div>
+    <div class="detail-panel" id="d-ado">
+      <p>The Azure DevOps integration with GitHub Copilot allows AI-generated stories and tasks to be pushed directly into your ADO boards. This eliminates the manual step of translating AIDLC artefacts into ADO work items. The linkage between <code>requirements.md</code> and specific ADO work items provides complete traceability.</p>
+      <p><strong>Setup required:</strong> The ADO-Copilot integration needs to be configured by your tech lead or DevOps team. This is a one-time setup per organisation, not per repo.</p>
+    </div>
+
+    <div class="row" onclick="toggleDetail('d-jenkins')">
+      <div class="concept-label">Jenkins (CI/CD)</div>
+      <div class="sdlc-cell">Developers write Jenkinsfiles manually or use templates. Deployments triggered by PR merges.</div>
+      <div class="aidlc-cell">AIDLC Operations phase generates IaC and deployment configuration. Jenkins pipelines remain unchanged structurally; AI-generated configs are reviewed before applying.
+        <div>
+          <span class="annotation ann-neutral">⟳ Jenkins unchanged in structure</span>
+          <span class="annotation ann-risk">⚠ Review AI-generated Jenkinsfiles carefully</span>
+        </div>
+      </div>
+    </div>
+    <div class="detail-panel" id="d-jenkins">
+      <p>Jenkins remains your CI/CD engine. AIDLC doesn't replace Jenkins — it generates configuration for Jenkins to execute. The key risk: AI-generated Jenkinsfiles must be reviewed with the same rigour as application code. AI can introduce pipeline steps that bypass security scanning gates or mishandle credentials. Your DevOps team should define non-negotiable pipeline requirements in the steering rules.</p>
+    </div>
+
+    <div class="row" onclick="toggleDetail('d-ms365')">
+      <div class="concept-label">MS365 / Teams</div>
+      <div class="sdlc-cell">Teams calls for sprint ceremonies, ad-hoc chat, document sharing in SharePoint.</div>
+      <div class="aidlc-cell">Teams calls host Mob Elaboration and Mob Construction sessions. Copilot for M365 assists with stakeholder communications. SharePoint mirrors AIDLC artefacts for non-technical stakeholders.
+        <div>
+          <span class="annotation ann-benefit">✓ No new collaboration tool needed</span>
+          <span class="annotation ann-better">Compatible with our stack</span>
+        </div>
+      </div>
+    </div>
+    <div class="detail-panel" id="d-ms365">
+      <p>Our MS365 investment works well with AIDLC. Mob sessions run on Teams. Copilot for M365 (if licensed) can assist POs in preparing intent statements, summarising Mob session outputs for stakeholders, and drafting stakeholder communications about feature changes.</p>
+      <p><strong>Optional enhancement:</strong> Use SharePoint to publish a read-only view of <code>aidlc-docs/inception/requirements.md</code> for business stakeholders who need visibility without accessing the Azure DevOps repo.</p>
+    </div>
+  </div>
+
+  <!-- SECTION: METRICS -->
+  <div class="concept-section" data-category="metrics">
+    <div class="section-title">📊 Metrics &amp; Measurement</div>
+
+    <div class="row header-row">
+      <div class="col-header empty"></div>
+      <div class="col-header sdlc">Traditional SDLC / Agile-Scrum</div>
+      <div class="col-header aidlc">AIDLC (AI-Driven)</div>
+    </div>
+
+    <div class="row" onclick="toggleDetail('d-velocity')">
+      <div class="concept-label">Velocity / throughput</div>
+      <div class="sdlc-cell">Story points per sprint. Team-relative, not comparable across teams. Easy to game.</div>
+      <div class="aidlc-cell">Cycle time per work item (creation to production). Features per Bolt. AI-estimated complexity vs actual.
+        <div>
+          <span class="annotation ann-benefit">✓ More objective metrics</span>
+          <span class="annotation ann-risk">⚠ New measurement system needed</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" onclick="toggleDetail('d-quality-metric')">
+      <div class="concept-label">Quality</div>
+      <div class="sdlc-cell">Defect rate, test coverage. Measured per sprint or release.</div>
+      <div class="aidlc-cell">Defect rate, test coverage, <em>plus</em> AI accuracy rate (% of AI artefacts requiring major rework), approval latency (time AI waits for human input).
+        <div>
+          <span class="annotation ann-benefit">✓ More granular quality visibility</span>
+          <span class="annotation ann-better">AIDLC wins</span>
+        </div>
+      </div>
+    </div>
+    <div class="detail-panel" id="d-quality-metric">
+      <p>AIDLC introduces new quality metrics specific to AI-human collaboration: AI accuracy rate (how often does AI get it right on the first pass?) and approval latency (how long does AI wait for human decisions?). These metrics help teams continuously improve their steering rules and collaboration patterns.</p>
+      <p><strong>Recommended frameworks:</strong> DORA metrics (deployment frequency, lead time, change failure rate, time to restore) remain directly applicable. SPACE framework (satisfaction, performance, activity, collaboration, efficiency) provides a holistic view of developer experience under AIDLC.</p>
+    </div>
+
+    <div class="row" onclick="toggleDetail('d-productivity')">
+      <div class="concept-label">Productivity measurement</div>
+      <div class="sdlc-cell">Lines of code, story points completed, PRs merged. Easily gamed. Doesn't capture quality.</div>
+      <div class="aidlc-cell">Features shipped, cycle time, defect escape rate, developer satisfaction eNPS. Outcome-focused.
+        <div>
+          <span class="annotation ann-benefit">✓ Harder to game</span>
+          <span class="annotation ann-risk">⚠ Perceived vs actual productivity gap (see notes)</span>
+        </div>
+      </div>
+    </div>
+    <div class="detail-panel" id="d-productivity">
+      <p><strong>The productivity paradox:</strong> Early research (AWS, early 2025) found that teams using AI tools in traditional SDLC workflows actually measured 20% lower productivity than teams without AI — despite feeling more productive. The reason: AI tools increased the volume of code generated, but reduced code quality and increased review burden, resulting in more defects and rework.</p>
+      <p><strong>AIDLC's answer:</strong> The methodology is specifically designed to prevent this. By requiring AI to plan before implementing, ask questions before generating, and require human approval at every gate, AIDLC maintains code quality while increasing velocity. But it only works if teams actually enforce the review standards.</p>
+      <p><strong>Measure outcomes, not activity:</strong> Never measure AI productivity by prompts sent, tokens generated, or lines of code produced. These are easy to inflate without improving outcomes.</p>
+    </div>
+  </div>
+
+  <!-- SECTION: GOVERNANCE -->
+  <div class="concept-section" data-category="governance">
+    <div class="section-title">🔐 Governance, Security &amp; Compliance</div>
+
+    <div class="row header-row">
+      <div class="col-header empty"></div>
+      <div class="col-header sdlc">Traditional SDLC / Agile-Scrum</div>
+      <div class="col-header aidlc">AIDLC (AI-Driven)</div>
+    </div>
+
+    <div class="row" onclick="toggleDetail('d-approval')">
+      <div class="concept-label">Approval gates</div>
+      <div class="sdlc-cell">PR approvals, sprint acceptance, release sign-off. Approval context is implicit (reviewer reads code).</div>
+      <div class="aidlc-cell">Explicit phase-transition gates: Inception → Construction → Operations. Each requires named human approval logged in <code>audit.md</code>.
+        <div>
+          <span class="annotation ann-benefit">✓ Clearer accountability</span>
+          <span class="annotation ann-better">AIDLC wins for compliance</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" onclick="toggleDetail('d-security')">
+      <div class="concept-label">Security practices</div>
+      <div class="sdlc-cell">SAST/DAST in Jenkins pipeline. Developers responsible for secure coding. Security review for sensitive changes.</div>
+      <div class="aidlc-cell">SAST/DAST unchanged and mandatory. Security standards encoded in steering rules. AI applies them consistently — but AI-generated code requires the same security review as human code.
+        <div>
+          <span class="annotation ann-benefit">✓ Consistent standard application</span>
+          <span class="annotation ann-risk">⚠ AI may reproduce vulnerable patterns from training data</span>
+        </div>
+      </div>
+    </div>
+    <div class="detail-panel" id="d-security">
+      <p><strong>Critical rule:</strong> Do not reduce or bypass security scanning for AI-generated code. AI can and does generate code with security vulnerabilities — it applies patterns from its training data, which includes vulnerable code. Your existing Jenkins SAST/DAST pipeline is your safety net.</p>
+      <p><strong>AI advantage on security:</strong> GitHub Copilot includes real-time security vulnerability detection in its code suggestions. It can flag issues as they're generated rather than only at pipeline time. Use this as a supplement, not a replacement.</p>
+      <p><strong>Data privacy:</strong> Never include secrets, credentials, PII, or customer data in AI prompts. Treat prompts as if they're being committed to a public GitHub repo — because they're logged in audit.md, which is committed to your version-controlled repo.</p>
+    </div>
+
+    <div class="row" onclick="toggleDetail('d-compliance')">
+      <div class="concept-label">Compliance &amp; traceability</div>
+      <div class="sdlc-cell">Requirement traceability manually maintained. Often gaps between requirement, code, and test. Audit evidence requires manual assembly.</div>
+      <div class="aidlc-cell">Automatic traceability: requirement → design → code → test, all linked via <code>aidlc-docs/</code> and <code>audit.md</code>. Committed to version control.
+        <div>
+          <span class="annotation ann-benefit">✓ Automatic traceability matrix</span>
+          <span class="annotation ann-better">AIDLC wins</span>
+        </div>
+      </div>
+    </div>
+    <div class="detail-panel" id="d-compliance">
+      <p>AIDLC may significantly improve your compliance posture for frameworks like SOC 2, ISO 27001, and GDPR. The automatic audit trail and traceability matrix are typically expensive to produce manually in traditional SDLC. With AIDLC, they are a by-product of the development process itself.</p>
+      <p><strong>Recommendation:</strong> Before your pilot, brief your information security and compliance teams on AIDLC's audit capabilities. They may have specific requirements for how audit.md content is retained and evidenced.</p>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<div style="background:var(--navy);color:rgba(255,255,255,0.6);text-align:center;padding:20px;font-size:13px;margin-top:32px;">
+  SDLC vs AIDLC Comparison · Internal Use · March 2026 · Based on AWS AIDLC Methodology (Open Source, MIT-0) and industry analysis
+</div>
+
+<script>
+function toggleDetail(id) {
+  const panel = document.getElementById(id);
+  if (!panel) return;
+  const row = panel.previousElementSibling;
+  panel.classList.toggle('open');
+}
+
+function filterAll() {
+  document.querySelectorAll('.concept-section').forEach(s => s.classList.remove('hidden'));
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.filter-btn')[0].classList.add('active');
+}
+
+function filterBy(category, btn) {
+  const isActive = btn.classList.contains('active');
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  
+  if (isActive) { filterAll(); return; }
+  btn.classList.add('active');
+  
+  if (category === 'benefit' || category === 'risk') {
+    document.querySelectorAll('.concept-section').forEach(s => s.classList.remove('hidden'));
+    // For annotation filters, just scroll to highlight — show all sections
+    return;
+  }
+  
+  document.querySelectorAll('.concept-section').forEach(s => {
+    if (s.dataset.category === category) {
+      s.classList.remove('hidden');
+    } else {
+      s.classList.add('hidden');
+    }
+  });
+}
+</script>
+</body>
+</html>

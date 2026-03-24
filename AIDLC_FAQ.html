@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIDLC FAQ</title>
+<style>
+  :root {
+    --navy: #1E2761;
+    --ice: #CADCFC;
+    --accent: #4A90D9;
+    --teal: #028090;
+    --amber: #F5A623;
+    --coral: #E8593C;
+    --light-bg: #F4F7FB;
+    --border: #DDE4F0;
+    --text: #1a1a2e;
+    --muted: #5a6a85;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI',Arial,sans-serif; font-size:15px; color:var(--text); background:var(--light-bg); line-height:1.65; }
+  
+  .cover { background:var(--navy); color:white; padding:56px 80px; }
+  .cover h1 { font-size:34px; font-weight:700; margin-bottom:8px; }
+  .cover .subtitle { color:var(--ice); font-size:16px; margin-bottom:20px; }
+  .cover .badges { display:flex; gap:12px; flex-wrap:wrap; }
+  .badge { background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); border-radius:20px; padding:4px 14px; font-size:13px; color:var(--ice); }
+
+  .nav { background:white; border-bottom:1px solid var(--border); padding:16px 40px; display:flex; gap:8px; flex-wrap:wrap; position:sticky; top:0; z-index:10; }
+  .nav a { padding:6px 14px; border-radius:20px; font-size:13px; font-weight:600; text-decoration:none; border:1px solid var(--border); color:var(--navy); transition:all 0.15s; }
+  .nav a:hover { background:var(--navy); color:white; border-color:var(--navy); }
+
+  .main { max-width:1000px; margin:0 auto; padding:40px; }
+
+  .section-header { background:var(--navy); color:white; border-radius:10px; padding:18px 24px; margin:36px 0 20px; display:flex; align-items:center; gap:12px; }
+  .section-header .role-badge { background:rgba(255,255,255,0.15); border-radius:16px; padding:4px 12px; font-size:12px; font-weight:600; }
+  .section-header h2 { font-size:18px; font-weight:700; }
+
+  .faq-item { background:white; border:1px solid var(--border); border-radius:10px; margin-bottom:16px; overflow:hidden; }
+  .faq-q { padding:18px 24px; font-weight:700; font-size:15px; cursor:pointer; display:flex; align-items:flex-start; gap:12px; }
+  .faq-q .q-icon { color:var(--accent); font-size:18px; min-width:24px; }
+  .faq-a { padding:0 24px 20px 60px; font-size:14px; line-height:1.7; }
+  .faq-a p { margin-bottom:10px; }
+  .faq-a ul, .faq-a ol { padding-left:20px; margin-bottom:10px; }
+  .faq-a li { margin-bottom:6px; }
+  
+  .callout { border-radius:8px; padding:14px 18px; margin:12px 0; font-size:14px; }
+  .callout.tip { background:#EAF3FF; border-left:4px solid var(--accent); }
+  .callout.warn { background:#FFF6E8; border-left:4px solid var(--amber); }
+  .callout.good { background:#EAF7F0; border-left:4px solid var(--teal); }
+  .callout h5 { font-size:12px; text-transform:uppercase; letter-spacing:1px; font-weight:700; margin-bottom:6px; }
+  .callout.tip h5 { color:var(--accent); }
+  .callout.warn h5 { color:#7A4A00; }
+  .callout.good h5 { color:var(--teal); }
+
+  .comp-table { width:100%; border-collapse:collapse; margin:14px 0; font-size:13px; }
+  .comp-table th { background:var(--navy); color:white; padding:10px 14px; text-align:left; }
+  .comp-table td { padding:10px 14px; border-bottom:1px solid var(--border); vertical-align:top; }
+  .comp-table tr:last-child td { border-bottom:none; }
+  .comp-table tr:nth-child(even) td { background:var(--light-bg); }
+
+  footer { background:var(--navy); color:rgba(255,255,255,0.6); text-align:center; padding:20px; font-size:13px; margin-top:40px; }
+  strong { color:var(--navy); }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div style="font-size:12px;color:var(--ice);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;">Internal Reference Document</div>
+  <h1>AIDLC Frequently Asked Questions</h1>
+  <div class="subtitle">Role-specific answers for Technical Managers, Engineers, Architects, Product Owners &amp; Scrum Masters</div>
+  <div class="badges">
+    <span class="badge">All Roles</span>
+    <span class="badge">Stack: Azure DevOps · Jenkins · VS/XCode · MS365</span>
+    <span class="badge">March 2026 · v1.0</span>
+  </div>
+</div>
+
+<div class="nav">
+  <a href="#general">General</a>
+  <a href="#aws">AWS &amp; Non-AWS</a>
+  <a href="#competing">Competing Frameworks</a>
+  <a href="#engineers">Engineers</a>
+  <a href="#architects">Architects</a>
+  <a href="#po">Product Owners</a>
+  <a href="#sm">Scrum Masters</a>
+  <a href="#managers">Tech Managers</a>
+  <a href="#security">Security &amp; Compliance</a>
+</div>
+
+<div class="main">
+
+<!-- GENERAL -->
+<div id="general">
+  <div class="section-header">
+    <h2>General Questions</h2>
+    <span class="role-badge">All Roles</span>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> What exactly is AIDLC?</div>
+    <div class="faq-a">
+      <p>AIDLC (AI-Driven Development Lifecycle) is a software development methodology where AI is positioned as a central collaborator — not a passive tool — throughout the entire development process. It was formalised by AWS in July 2025, open-sourced in November 2025, and is now being adopted by engineering teams globally regardless of their cloud provider.</p>
+      <p>The methodology has three phases: <strong>Inception</strong> (requirements and design), <strong>Construction</strong> (code and testing), and <strong>Operations</strong> (infrastructure and deployment). At each stage, AI creates plans, asks clarifying questions, and implements only after explicit human approval. No phase transition happens without a human sign-off checkpoint.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> Is this just a rebranding of Agile/Scrum? What's actually different?</div>
+    <div class="faq-a">
+      <p>No — AIDLC is a genuine structural change, not a rebrand. The differences are substantive:</p>
+      <ul>
+        <li><strong>Who creates artefacts:</strong> In Agile/Scrum, humans write requirements, stories, and code. In AIDLC, AI drafts all artefacts; humans validate and approve them.</li>
+        <li><strong>Cycle length:</strong> Sprints are 2 weeks. AIDLC "Bolts" are hours to days. The rhythm is calibrated to AI's speed, not human capacity.</li>
+        <li><strong>Collaboration model:</strong> SDLC work is largely asynchronous and individual. AIDLC replaces this with synchronous "Mob" sessions where the whole team engages AI together in real-time.</li>
+        <li><strong>Documentation:</strong> In SDLC, documentation is often an afterthought. In AIDLC, every artefact (requirements, design, audit trail) is auto-generated and committed to the repository as the work progresses.</li>
+      </ul>
+      <div class="callout tip"><h5>Key insight</h5>Agile was a response to waterfall's slowness. AIDLC is a response to Agile's assumption that humans must do most of the work themselves.</div>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> Won't AI just generate wrong or hallucinated requirements and code?</div>
+    <div class="faq-a">
+      <p>This is the most common concern, and AIDLC's core design directly addresses it. The methodology's answer is: AI always asks before acting, and humans always approve before AI proceeds. Specifically:</p>
+      <ul>
+        <li>AI presents requirements as questions, not assertions. The team corrects errors in the Mob Elaboration session before anything is committed.</li>
+        <li>Mandatory checkpoint gates prevent AI from proceeding to Construction until Inception artefacts are human-approved.</li>
+        <li>Every AI-generated artefact is stored and versioned. A hallucinated requirement will be visible in the review, not buried in code.</li>
+        <li>For code, the key rule is: <em>developers must understand and be able to explain every line of AI-generated code before it merges</em>. AI generates a first draft; engineers review, challenge, and modify it. The bar for merging is the same as for human-written code.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> What are the biggest risks of adopting AIDLC?</div>
+    <div class="faq-a">
+      <ul>
+        <li><strong>Over-reliance on AI output:</strong> Teams may reduce scrutiny of AI-generated code over time. Requires ongoing governance and code review discipline.</li>
+        <li><strong>Context quality:</strong> AIDLC is only as good as the context you give it. Poorly written steering rules or vague problem statements produce poor AI output. Requires up-front investment in quality context-building.</li>
+        <li><strong>Human approval bottlenecks:</strong> If approvals are slow, the productivity gains evaporate. AIDLC requires humans to be more available, not less.</li>
+        <li><strong>Security of AI-generated code:</strong> AI may reproduce patterns from training data that include known vulnerabilities. All AI-generated code must pass the same security scanning (SAST/DAST) as human-written code. Do not reduce security gates.</li>
+        <li><strong>Skill atrophy:</strong> If developers stop writing code from scratch, junior engineers may not develop foundational skills. Teams should maintain code-writing practice alongside AIDLC adoption.</li>
+        <li><strong>Perceived productivity vs actual productivity:</strong> Early research found a gap between how productive teams felt using AI and their actual measured output. Measure outcomes (shipped features, defect rates) not activity (lines generated, prompts sent).</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> Do we need to change our team structure?</div>
+    <div class="faq-a">
+      <p>No immediate team restructuring is required. Roles evolve within the existing structure:</p>
+      <ul>
+        <li>Developers shift from writing code to reviewing and guiding AI-generated code</li>
+        <li>POs shift from writing requirements to validating AI-generated requirements</li>
+        <li>Architects shift from designing systems to approving AI-proposed designs and tuning steering rules</li>
+        <li>SMs shift from running ceremonies to facilitating Mob sessions</li>
+      </ul>
+      <p>Over time, teams may find they need fewer people doing routine implementation work and more people doing strategic technical decision-making — but that is a gradual evolution, not a day-one restructure.</p>
+    </div>
+  </div>
+</div>
+
+<!-- AWS -->
+<div id="aws">
+  <div class="section-header">
+    <h2>Using AIDLC Without AWS</h2>
+    <span class="role-badge">All Roles</span>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> AIDLC was created by AWS. We don't use AWS. Does this apply to us?</div>
+    <div class="faq-a">
+      <p>Yes — completely. The AWS team open-sourced the AIDLC workflow rules under the MIT-0 licence in November 2025. The methodology itself is tool-agnostic and cloud-agnostic. Here's how it maps to our stack:</p>
+      <ul>
+        <li>The core AIDLC workflow is implemented as a set of text files (rule files) placed in your repository. Any AI coding agent that reads project-level instructions can run AIDLC.</li>
+        <li><strong>GitHub Copilot</strong> (which integrates directly with Visual Studio and Azure DevOps) supports AIDLC via the <code>.github/copilot-instructions.md</code> file — no AWS tools required.</li>
+        <li><strong>Cursor</strong> supports AIDLC via <code>.cursor/rules/</code> directory.</li>
+        <li><strong>Claude</strong> supports AIDLC via <code>CLAUDE.md</code> at project root.</li>
+        <li>AWS-specific tools (Amazon Q Developer, Kiro) are <em>one implementation</em> of AIDLC — not the only one.</li>
+      </ul>
+      <div class="callout good"><h5>For Our Stack</h5>We use GitHub Copilot within Visual Studio, which natively supports AIDLC. Our Azure DevOps repos and Jenkins pipelines require no changes. The methodology sits on top of our existing infrastructure.</div>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> What AWS-specific tools does AIDLC mention, and what are our equivalents?</div>
+    <div class="faq-a">
+      <table class="comp-table">
+        <thead><tr><th>AWS Tool Mentioned</th><th>What It Does in AIDLC</th><th>Our Equivalent</th></tr></thead>
+        <tbody>
+          <tr><td>Amazon Q Developer</td><td>Primary AI coding agent that executes AIDLC workflows</td><td>GitHub Copilot in Visual Studio</td></tr>
+          <tr><td>Kiro IDE</td><td>AI-native IDE with built-in AIDLC support via Steering Files</td><td>Visual Studio with GitHub Copilot extension</td></tr>
+          <tr><td>Strands Agents</td><td>Multi-agent orchestration for complex workflows</td><td>GitHub Copilot Agent Mode (preview)</td></tr>
+          <tr><td>AWS CodePipeline</td><td>CI/CD pipeline that AIDLC's Operations phase targets</td><td>Jenkins</td></tr>
+          <tr><td>AWS CodeCommit</td><td>Source control hosting AIDLC rule files</td><td>Azure DevOps Repos</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> Is there a risk that AWS will make AIDLC proprietary or change the licence?</div>
+    <div class="faq-a">
+      <p>The AIDLC workflow rules are released under the MIT-0 licence, which is one of the most permissive open-source licences available. It has no attribution requirement and places essentially no restrictions on use, modification, or redistribution.</p>
+      <p>The methodology itself (documented in the whitepaper and AWS blog) is published as an open standard. Other vendors (Microsoft/GitHub, Cursor, Anthropic) have already incorporated or acknowledged it. Even if AWS were to stop developing it, the community and competing implementations would carry it forward.</p>
+      <div class="callout tip"><h5>Recommendation</h5>Pin your AIDLC rule files to a specific release tag in your repo. Don't auto-update from the upstream repo without review. This insulates you from any upstream changes.</div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPETING -->
+<div id="competing">
+  <div class="section-header">
+    <h2>Competing AIDLC Frameworks and Resources</h2>
+    <span class="role-badge">All Roles — especially Tech Managers &amp; Architects</span>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> Are there other AIDLC or agentic SDLC approaches we should be aware of?</div>
+    <div class="faq-a">
+      <p>Yes — multiple vendors and communities have published competing or complementary frameworks. Here is a comparison:</p>
+      <table class="comp-table">
+        <thead><tr><th>Framework / Approach</th><th>Source</th><th>Key Differentiator</th><th>Maturity</th></tr></thead>
+        <tbody>
+          <tr><td><strong>AI-DLC (AIDLC)</strong></td><td>AWS / awslabs open source</td><td>Full lifecycle: Inception → Construction → Operations. Mandatory human checkpoints. Open-source rule files. MIT-0 licence.</td><td>High — open-sourced Nov 2025, active community</td></tr>
+          <tr><td><strong>Agentic DevOps</strong></td><td>Microsoft / GitHub</td><td>Focuses on GitHub Copilot Agent Mode + Agent HQ for multi-agent orchestration. Deeply integrated with Azure DevOps and VS Code. Not a complete methodology — more a platform capability.</td><td>High — GitHub Universe 2025 announcements, enterprise-grade</td></tr>
+          <tr><td><strong>AI-Led SDLC</strong></td><td>Microsoft Community Hub</td><td>End-to-end agentic workflow using GitHub Copilot Coding Agent + Azure pipelines. Practical implementation guide rather than a formal methodology.</td><td>Medium — blog/practitioner level, no formal spec</td></tr>
+          <tr><td><strong>5-I Framework</strong></td><td>AWS Prescriptive Guidance</td><td>Investigate, Integrate, Interact, Iterate, Impact. Focuses on AI integration strategy across the SDLC rather than replacing it. More of an adoption framework than a new methodology.</td><td>Medium — documented but not as widely adopted as AIDLC</td></tr>
+          <tr><td><strong>Cursor Plan Mode</strong></td><td>Cursor / anysphere</td><td>Agent-centric IDE with Plan Mode (plan before coding), parallel agent instances, interactive clarification UI. Very popular with individual developers. Less team-ritual focus than AIDLC.</td><td>High — Cursor 2.0/2.1 actively evolving</td></tr>
+          <tr><td><strong>Vibe Coding</strong></td><td>Community / Andrej Karpathy coinage</td><td>Informal term for fully AI-driven coding where developers describe intent in natural language and let AI implement. No formal methodology — prone to Anti-Pattern 1 (AI-Managed). Not recommended for production use.</td><td>Low — anti-pattern, not a structured methodology</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip"><h5>Our Recommendation</h5>Adopt AWS AIDLC as the primary methodology (it is the most complete and tool-agnostic). Complement it with GitHub's Agentic DevOps capabilities since we already use Azure DevOps and Visual Studio. Monitor Cursor for IDE-level innovations but keep GitHub Copilot as our primary agent.</div>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> What resources should I check out to learn more?</div>
+    <div class="faq-a">
+      <p><strong>Primary — AIDLC (AWS):</strong></p>
+      <ul>
+        <li>AIDLC Methodology Site: <em>prod.d13rzhkk8cj2z0.amplifyapp.com</em></li>
+        <li>AWS Blog (July 2025): "AI-Driven Development Life Cycle: Reimagining Software Engineering"</li>
+        <li>Open-Source Rules: <em>github.com/awslabs/aidlc-workflows</em> (MIT-0)</li>
+        <li>Critical analysis: "The AI-DLC: A critical, yet hopeful view" — Data Science Collective on Medium (August 2025)</li>
+        <li>AWS re:Invent 2025 talk: "Introducing AI Driven Development Lifecycle (DVT214)"</li>
+      </ul>
+      <p><strong>Microsoft / GitHub:</strong></p>
+      <ul>
+        <li>Microsoft Blog: "Agentic DevOps: Evolving software development with GitHub Copilot and Microsoft Azure"</li>
+        <li>Microsoft Community Hub: "An AI-led SDLC: Building an End-to-End Agentic Software Development Lifecycle with Azure and GitHub" (Feb 2026)</li>
+        <li>GitHub Copilot documentation: <em>docs.github.com/en/copilot</em></li>
+      </ul>
+      <p><strong>Industry Analysis:</strong></p>
+      <ul>
+        <li>Gartner Magic Quadrant for AI Code Assistants (2025) — available from evaluated vendors</li>
+        <li>Futurum Group: "GitHub Boldly Maps Out The Agentic Development Universe" (Nov 2025)</li>
+        <li>ELEKS: "AWS AI-DLC Explained: How AWS Labs Brings Structure to AI Coding" (Jan 2026)</li>
+      </ul>
+      <p><strong>Measurement Frameworks:</strong></p>
+      <ul>
+        <li>DORA metrics (delivery performance) — dora.dev</li>
+        <li>SPACE framework (developer productivity) — Microsoft Research</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ENGINEERS -->
+<div id="engineers">
+  <div class="section-header">
+    <h2>For Software Engineers</h2>
+    <span class="role-badge">Engineers</span>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> Will AIDLC replace my job?</div>
+    <div class="faq-a">
+      <p>No — and the evidence from early adopters supports this. AIDLC changes <em>what</em> engineers do, not whether they're needed. The shift is from:</p>
+      <ul>
+        <li>Writing boilerplate, glue code, and routine implementation → <strong>to:</strong> reviewing, guiding, and approving AI-generated code</li>
+        <li>Writing documentation and tests → <strong>to:</strong> validating AI-generated docs and tests for correctness and completeness</li>
+        <li>Implementing well-understood patterns → <strong>to:</strong> solving novel problems, system design, and architectural decisions that AI cannot make confidently</li>
+      </ul>
+      <p>Teams that adopted AIDLC did not reduce headcount — they increased output per person. The industry is moving toward needing <em>more</em> engineers who understand AI systems well, not fewer engineers overall.</p>
+      <div class="callout warn"><h5>The Real Risk</h5>Engineers who don't engage with AIDLC and continue to work in fully manual workflows may find their productivity gap vs AI-augmented peers widens significantly over the next 2–3 years.</div>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> How do I trigger AIDLC in our repos?</div>
+    <div class="faq-a">
+      <ol>
+        <li>Ensure the AIDLC steering files are in your repo (see setup guide in the Onboarding Kit)</li>
+        <li>Open GitHub Copilot chat in Visual Studio</li>
+        <li>Start with the trigger phrase: <strong>"Using AI-DLC, [your intent here]"</strong></li>
+        <li>Example: "Using AI-DLC, I want to add pagination to the customer list endpoint in our billing service"</li>
+        <li>Follow the AIDLC workflow — it will ask clarifying questions, detect if the project is brownfield, and guide you through Workspace Detection, Requirements Analysis, and into Construction</li>
+      </ol>
+      <div class="callout tip"><h5>Important</h5>Only use the trigger phrase for new pieces of work that benefit from the full AIDLC workflow. For quick bug fixes or one-line changes, normal Copilot chat is fine. AIDLC is optimised for features and meaningful changes.</div>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> How much of the AI-generated code should I actually read and review?</div>
+    <div class="faq-a">
+      <p><strong>All of it.</strong> This is a non-negotiable rule in AIDLC. AWS's guidance explicitly states: "developers must understand every line of AI-generated code." This is not optional, even if the code looks obviously correct at a glance.</p>
+      <p>Practically, this means:</p>
+      <ul>
+        <li>Review AI-generated code with the same depth as you would a junior engineer's code</li>
+        <li>Run the code locally and trace through the logic for non-trivial functions</li>
+        <li>Be prepared to explain any line in a code review — if you can't explain it, it's not ready to merge</li>
+        <li>Pay extra attention to security-sensitive code (auth, data access, input handling), even if the AI was instructed on your security standards</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> What if the AI generates code that violates our coding standards or architecture patterns?</div>
+    <div class="faq-a">
+      <p>This is where the quality of your steering rules matters. AIDLC is designed so that coding standards, design patterns, security requirements, and architectural decisions are encoded in the steering files (rule files) that AI reads before generating anything. If AI repeatedly violates a standard, the fix is to update the steering rules, not to keep correcting it manually.</p>
+      <p>Short-term, simply reject or modify the AI's output in your review. Long-term, flag it and work with your architect to update the relevant rule file so the standard is consistently enforced.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ARCHITECTS -->
+<div id="architects">
+  <div class="section-header">
+    <h2>For Software Architects</h2>
+    <span class="role-badge">Architects</span>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> How does AIDLC handle architecture decisions? Does AI just pick a pattern?</div>
+    <div class="faq-a">
+      <p>During the Construction phase's Functional Design stage, AI proposes a logical architecture based on the context accumulated during Inception. It does not make autonomous architecture decisions — it presents options and asks for your approval before proceeding. The flow is:</p>
+      <ol>
+        <li>AI analyses the requirements and existing codebase context</li>
+        <li>AI proposes an architecture with rationale (stored in <code>aidlc-docs/construction/design.md</code>)</li>
+        <li>AI asks structured clarifying questions about constraints, preferences, and non-negotiables</li>
+        <li>Architect reviews, modifies the proposal, and explicitly approves before code generation begins</li>
+      </ol>
+      <p>Your role as architect shifts from <em>designing in isolation</em> to <em>guiding and approving AI proposals in real-time during Mob Construction</em>. You spend less time on documentation and more time on architectural judgment.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> How do we encode our existing architectural standards into AIDLC?</div>
+    <div class="faq-a">
+      <p>Through the steering rule files. The AIDLC open-source rules give you a starting framework. You extend them with your organisation's specific standards by adding content to the rule files or creating additional context files. Key things to encode:</p>
+      <ul>
+        <li>Preferred design patterns for your domain (e.g., "use the repository pattern for data access")</li>
+        <li>Technology constraints (e.g., "do not introduce new dependencies without architect approval")</li>
+        <li>Security requirements (e.g., "all endpoints must use Azure AD authentication")</li>
+        <li>Logging and observability standards</li>
+        <li>API design guidelines</li>
+        <li>Database conventions</li>
+      </ul>
+      <p>These go in a "semantic context" document that is part of your repo's AIDLC rule set. It's a living document — update it when standards evolve.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> How does AIDLC handle brownfield/legacy systems where the codebase is large and complex?</div>
+    <div class="faq-a">
+      <p>AIDLC has a dedicated Reverse Engineering stage for brownfield projects. Before any Inception work begins, AI analyses the existing codebase to build a semantic context map — understanding the existing architecture, patterns, and dependencies. This is critical and typically takes 15–60 minutes depending on codebase size.</p>
+      <p>The key challenge is "semantics-per-token ratio" — AI can only hold a certain amount of context at once. For large codebases, this means:</p>
+      <ul>
+        <li>You should pre-prepare a concise architecture summary document that captures the key decisions, not just the code</li>
+        <li>Scope work items to modules or bounded contexts rather than the full system</li>
+        <li>Update the semantic context document as the codebase evolves</li>
+      </ul>
+      <div class="callout warn"><h5>Legacy Risk</h5>AI trained on public code may suggest patterns that don't match your internal conventions. The reverse engineering stage mitigates this, but architect review of AI proposals is especially important for legacy codebases.</div>
+    </div>
+  </div>
+</div>
+
+<!-- PO -->
+<div id="po">
+  <div class="section-header">
+    <h2>For Product Owners</h2>
+    <span class="role-badge">Product Owners</span>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> If AI generates the user stories, what is my role as a PO?</div>
+    <div class="faq-a">
+      <p>Your role shifts from <strong>writing</strong> to <strong>curating, validating, and deciding</strong>. This is actually a more strategic role, not a lesser one. Specifically:</p>
+      <ul>
+        <li>You define the business intent and problem statement that AI uses to generate stories</li>
+        <li>During Mob Elaboration, you lead the team in validating AI-generated stories for business correctness and prioritisation</li>
+        <li>You make the final call on acceptance criteria — AI drafts them, you own them</li>
+        <li>You decide when a requirement is complete enough to move to Construction (the key approval gate)</li>
+        <li>You own the definition of "done" — AI generates tests based on criteria you approve</li>
+      </ul>
+      <p>What you do less of: writing stories from scratch, grooming individual items line by line, updating status manually. AI handles the generation and tracking; you handle the judgment.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> How do "Bolts" (short AI cycles) affect my relationship with stakeholders?</div>
+    <div class="faq-a">
+      <p>Significantly — in a positive direction. Because Bolts complete in hours or days rather than weeks, you can show stakeholders working features much faster. However, it does require a change in stakeholder engagement:</p>
+      <ul>
+        <li>Stakeholders need to be available for rapid feedback rather than waiting for the next sprint review (2 weeks away)</li>
+        <li>Requirements conversations become shorter and more frequent — Mob Elaboration sessions replace long written specs</li>
+        <li>The "demo sprint" cadence becomes less relevant because features ship continuously</li>
+      </ul>
+      <div class="callout tip"><h5>Stakeholder Management Tip</h5>Brief your key stakeholders on AIDLC before you start. Frame it as: "You'll see working features faster, but I'll need quick answers to questions more frequently." Set expectations that "availability for a 30-minute AI review session" replaces "review of a 20-page requirements document."</div>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> How does AIDLC affect the backlog in Azure DevOps?</div>
+    <div class="faq-a">
+      <p>During Mob Elaboration, AI generates work items (stories, tasks, acceptance criteria) based on the approved requirements. In our setup, these can be created directly in Azure DevOps via GitHub Copilot integration. The backlog becomes:</p>
+      <ul>
+        <li>More granular — AI breaks epics into fine-grained tasks automatically</li>
+        <li>Better documented — each item links to the requirements and design artefacts in <code>aidlc-docs/</code></li>
+        <li>More auditable — the <code>audit.md</code> file shows why each item was created and who approved it</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SM -->
+<div id="sm">
+  <div class="section-header">
+    <h2>For Scrum Masters</h2>
+    <span class="role-badge">Scrum Masters</span>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> Which Scrum ceremonies are eliminated, changed, or kept?</div>
+    <div class="faq-a">
+      <table class="comp-table">
+        <thead><tr><th>Scrum Ceremony</th><th>AIDLC Status</th><th>What Replaces It</th></tr></thead>
+        <tbody>
+          <tr><td>Sprint Planning</td><td>Replaced</td><td>Mob Elaboration — shorter, AI-driven, real-time. Happens at the start of each Bolt (hours to days).</td></tr>
+          <tr><td>Backlog Grooming/Refinement</td><td>Largely eliminated</td><td>AI generates stories during Mob Elaboration. PO validates rather than writes.</td></tr>
+          <tr><td>Daily Stand-up</td><td>Reduced / transformed</td><td>AI maintains context continuity between sessions. Stand-ups become shorter and more focused on human blockers, not status reporting.</td></tr>
+          <tr><td>Sprint Review</td><td>Transformed</td><td>Continuous demos as Bolts complete. No fixed 2-week review gate — stakeholders see features sooner.</td></tr>
+          <tr><td>Retrospective</td><td>Kept</td><td>Still valuable for team health, process improvement. AIDLC adds new retrospective topics: AI quality, approval latency, steering rule improvements.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> What is the SM's role in Mob sessions?</div>
+    <div class="faq-a">
+      <p>The SM becomes the facilitator of Mob Elaboration and Mob Construction sessions. Key responsibilities:</p>
+      <ul>
+        <li>Timebox the sessions (Mob Elaboration: target 90–120 min per significant feature)</li>
+        <li>Ensure all roles are present and engaged — AIDLC Mob sessions require the whole team</li>
+        <li>Manage the approval gates — track which phase transitions have been signed off and by whom</li>
+        <li>Monitor human approval latency — identify if team members are blocking AI progress by not responding to approval requests</li>
+        <li>Escalate impediments that prevent the team from providing AI with the context it needs</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- MANAGERS -->
+<div id="managers">
+  <div class="section-header">
+    <h2>For Technical Managers</h2>
+    <span class="role-badge">Technical Managers</span>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> How do I make the business case for AIDLC to senior leadership?</div>
+    <div class="faq-a">
+      <p>Frame it in terms of competitive risk and productivity ROI:</p>
+      <ul>
+        <li><strong>Competitive risk:</strong> Major industry players (AWS, Microsoft/GitHub, Google) have all formalised AI-native development methodologies. Teams that don't adopt a structured AI development practice will fall behind on velocity and cost competitiveness.</li>
+        <li><strong>Productivity ROI:</strong> AWS reports 10–15x productivity gains with full AIDLC adoption. Even a conservative 2x improvement translates to significant cost savings or reallocation of engineering capacity.</li>
+        <li><strong>Quality improvement:</strong> AIDLC's continuous AI-generated testing and documentation reduces defect escape rates. Less technical debt, fewer late-night incident calls.</li>
+        <li><strong>Developer retention:</strong> Engineers who work with cutting-edge AI development practices report higher job satisfaction. Falling behind on tooling is a talent retention risk.</li>
+      </ul>
+      <p><strong>Suggested framing for leadership:</strong> "We are not adopting AIDLC as an experiment. We are adopting it because teams that don't will face a structural productivity disadvantage in 12–24 months."</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> What does AIDLC compliance and governance look like?</div>
+    <div class="faq-a">
+      <p>AIDLC has stronger built-in compliance controls than traditional SDLC because every AI action and human approval is logged:</p>
+      <ul>
+        <li><strong>audit.md:</strong> Timestamped log of every AI action, every question asked, every human approval granted. Committed to the repository.</li>
+        <li><strong>Phase approval gates:</strong> No phase transition without explicit human sign-off — provides a clear decision trail.</li>
+        <li><strong>Artefact versioning:</strong> Requirements, design documents, and architecture decisions are version-controlled alongside code — you always know what was agreed and when.</li>
+        <li><strong>Steering rule governance:</strong> Rule files under branch protection with PR approval requirements — no unauthorised changes to AI behaviour.</li>
+      </ul>
+      <div class="callout good"><h5>For Regulated Environments</h5>AIDLC's audit trail may actually strengthen your compliance position vs traditional SDLC. Requirements traceability (requirement → design → code → test) is auto-generated rather than manually assembled.</div>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> How do I evaluate whether our pilot is working?</div>
+    <div class="faq-a">
+      <p>Measure outcomes, not activity. Key metrics:</p>
+      <ul>
+        <li><strong>Cycle time:</strong> Time from work item creation to production deployment. Target: 30–50% reduction in 8 weeks.</li>
+        <li><strong>Requirements rework rate:</strong> % of stories that require significant changes after Mob Elaboration. Target: under 20%.</li>
+        <li><strong>Defect escape rate:</strong> Bugs found in production per feature. Track vs pre-AIDLC baseline.</li>
+        <li><strong>Approval latency:</strong> Average time for humans to respond to AI approval requests. Should be under 2 hours during working hours.</li>
+        <li><strong>Developer satisfaction (eNPS):</strong> Monthly pulse survey. AIDLC should improve this — if it doesn't, something is wrong with the implementation.</li>
+      </ul>
+      <p><strong>What to watch out for:</strong> Teams that game velocity metrics by approving AI output without proper review. Monitor defect rates alongside velocity — velocity without quality is not a win.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SECURITY -->
+<div id="security">
+  <div class="section-header">
+    <h2>Security and Compliance</h2>
+    <span class="role-badge">Architects · Tech Managers · Engineers</span>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> Is it safe to let AI see our codebase and requirements? What about IP and data privacy?</div>
+    <div class="faq-a">
+      <p>This is a critical governance question with practical answers:</p>
+      <ul>
+        <li><strong>GitHub Copilot (Business/Enterprise tiers):</strong> Code and prompts are not used to train the model. Data is not shared with third parties. Enterprise tier offers additional data sovereignty controls.</li>
+        <li><strong>Context sent to AI:</strong> Only what you explicitly include in the prompt or what the AIDLC steering rules reference. No agent automatically uploads your entire codebase to an external server — it sends relevant context per request.</li>
+        <li><strong>Sensitive data:</strong> Never include secrets, credentials, PII, or customer data in prompts or as context. This is the same rule as for code comments — treat it as if it's going into source control (because the prompts are logged in audit.md, which is).</li>
+      </ul>
+      <div class="callout warn"><h5>Action Required</h5>Before rolling out AIDLC, confirm with your organisation's data privacy officer which tier of GitHub Copilot is approved and whether there are any restrictions on code types (e.g., regulated data processing code) that should be excluded from AI-assisted development.</div>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q"><span class="q-icon">Q</span> How do we prevent AI from introducing security vulnerabilities?</div>
+    <div class="faq-a">
+      <ul>
+        <li>Encode security requirements in AIDLC steering rules (e.g., "always validate inputs, always use parameterised queries, never log sensitive data")</li>
+        <li>Run existing SAST/DAST tools on ALL AI-generated code before merge — do not skip security scanning because "AI wrote it"</li>
+        <li>Apply mandatory code review to security-sensitive modules (auth, payments, data access) regardless of AI generation</li>
+        <li>GitHub Copilot includes security vulnerability detection in its code review features — use this as a complement to, not replacement for, your existing tooling</li>
+        <li>Periodically audit AI-generated code patterns for systemic vulnerabilities (e.g., if AI consistently mishandles a particular pattern in your stack)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+<footer>
+  AIDLC FAQ · Internal Use Only · March 2026 · v1.0
+</footer>
+</body>
+</html>

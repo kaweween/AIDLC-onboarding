@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIDLC Onboarding Kits</title>
+<style>
+  :root {
+    --navy: #1E2761;
+    --ice: #CADCFC;
+    --accent: #4A90D9;
+    --teal: #028090;
+    --amber: #F5A623;
+    --coral: #E8593C;
+    --green: #3B6D11;
+    --light-bg: #F4F7FB;
+    --border: #DDE4F0;
+    --text: #1a1a2e;
+    --muted: #5a6a85;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI',Arial,sans-serif; font-size:15px; color:var(--text); background:var(--light-bg); line-height:1.65; }
+  
+  /* TABS */
+  .tab-bar { display:flex; background:var(--navy); padding:0 40px; gap:4px; align-items:flex-end; }
+  .tab { padding:14px 28px; font-size:14px; font-weight:600; cursor:pointer; color:rgba(255,255,255,0.6); border-radius:8px 8px 0 0; transition:all 0.15s; border:none; background:transparent; }
+  .tab.active { background:white; color:var(--navy); }
+  .tab:hover:not(.active) { color:white; background:rgba(255,255,255,0.1); }
+  
+  /* PANELS */
+  .panel { display:none; }
+  .panel.active { display:block; }
+  
+  /* COVER STRIPS */
+  .cover-dev { background:linear-gradient(135deg, #1E2761, #028090); color:white; padding:52px 80px; }
+  .cover-po { background:linear-gradient(135deg, #7A3500, #B07A10); color:white; padding:52px 80px; }
+  .cover-common h1 { font-size:30px; font-weight:700; margin-bottom:8px; }
+  .cover-common .sub { font-size:16px; opacity:0.85; margin-bottom:20px; }
+  .cover-common .badges { display:flex; gap:10px; flex-wrap:wrap; }
+  .cover-common .badge { background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); border-radius:16px; padding:4px 14px; font-size:13px; }
+
+  /* MAIN */
+  .main { max-width:960px; margin:0 auto; padding:40px; }
+  
+  /* CHECKLIST */
+  .checklist { list-style:none; padding:0; margin:16px 0; }
+  .checklist li { display:flex; align-items:flex-start; gap:12px; padding:10px 14px; border-radius:8px; margin-bottom:8px; background:white; border:1px solid var(--border); font-size:14px; }
+  .checklist li .check { width:20px; height:20px; border:2px solid var(--border); border-radius:4px; min-width:20px; margin-top:1px; }
+  .checklist li.done .check { background:var(--teal); border-color:var(--teal); display:flex; align-items:center; justify-content:center; color:white; font-size:12px; }
+  .checklist li strong { display:block; font-size:14px; margin-bottom:2px; }
+  .checklist li p { font-size:13px; color:var(--muted); margin:0; }
+  
+  /* CARDS */
+  .card { background:white; border:1px solid var(--border); border-radius:10px; padding:22px 26px; margin-bottom:16px; }
+  .card h3 { font-size:16px; font-weight:700; color:var(--navy); margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+
+  /* SECTION */
+  h2.section { font-size:17px; font-weight:700; color:var(--navy); margin:28px 0 12px; border-left:4px solid var(--accent); padding-left:12px; }
+  
+  /* CALLOUT */
+  .callout { border-radius:8px; padding:14px 18px; margin:14px 0; font-size:14px; }
+  .callout.tip { background:#EAF3FF; border-left:4px solid var(--accent); }
+  .callout.warn { background:#FFF6E8; border-left:4px solid var(--amber); }
+  .callout.action { background:#EAF7F0; border-left:4px solid var(--teal); }
+  .callout h5 { font-size:12px; text-transform:uppercase; letter-spacing:1px; font-weight:700; margin-bottom:6px; }
+  .callout.tip h5 { color:var(--accent); }
+  .callout.warn h5 { color:#7A4A00; }
+  .callout.action h5 { color:var(--teal); }
+
+  /* CODE */
+  code { background:#F0F4FF; border:1px solid #D0DCFF; border-radius:4px; padding:2px 7px; font-family:'Consolas','Courier New',monospace; font-size:13px; color:#1E3A8A; }
+  pre { background:#1E2761; color:#CADCFC; border-radius:8px; padding:20px; margin:14px 0; font-family:'Consolas','Courier New',monospace; font-size:13px; overflow-x:auto; line-height:1.6; }
+  pre .comment { color:#6A8FD0; }
+  pre .keyword { color:#F5A623; }
+  pre .string { color:#80CCAA; }
+
+  /* STEPS */
+  .steps { counter-reset:step; list-style:none; padding:0; }
+  .steps li { counter-increment:step; display:flex; gap:16px; margin-bottom:16px; align-items:flex-start; }
+  .steps li::before { content:counter(step); min-width:32px; height:32px; background:var(--navy); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; flex-shrink:0; }
+  .steps li .step-content { font-size:14px; }
+  .steps li strong { display:block; font-size:15px; color:var(--navy); margin-bottom:4px; }
+
+  /* WORKFLOW VISUAL */
+  .workflow { display:flex; gap:0; margin:16px 0; flex-wrap:wrap; }
+  .wf-step { flex:1; min-width:120px; padding:14px; text-align:center; border:1px solid var(--border); background:white; position:relative; font-size:13px; }
+  .wf-step:not(:last-child)::after { content:'→'; position:absolute; right:-12px; top:50%; transform:translateY(-50%); font-size:20px; color:var(--accent); font-weight:700; z-index:1; }
+  .wf-step:first-child { border-radius:8px 0 0 8px; }
+  .wf-step:last-child { border-radius:0 8px 8px 0; }
+  .wf-step .wf-icon { font-size:22px; margin-bottom:6px; }
+  .wf-step strong { display:block; color:var(--navy); margin-bottom:4px; }
+  .wf-step.active-step { background:var(--navy); border-color:var(--navy); color:white; }
+  .wf-step.active-step strong { color:white; }
+
+  /* TABLE */
+  table.info { width:100%; border-collapse:collapse; margin:14px 0; font-size:14px; }
+  table.info th { background:var(--navy); color:white; padding:10px 14px; text-align:left; font-size:13px; }
+  table.info td { padding:10px 14px; border-bottom:1px solid var(--border); vertical-align:top; }
+  table.info tr:last-child td { border-bottom:none; }
+  table.info tr:nth-child(even) td { background:var(--light-bg); }
+  
+  /* DAY ONE */
+  .day-one { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin:14px 0; }
+  .day-card { border-radius:10px; padding:18px; border:1px solid var(--border); background:white; }
+  .day-card .time { font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+  .day-card h4 { font-size:14px; font-weight:700; color:var(--navy); margin:6px 0 4px; }
+  .day-card p { font-size:13px; color:var(--muted); }
+
+  ul, ol { padding-left:22px; margin-bottom:12px; }
+  li { margin-bottom:5px; font-size:14px; }
+  p { margin-bottom:12px; font-size:14px; }
+  strong { color:var(--navy); }
+
+  footer { background:var(--navy); color:rgba(255,255,255,0.6); text-align:center; padding:20px; font-size:13px; margin-top:40px; }
+</style>
+</head>
+<body>
+
+<!-- TABS -->
+<div class="tab-bar">
+  <div style="color:white;font-size:13px;opacity:0.7;padding:16px 0;margin-right:12px;">AIDLC Onboarding Kits:</div>
+  <button class="tab active" onclick="switchTab('dev', this)">🛠️ Developer / Engineer Starter Guide</button>
+  <button class="tab" onclick="switchTab('po', this)">📋 Product Owner Starter Guide</button>
+</div>
+
+<!-- ===== DEVELOPER PANEL ===== -->
+<div id="dev" class="panel active">
+  <div class="cover-dev cover-common">
+    <h1>Developer Onboarding Kit — AIDLC</h1>
+    <div class="sub">Your practical guide to working in an AI-Driven Development Lifecycle · Stack: Azure DevOps · Jenkins · Visual Studio / XCode / CLI</div>
+    <div class="badges">
+      <span class="badge">Software Engineers</span>
+      <span class="badge">Estimated read: 20 min</span>
+      <span class="badge">Version 1.0 · March 2026</span>
+    </div>
+  </div>
+  <div class="main">
+
+    <h2 class="section">Welcome: What AIDLC Means for Your Daily Work</h2>
+    <p>You are moving from a world where you write the code to a world where you <strong>guide and review AI-generated code</strong>. Your technical expertise becomes more important, not less — because you are now the quality gate between AI output and production.</p>
+    <p>Your core responsibilities in AIDLC:</p>
+    <ul>
+      <li>Provide clear problem statements that give AI enough context to work from</li>
+      <li>Participate in Mob Construction sessions — real-time collaborative review of AI-generated code</li>
+      <li>Review and approve every line of AI-generated code before it merges</li>
+      <li>Maintain and improve AIDLC steering rules as you learn what works</li>
+    </ul>
+
+    <h2 class="section">Your First Week Checklist</h2>
+    <ul class="checklist">
+      <li><span class="check"></span><div><strong>Set up AIDLC rules in your primary repo</strong><p>Follow the 5-step setup below. Takes ~20 minutes. Do this before your first Mob session.</p></div></li>
+      <li><span class="check"></span><div><strong>Read the core-workflow.md file</strong><p>Located in <code>.github/copilot-instructions.md</code> after setup. Understand what the AI is being told to do before you interact with it.</p></div></li>
+      <li><span class="check"></span><div><strong>Run your first AIDLC trigger on a sandbox task</strong><p>Pick a non-critical bug or small improvement. Type "Using AI-DLC, ..." and follow the workflow through at least the Inception phase.</p></div></li>
+      <li><span class="check"></span><div><strong>Attend your first Mob Construction session</strong><p>Even as an observer. Understand how the team interacts with AI in real-time before leading one yourself.</p></div></li>
+      <li><span class="check"></span><div><strong>Review the semantic context document for your team</strong><p>This is the document your architect maintains that tells AI about your codebase's patterns and conventions. You need to know it to validate AI proposals.</p></div></li>
+      <li><span class="check"></span><div><strong>Set up GitHub Copilot in Visual Studio (if not already)</strong><p>Ensure you have at least the Business tier — required for AIDLC project rules support.</p></div></li>
+    </ul>
+
+    <h2 class="section">Step-by-Step: Setting Up AIDLC in Your Repo</h2>
+    <ol class="steps">
+      <li><div class="step-content">
+        <strong>Download the AIDLC workflow rules</strong>
+        Go to <code>github.com/awslabs/aidlc-workflows</code>. Download the latest release zip to your Downloads folder. Extract it — you'll have an <code>aidlc-rules/</code> folder with two subfolders.
+      </div></li>
+      <li><div class="step-content">
+        <strong>Set up the GitHub Copilot instruction file</strong>
+        In your repo root, create a <code>.github/</code> directory if it doesn't exist. Copy the core workflow file:
+        <pre><span class="comment"># On Mac/Linux</span>
+mkdir -p .github
+cp ~/Downloads/aidlc-rules/aws-aidlc-rules/core-workflow.md \
+   .github/copilot-instructions.md
+
+<span class="comment"># On Windows</span>
+mkdir .github
+copy %USERPROFILE%\Downloads\aidlc-rules\aws-aidlc-rules\core-workflow.md .github\copilot-instructions.md</pre>
+      </div></li>
+      <li><div class="step-content">
+        <strong>Copy the rule details folder</strong>
+        <pre><span class="comment"># On Mac/Linux</span>
+mkdir -p .aidlc-rule-details
+cp -R ~/Downloads/aidlc-rules/aws-aidlc-rule-details/* .aidlc-rule-details/
+
+<span class="comment"># On Windows</span>
+mkdir .aidlc-rule-details
+xcopy %USERPROFILE%\Downloads\aidlc-rules\aws-aidlc-rule-details .aidlc-rule-details\ /E /I</pre>
+      </div></li>
+      <li><div class="step-content">
+        <strong>Add an <code>aidlc-docs/</code> folder placeholder and commit</strong>
+        <pre>mkdir -p aidlc-docs
+touch aidlc-docs/.gitkeep <span class="comment"># Keeps the folder in git</span>
+git add .github/ .aidlc-rule-details/ aidlc-docs/
+git commit -m "chore: add AIDLC workflow steering rules and docs folder"
+git push</pre>
+      </div></li>
+      <li><div class="step-content">
+        <strong>Verify in Visual Studio</strong>
+        Open the repo in VS. Open GitHub Copilot Chat. Confirm the rules are active by typing: "Using AI-DLC, what phase are we in?" — the AI should respond that it's ready to begin the Inception phase.
+      </div></li>
+    </ol>
+
+    <h2 class="section">Your AIDLC Daily Workflow</h2>
+    <div class="workflow">
+      <div class="wf-step"><div class="wf-icon">📋</div><strong>Pick a work item</strong>from Azure DevOps backlog</div>
+      <div class="wf-step active-step"><div class="wf-icon">🤖</div><strong>Trigger AIDLC</strong>"Using AI-DLC, ..."</div>
+      <div class="wf-step"><div class="wf-icon">❓</div><strong>Answer AI questions</strong>Inception phase</div>
+      <div class="wf-step"><div class="wf-icon">✅</div><strong>Approve requirements</strong>Human checkpoint</div>
+      <div class="wf-step"><div class="wf-icon">🏗️</div><strong>Mob Construction</strong>AI generates code</div>
+      <div class="wf-step"><div class="wf-icon">🔍</div><strong>Review &amp; approve</strong>Every line</div>
+      <div class="wf-step"><div class="wf-icon">🚀</div><strong>Merge &amp; deploy</strong>Jenkins pipeline</div>
+    </div>
+
+    <h2 class="section">Triggering AIDLC: Prompt Examples</h2>
+    <div class="card">
+      <h3>🟢 Good triggers — give AI clear scope and context</h3>
+      <pre><span class="string">"Using AI-DLC, I need to add email notifications when a Jenkins build fails.
+The notification should include the build name, error summary, and a link
+to the build log. Our notification system uses SendGrid."</span>
+
+<span class="string">"Using AI-DLC, the customer list endpoint in the billing service is slow
+when there are more than 1000 records. I want to add server-side pagination
+following our REST API standards."</span>
+
+<span class="string">"Using AI-DLC, we have a new requirement: users must be able to export
+their transaction history as a CSV. This is a brownfield addition to
+the reporting module."</span></pre>
+    </div>
+    <div class="card">
+      <h3>🔴 Weak triggers — too vague, AI will ask many basic questions</h3>
+      <pre><span class="comment"># Too vague — what feature? Which module? What's the expected behaviour?</span>
+<span class="string">"Using AI-DLC, fix the search feature"</span>
+
+<span class="comment"># Too broad — AI will ask to narrow scope first</span>
+<span class="string">"Using AI-DLC, rebuild the user dashboard"</span></pre>
+    </div>
+
+    <h2 class="section">Code Review Standards for AI-Generated Code</h2>
+    <p>Review AI-generated code the same way you would a junior engineer's code. The bar does not lower because AI wrote it.</p>
+    <ul class="checklist">
+      <li><span class="check"></span><div><strong>Understand every line</strong><p>If you cannot explain a line in a code review, it is not ready to merge. No exceptions.</p></div></li>
+      <li><span class="check"></span><div><strong>Run it locally</strong><p>Don't just read — trace through the logic for non-trivial functions. AI can write code that looks right but misbehaves on edge cases.</p></div></li>
+      <li><span class="check"></span><div><strong>Check security-sensitive sections extra carefully</strong><p>Auth, data access, input validation, external API calls — spend more time on these regardless of how confident AI sounds.</p></div></li>
+      <li><span class="check"></span><div><strong>Verify tests are meaningful</strong><p>AI generates test files automatically. Check that tests cover actual edge cases and failure modes, not just the happy path.</p></div></li>
+      <li><span class="check"></span><div><strong>Check for AI-typical patterns</strong><p>AI sometimes introduces overly generic error handling (bare <code>catch (Exception e)</code>), unnecessary abstractions, or patterns from different tech stacks. Catch these in review.</p></div></li>
+      <li><span class="check"></span><div><strong>Confirm no secrets or hardcoded credentials</strong><p>AI occasionally reproduces credential patterns from training data. Scan before merging.</p></div></li>
+    </ul>
+
+    <h2 class="section">Working with Jenkins in AIDLC</h2>
+    <p>Jenkins remains your CI/CD engine. AIDLC's Operations phase generates infrastructure and deployment configuration. Your responsibilities:</p>
+    <ul>
+      <li>Review AI-generated Jenkinsfile changes with the same rigour as application code</li>
+      <li>Ensure AI-proposed pipeline stages match your existing standards (build → test → SAST → deploy)</li>
+      <li>Do not let AI modify security scanning stages without architect review</li>
+      <li>AIDLC's <code>aidlc-docs/operations/</code> folder will contain infrastructure decisions — review these before applying to Jenkins</li>
+    </ul>
+
+    <h2 class="section">What to Do When AIDLC Gets It Wrong</h2>
+    <table class="info">
+      <thead><tr><th>Problem</th><th>What to Do</th></tr></thead>
+      <tbody>
+        <tr><td>AI generates code that doesn't match our patterns</td><td>Reject the PR. Flag it to your architect. Update the steering rule file to include the standard explicitly. Do not just fix it manually each time.</td></tr>
+        <tr><td>AI asks questions you can't answer</td><td>Good — that's a knowledge gap in the team. Escalate to architect or PO before proceeding. Don't guess your way through an approval.</td></tr>
+        <tr><td>AI seems to "hallucinate" a library or API that doesn't exist</td><td>Reject it immediately. AI can confidently suggest non-existent APIs. Always verify imports compile against your actual dependency tree.</td></tr>
+        <tr><td>AIDLC workflow gets stuck or loses context</td><td>Check <code>aidlc-docs/aidlc-state.md</code>. Start a new Copilot chat session with "Using AI-DLC, continue from the last saved state in aidlc-state.md."</td></tr>
+        <tr><td>Team disagrees on AI's proposed architecture</td><td>Do not proceed. Raise it in Mob Construction. AI should be given the consensus direction. Never approve a contested architecture decision to move things along.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout action">
+      <h5>The Golden Rule</h5>
+      AI works for you. You are responsible for everything that ships. If AI-generated code causes a production incident, the developer who approved it owns the incident response. This is not a reason to avoid AIDLC — it is a reason to review thoroughly.
+    </div>
+
+    <h2 class="section">Quick Reference: Key Files and Folders</h2>
+    <table class="info">
+      <thead><tr><th>File / Folder</th><th>Purpose</th><th>Who Owns It</th></tr></thead>
+      <tbody>
+        <tr><td><code>.github/copilot-instructions.md</code></td><td>Core AIDLC workflow rules. Activates AIDLC in GitHub Copilot.</td><td>Team (under branch protection)</td></tr>
+        <tr><td><code>.aidlc-rule-details/</code></td><td>Detailed phase-specific rules referenced dynamically by the workflow.</td><td>Team (under branch protection)</td></tr>
+        <tr><td><code>aidlc-docs/</code></td><td>All AI-generated artefacts: requirements, design, audit log. Version-controlled.</td><td>AIDLC auto-generates; team reviews</td></tr>
+        <tr><td><code>aidlc-docs/aidlc-state.md</code></td><td>Tracks current phase and stage. Enables resuming sessions.</td><td>AIDLC auto-generates</td></tr>
+        <tr><td><code>aidlc-docs/audit.md</code></td><td>Full timestamped log of all AI actions and human approvals.</td><td>AIDLC auto-generates; do not edit</td></tr>
+        <tr><td><code>aidlc-docs/inception/requirements.md</code></td><td>AI-generated requirements and user stories (Inception phase output).</td><td>PO approves; dev reviews</td></tr>
+        <tr><td><code>aidlc-docs/construction/design.md</code></td><td>AI-generated architecture and functional design (Construction phase output).</td><td>Architect approves; dev reviews</td></tr>
+      </tbody>
+    </table>
+
+  </div><!-- /main dev -->
+</div>
+
+<!-- ===== PO PANEL ===== -->
+<div id="po" class="panel">
+  <div class="cover-po cover-common">
+    <h1>Product Owner Onboarding Kit — AIDLC</h1>
+    <div class="sub">Your practical guide to product ownership in an AI-Driven Development Lifecycle · Tooling: Azure DevOps · MS365 Business Suite</div>
+    <div class="badges">
+      <span class="badge">Product Owners</span>
+      <span class="badge">Estimated read: 20 min</span>
+      <span class="badge">Version 1.0 · March 2026</span>
+    </div>
+  </div>
+  <div class="main">
+
+    <h2 class="section">Welcome: Your New Role in AIDLC</h2>
+    <p>In traditional Scrum, you write user stories. In AIDLC, <strong>AI drafts user stories</strong>, and you validate, prioritise, and approve them. This shift is significant: you move from author to editor and decision-maker. The result is less time writing, more time thinking strategically.</p>
+    <p>What stays the same: you own the product vision, you define "done", and you are the final voice on what gets built and why. AI cannot replace this judgement.</p>
+    <p>What changes:</p>
+    <ul>
+      <li>You lead <strong>Mob Elaboration</strong> sessions (replacing grooming) where you validate AI-generated requirements in real-time with the full team</li>
+      <li>You approve the Inception phase checkpoint — nothing moves to Construction without your sign-off</li>
+      <li>You review and approve <strong>AI-generated acceptance criteria</strong> rather than writing them</li>
+      <li>You engage with stakeholders on a faster cadence as Bolts complete in days rather than weeks</li>
+    </ul>
+
+    <h2 class="section">Your First Week Checklist</h2>
+    <ul class="checklist">
+      <li><span class="check"></span><div><strong>Understand the three AIDLC phases</strong><p>Inception, Construction, Operations. Your primary domain is Inception, but you approve phase transitions for all three.</p></div></li>
+      <li><span class="check"></span><div><strong>Prepare your product context document</strong><p>Write a 1-page summary of your product: its users, core problems it solves, key constraints, and business goals. This becomes part of the AI's context in every Inception session.</p></div></li>
+      <li><span class="check"></span><div><strong>Observe a Mob Elaboration session</strong><p>If your pilot team is running one, attend as an observer before leading your first one.</p></div></li>
+      <li><span class="check"></span><div><strong>Review your Azure DevOps backlog with AIDLC in mind</strong><p>Identify which items are large enough to benefit from a full AIDLC Inception phase vs items that are small enough for direct Construction.</p></div></li>
+      <li><span class="check"></span><div><strong>Brief your key stakeholders</strong><p>Explain that features will arrive faster, but you'll need their availability for rapid feedback rather than sprint review presentations.</p></div></li>
+      <li><span class="check"></span><div><strong>Define your acceptance criteria standards</strong><p>AI generates acceptance criteria in formats it knows. Give it examples of what good criteria look like for your product so it matches your style.</p></div></li>
+    </ul>
+
+    <h2 class="section">Your Role in Mob Elaboration</h2>
+    <p>Mob Elaboration is your primary new ritual. It replaces backlog grooming sessions. Here's what to expect:</p>
+    <div class="card">
+      <h3>📅 Mob Elaboration Session Structure (90–120 min)</h3>
+      <ol class="steps" style="margin-top:12px;">
+        <li><div class="step-content"><strong>You present the business intent (5 min)</strong>Describe the problem or opportunity in plain language. Example: "We need users to be able to download their invoice history as a PDF. This is blocking enterprise sales."</div></li>
+        <li><div class="step-content"><strong>AI analyses and asks clarifying questions (15 min)</strong>AI asks about users, edge cases, constraints, integrations. You answer. So does the team. Capture decisions.</div></li>
+        <li><div class="step-content"><strong>AI generates a requirements draft (10 min)</strong>Requirements, user stories, and acceptance criteria appear in <code>aidlc-docs/inception/requirements.md</code>. Everyone reviews.</div></li>
+        <li><div class="step-content"><strong>Team reviews and corrects (30 min)</strong>You lead the review. What did AI miss? What's wrong? What's in scope vs out? Correct the AI through the chat interface — it updates the artefacts in real-time.</div></li>
+        <li><div class="step-content"><strong>You approve the Inception checkpoint (5 min)</strong>When you are satisfied with the requirements, explicitly approve them. Example: "AI-DLC, I approve the requirements in requirements.md. Please proceed to Construction." This is your formal sign-off.</div></li>
+      </ol>
+    </div>
+
+    <div class="callout warn">
+      <h5>Important: Don't Rush the Approval</h5>
+      The Inception approval gate is your most powerful control point. If requirements are wrong here, the team builds the wrong thing faster than ever before. Take the time to validate carefully — the speed gains come in Construction, not Inception.
+    </div>
+
+    <h2 class="section">How to Write an Effective Business Intent Statement</h2>
+    <p>The quality of AI's output depends heavily on the quality of your intent statement. Here's a framework:</p>
+    <div class="card">
+      <h3>🟢 Strong intent statement</h3>
+      <pre style="white-space:pre-wrap;background:#F4F7FB;color:var(--text);border:1px solid var(--border);"><span class="comment">Context:</span> Our enterprise customers need to reconcile their invoices with their internal accounting systems.
+<span class="comment">Problem:</span> They currently export invoices one by one as PDFs. For customers with 100+ invoices/month, this is 2–3 hours of manual work.
+<span class="comment">Request:</span> Add a bulk invoice export feature. Users should be able to select a date range or filter by status and download all matching invoices as a ZIP of individual PDFs or as a single consolidated PDF.
+<span class="comment">Constraints:</span> Max 500 invoices per export. Must work for our existing customer roles (admin and finance user). Must not affect invoice viewing performance.
+<span class="comment">Definition of done:</span> Finance users can complete a 50-invoice export in under 2 minutes.</pre>
+    </div>
+    <div class="card" style="border-color:var(--coral);">
+      <h3 style="color:var(--coral);">🔴 Weak intent statement — AI will ask many basic questions</h3>
+      <pre style="white-space:pre-wrap;background:#FFF4F0;color:var(--text);border:1px solid #FFCCBB;">"We need an invoice export feature."</pre>
+      <p style="font-size:13px;color:var(--muted);margin-top:8px;">This will result in many back-and-forth clarification rounds. Prepare your intent statement before the Mob session — not in it.</p>
+    </div>
+
+    <h2 class="section">Validating AI-Generated User Stories: Your Checklist</h2>
+    <p>AI generates stories in a standard format. Here's what to check for each one:</p>
+    <ul class="checklist">
+      <li><span class="check"></span><div><strong>Is the user role correct?</strong><p>AI infers user roles from context. Verify it matches your actual user types.</p></div></li>
+      <li><span class="check"></span><div><strong>Is the business value statement meaningful?</strong><p>"So that I can manage my invoices" is weak. It should explain a real user outcome.</p></div></li>
+      <li><span class="check"></span><div><strong>Are acceptance criteria specific and testable?</strong><p>Each criterion should be verifiable. "The export works" is not testable. "A ZIP file downloads within 10 seconds for up to 50 invoices" is.</p></div></li>
+      <li><span class="check"></span><div><strong>Are edge cases covered?</strong><p>AI is good at happy path. Check: what happens when zero results match? When the user has no permissions? When the export is very large?</p></div></li>
+      <li><span class="check"></span><div><strong>Is the scope bounded?</strong><p>AI sometimes generates stories that are too large. If a story will take more than 2–3 days to implement, ask AI to break it down further.</p></div></li>
+      <li><span class="check"></span><div><strong>Does it match your prioritisation?</strong><p>AI doesn't know your business priorities — it generates stories based on completeness. You decide which ones go into the next Bolt.</p></div></li>
+    </ul>
+
+    <h2 class="section">Managing Your Backlog in Azure DevOps with AIDLC</h2>
+    <p>AI-generated stories can be created directly in Azure DevOps during Mob Elaboration via GitHub Copilot integration. Key changes to your backlog management:</p>
+    <table class="info">
+      <thead><tr><th>Traditional PO Activity</th><th>AIDLC Equivalent</th></tr></thead>
+      <tbody>
+        <tr><td>Writing stories in Azure DevOps manually</td><td>Approve AI-generated stories that auto-populate into Azure DevOps</td></tr>
+        <tr><td>Running 1-hour grooming sessions weekly</td><td>Running 90–120 min Mob Elaboration at the start of each significant feature</td></tr>
+        <tr><td>Sprint planning with story point estimation</td><td>AI provides complexity estimates; team validates and approves a Bolt scope</td></tr>
+        <tr><td>Writing acceptance criteria in Azure DevOps fields</td><td>Reviewing and approving AI-generated acceptance criteria, then linking to <code>requirements.md</code></td></tr>
+        <tr><td>Presenting at sprint review (every 2 weeks)</td><td>Demoing features as each Bolt completes (could be multiple times per week)</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section">Communicating with Stakeholders in the AIDLC World</h2>
+    <div class="card">
+      <h3>📨 Suggested Stakeholder Message Template</h3>
+      <div style="background:var(--light-bg);border-radius:8px;padding:16px;font-size:14px;line-height:1.7;font-style:italic;">
+        <p>Hi [Stakeholder Name],</p>
+        <p>We're moving to a new AI-powered development approach that will change how we deliver features to you.</p>
+        <p>What this means for you: <strong>features will arrive faster</strong> — potentially in days rather than weeks. Instead of waiting for a sprint review to see progress, you'll see working features as soon as they complete.</p>
+        <p>What I need from you: <strong>quicker availability</strong> for short feedback sessions. Instead of a long requirements document for review, I may call you for a 20-minute call to validate a specific feature direction. Being available within 24 hours for these conversations will help us move at our new pace.</p>
+        <p>I'll keep you updated as we start our pilot. Happy to answer questions at [contact].</p>
+      </div>
+    </div>
+
+    <h2 class="section">Your Day-in-the-Life in AIDLC (Reference Schedule)</h2>
+    <div class="day-one">
+      <div class="day-card"><div class="time">Morning</div><h4>Review Bolt Status</h4><p>Check Azure DevOps for completed items from yesterday's Bolt. Review any pending approvals in Copilot chat.</p></div>
+      <div class="day-card"><div class="time">Mid-Morning</div><h4>Mob Elaboration (if new feature)</h4><p>Lead the 90–120 min session. Come prepared with your intent statement drafted in advance.</p></div>
+      <div class="day-card"><div class="time">Afternoon</div><h4>Approve Checkpoints</h4><p>Respond to AI approval requests — target within 2 hours to keep the team unblocked.</p></div>
+      <div class="day-card"><div class="time">Late Afternoon</div><h4>Stakeholder Updates</h4><p>Demo completed Bolt features. Shorter and more frequent than sprint reviews. 15–20 min calls.</p></div>
+    </div>
+
+    <div class="callout action">
+      <h5>Your Most Important AIDLC Habit</h5>
+      Be available. In AIDLC, <strong>human approval latency</strong> is the primary bottleneck. If AI is waiting for your approval and you're in back-to-back meetings for 6 hours, the team's velocity is zero. Build "AIDLC check-in" time into your calendar — 15 minutes at 10am, 2pm, and 4pm is enough to stay unblocked.
+    </div>
+
+    <h2 class="section">Resources</h2>
+    <ul>
+      <li><strong>AIDLC Methodology:</strong> prod.d13rzhkk8cj2z0.amplifyapp.com</li>
+      <li><strong>AWS Blog — AIDLC Introduction:</strong> aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/</li>
+      <li><strong>Your team's AIDLC rules:</strong> Check your Azure DevOps repo under <code>.github/copilot-instructions.md</code></li>
+      <li><strong>Questions?</strong> See the AIDLC FAQ document (companion to this guide)</li>
+    </ul>
+
+  </div><!-- /main po -->
+</div>
+
+<footer>
+  AIDLC Onboarding Kits · Internal Use Only · March 2026 · v1.0
+</footer>
+
+<script>
+function switchTab(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
