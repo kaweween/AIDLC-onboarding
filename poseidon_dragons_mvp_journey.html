@@ -1,0 +1,327 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.deck { width: 100%; }
+.slide { display: none; padding: 2rem 1.5rem; min-height: 480px; flex-direction: column; justify-content: flex-start; }
+.slide.active { display: flex; }
+.slide-header { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; color: var(--color-text-tertiary); text-transform: uppercase; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+.slide-title { font-size: 22px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 0.5rem; line-height: 1.3; }
+.slide-sub { font-size: 14px; color: var(--color-text-secondary); margin-bottom: 1.5rem; line-height: 1.6; }
+.nav { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; border-top: 0.5px solid var(--color-border-tertiary); }
+.nav button { font-size: 13px; padding: 6px 16px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-primary); cursor: pointer; }
+.nav button:hover { background: var(--color-background-secondary); }
+.nav button:disabled { opacity: 0.3; cursor: default; }
+.dots { display: flex; gap: 6px; }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-border-secondary); cursor: pointer; transition: background 0.2s; }
+.dot.active { background: var(--color-text-primary); }
+.pill { display: inline-block; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; margin-right: 6px; margin-bottom: 6px; }
+.pill-teal { background: #E1F5EE; color: #085041; }
+.pill-purple { background: #EEEDFE; color: #3C3489; }
+.pill-coral { background: #FAECE7; color: #712B13; }
+.pill-amber { background: #FAEEDA; color: #633806; }
+.pill-green { background: #EAF3DE; color: #27500A; }
+.pill-gray { background: #F1EFE8; color: #444441; }
+.stat-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin-bottom: 1.5rem; }
+.stat { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 14px 16px; }
+.stat-val { font-size: 28px; font-weight: 500; color: var(--color-text-primary); line-height: 1; }
+.stat-lbl { font-size: 11px; color: var(--color-text-secondary); margin-top: 4px; }
+.timeline { display: flex; flex-direction: column; gap: 0; }
+.tl-item { display: flex; gap: 16px; padding-bottom: 20px; position: relative; }
+.tl-item:last-child { padding-bottom: 0; }
+.tl-left { display: flex; flex-direction: column; align-items: center; min-width: 44px; }
+.tl-dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0; }
+.tl-line { width: 1px; flex: 1; background: var(--color-border-tertiary); margin-top: 4px; min-height: 20px; }
+.tl-content { padding-top: 4px; flex: 1; }
+.tl-time { font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 2px; }
+.tl-title { font-size: 14px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 3px; }
+.tl-desc { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; }
+.feature-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+.feature-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px 14px; }
+.feature-card-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; }
+.feature-card-desc { font-size: 11px; color: var(--color-text-secondary); line-height: 1.5; }
+.bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.bar-label { font-size: 12px; color: var(--color-text-secondary); min-width: 90px; }
+.bar-track { flex: 1; height: 8px; background: var(--color-background-secondary); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+.stack-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.quote { border-left: 2px solid var(--color-border-secondary); padding: 10px 16px; margin: 12px 0; font-size: 13px; color: var(--color-text-secondary); font-family: var(--font-serif); line-height: 1.6; font-style: italic; }
+.check-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.check-list li { display: flex; gap: 10px; font-size: 13px; color: var(--color-text-primary); align-items: flex-start; line-height: 1.5; }
+.check-icon { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; margin-top: 1px; }
+.check-done { background: #EAF3DE; color: #27500A; }
+.check-next { background: #EEEDFE; color: #3C3489; }
+.two-col { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1rem; }
+.section-label { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+.big-number { font-size: 48px; font-weight: 500; color: var(--color-text-primary); line-height: 1; }
+.big-unit { font-size: 16px; color: var(--color-text-secondary); margin-left: 4px; }
+</style>
+
+<div class="deck">
+
+<div class="slide active" id="slide-0">
+  <div class="slide-header"><span>Cebu Poseidon Dragons</span><span>Brown Bag · March 2026</span></div>
+  <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+    <div style="font-size:13px; color:var(--color-text-tertiary); margin-bottom:8px;">How we built</div>
+    <div class="slide-title" style="font-size:28px; margin-bottom:12px;">A full team management app<br>in one working session</div>
+    <div class="slide-sub">From zero to live — requirements, design, code, tests, security, and deployment. No prior React experience required.</div>
+    <div class="stat-grid" style="margin-top:1.5rem;">
+      <div class="stat"><div class="big-number">10<span class="big-unit">hrs</span></div><div class="stat-lbl">Total elapsed time</div></div>
+      <div class="stat"><div class="big-number">12</div><div class="stat-lbl">Sessions completed</div></div>
+      <div class="stat"><div class="big-number">62</div><div class="stat-lbl">Tests passing</div></div>
+    </div>
+    <div style="margin-top:8px; font-size:13px; color:var(--color-text-tertiary);">Live at poseidon-dragons.web.app</div>
+  </div>
+</div>
+
+<div class="slide" id="slide-1">
+  <div class="slide-header"><span>The problem</span><span>Slide 2 of 10</span></div>
+  <div class="slide-title">Everything was manual</div>
+  <div class="slide-sub">Before this project, the team ran operations across three disconnected tools.</div>
+  <div class="two-col" style="margin-bottom:1rem;">
+    <div class="feature-card">
+      <div class="feature-card-title">Messenger</div>
+      <div class="feature-card-desc">Training schedules, member polls, announcements, payment screenshots — all in a group chat with no structure</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card-title">Google Sheets</div>
+      <div class="feature-card-desc">Member roster maintained manually by officers. No validation, no access control, anyone with the link could edit</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card-title">Google Drive</div>
+      <div class="feature-card-desc">Payment screenshots, ID photos, and documents stored in folders with no link to member records</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card-title">No audit trail</div>
+      <div class="feature-card-desc">No history of who changed what, no payment confirmation system, no attendance records beyond chat messages</div>
+    </div>
+  </div>
+  <div class="quote">"Officers had to manually update three different places every time anything changed about a member."</div>
+</div>
+
+<div class="slide" id="slide-2">
+  <div class="slide-header"><span>The approach</span><span>Slide 3 of 10</span></div>
+  <div class="slide-title">AI-assisted development (AIDLC)</div>
+  <div class="slide-sub">A modified software development lifecycle where Claude acts as architect, coder, and QA — and the human drives every decision.</div>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-left"><div class="tl-dot" style="background:#EEEDFE;color:#3C3489;">1</div><div class="tl-line"></div></div>
+      <div class="tl-content"><div class="tl-time">Session start</div><div class="tl-title">Define requirements</div><div class="tl-desc">Natural language prompts → structured user stories, data model, tech stack decisions</div></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-left"><div class="tl-dot" style="background:#EEEDFE;color:#3C3489;">2</div><div class="tl-line"></div></div>
+      <div class="tl-content"><div class="tl-time">Iterative</div><div class="tl-title">Generate → Review → Correct</div><div class="tl-desc">Claude writes code, Kareen reviews and corrects. Every correction becomes a documented decision</div></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-left"><div class="tl-dot" style="background:#EEEDFE;color:#3C3489;">3</div><div class="tl-line"></div></div>
+      <div class="tl-content"><div class="tl-time">Each session</div><div class="tl-title">Test-driven verification</div><div class="tl-desc">Unit tests written alongside features. 62/62 passing before any deployment</div></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-left"><div class="tl-dot" style="background:#EAF3DE;color:#27500A;">4</div></div>
+      <div class="tl-content"><div class="tl-time">Session 12</div><div class="tl-title">Ship</div><div class="tl-desc">Security rules, production build, Firebase deploy — live in one session</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-3">
+  <div class="slide-header"><span>The tech stack</span><span>Slide 4 of 10</span></div>
+  <div class="slide-title">Modern, free-tier friendly, extensible</div>
+  <div class="slide-sub">Every tool chosen to work within free-tier constraints while supporting 100+ concurrent users and future mobile apps.</div>
+  <div style="margin-bottom:1rem;">
+    <div class="section-label">Frontend</div>
+    <div class="stack-row">
+      <span class="pill pill-teal">React + TypeScript</span>
+      <span class="pill pill-teal">Vite 6</span>
+      <span class="pill pill-teal">Tailwind CSS v3</span>
+      <span class="pill pill-teal">shadcn/ui</span>
+      <span class="pill pill-teal">React Hook Form</span>
+    </div>
+    <div class="section-label" style="margin-top:12px;">Firebase (Backend)</div>
+    <div class="stack-row">
+      <span class="pill pill-purple">Firestore</span>
+      <span class="pill pill-purple">Authentication</span>
+      <span class="pill pill-purple">Storage</span>
+      <span class="pill pill-purple">Hosting</span>
+    </div>
+    <div class="section-label" style="margin-top:12px;">Developer tools</div>
+    <div class="stack-row">
+      <span class="pill pill-gray">Vitest</span>
+      <span class="pill pill-gray">React Testing Library</span>
+      <span class="pill pill-gray">GitHub</span>
+      <span class="pill pill-gray">VS Code</span>
+    </div>
+    <div class="section-label" style="margin-top:12px;">Key decisions</div>
+    <div class="stack-row">
+      <span class="pill pill-amber">Tailwind v3 pinned</span>
+      <span class="pill pill-amber">team_manager role added</span>
+      <span class="pill pill-amber">useEffect navigation</span>
+      <span class="pill pill-amber">latest-status-wins import</span>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-4">
+  <div class="slide-header"><span>The journey</span><span>Slide 5 of 10</span></div>
+  <div class="slide-title">12 sessions · 10 hours</div>
+  <div class="slide-sub">Each session had a defined scope, deliverables, and tests before moving on.</div>
+  <div style="display:flex; flex-direction:column; gap:6px;">
+    <div class="bar-row"><div class="bar-label">S1 — Setup</div><div class="bar-track"><div class="bar-fill" style="width:20%;background:#9FE1CB;"></div></div><div style="font-size:11px;color:var(--color-text-tertiary);">env + tools</div></div>
+    <div class="bar-row"><div class="bar-label">S2 — Structure</div><div class="bar-track"><div class="bar-fill" style="width:30%;background:#9FE1CB;"></div></div><div style="font-size:11px;color:var(--color-text-tertiary);">types, auth, routing</div></div>
+    <div class="bar-row"><div class="bar-label">S3 — Landing</div><div class="bar-track"><div class="bar-fill" style="width:40%;background:#9FE1CB;"></div></div><div style="font-size:11px;color:var(--color-text-tertiary);">public page</div></div>
+    <div class="bar-row"><div class="bar-label">S4 — Apply form</div><div class="bar-track"><div class="bar-fill" style="width:50%;background:#5DCAA5;"></div></div><div style="font-size:11px;color:var(--color-text-tertiary);">membership form</div></div>
+    <div class="bar-row"><div class="bar-label">S5 — Auth</div><div class="bar-track"><div class="bar-fill" style="width:55%;background:#5DCAA5;"></div></div><div style="font-size:11px;color:var(--color-text-tertiary);">12/12 tests</div></div>
+    <div class="bar-row"><div class="bar-label">S6 — Dashboard</div><div class="bar-track"><div class="bar-fill" style="width:62%;background:#1D9E75;"></div></div><div style="font-size:11px;color:var(--color-text-tertiary);">shell + nav</div></div>
+    <div class="bar-row"><div class="bar-label">S7 — Members</div><div class="bar-track"><div class="bar-fill" style="width:70%;background:#1D9E75;"></div></div><div style="font-size:11px;color:var(--color-text-tertiary);">15/15 tests</div></div>
+    <div class="bar-row"><div class="bar-label">S8 — Import</div><div class="bar-track"><div class="bar-fill" style="width:78%;background:#0F6E56;"></div></div><div style="font-size:11px;color:var(--color-text-tertiary);">12/12 tests</div></div>
+    <div class="bar-row"><div class="bar-label">S9 — Attendance</div><div class="bar-track"><div class="bar-fill" style="width:86%;background:#0F6E56;"></div></div><div style="font-size:11px;color:var(--color-text-tertiary);">10/10 tests</div></div>
+    <div class="bar-row"><div class="bar-label">S10 — Payments</div><div class="bar-track"><div class="bar-fill" style="width:92%;background:#085041;"></div></div><div style="font-size:11px;color:var(--color-text-tertiary);">13/13 tests</div></div>
+    <div class="bar-row"><div class="bar-label">S11 — Security</div><div class="bar-track"><div class="bar-fill" style="width:97%;background:#085041;"></div></div><div style="font-size:11px;color:var(--color-text-tertiary);">rules published</div></div>
+    <div class="bar-row"><div class="bar-label">S12 — Deploy</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#04342C;"></div></div><div style="font-size:11px;color:var(--color-text-tertiary);">live</div></div>
+  </div>
+</div>
+
+<div class="slide" id="slide-5">
+  <div class="slide-header"><span>What we built</span><span>Slide 6 of 10</span></div>
+  <div class="slide-title">MVP features — all live</div>
+  <div class="slide-sub">Everything an officer needs to run the team — accessible from any browser on any device.</div>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-card-title">Public landing page</div>
+      <div class="feature-card-desc">Team info, benefits, training schedule, Google Maps, membership application form with photo upload</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card-title">Officer login</div>
+      <div class="feature-card-desc">Firebase Auth with role-based access — officer, treasurer, team manager, head officer</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card-title">Member roster</div>
+      <div class="feature-card-desc">Search, filter, add, edit, remove members. Bulk import from Google Sheets, CSV, or Excel</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card-title">Attendance tracking</div>
+      <div class="feature-card-desc">Create sessions, tap to mark present, walk-in quick add, share check-in link, edit past sessions</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card-title">Payment management</div>
+      <div class="feature-card-desc">GCash/BPI/Cash with QR codes, screenshot upload, junior/senior discount, member balances</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card-title">Applications review</div>
+      <div class="feature-card-desc">Review pending applications, approve to create member record, reject with reason</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-6">
+  <div class="slide-header"><span>Key corrections</span><span>Slide 7 of 10</span></div>
+  <div class="slide-title">The human in the loop</div>
+  <div class="slide-sub">Every correction Kareen made became a documented decision. This is what made AIDLC work — not just accepting AI output.</div>
+  <ul class="check-list">
+    <li><div class="check-icon check-done">K</div><div><strong>Tailwind v4 broke the build</strong> — Kareen caught it immediately. Pinned to v3. Now documented in specs.</div></li>
+    <li><div class="check-icon check-done">K</div><div><strong>Role mismatch</strong> — Kareen's Firestore role was team_manager, not head_officer. Fixed without touching production data.</div></li>
+    <li><div class="check-icon check-done">K</div><div><strong>Dragonboat positions</strong> — Generic labels corrected to actual positions: Bow/Left, Stroke/Right, Ambidextrous, Drummer, Helm.</div></li>
+    <li><div class="check-icon check-done">K</div><div><strong>Login freeze</strong> — navigate() during render caused infinite loop. Fixed with useEffect pattern.</div></li>
+    <li><div class="check-icon check-done">K</div><div><strong>Import status mapping</strong> — All members imported as pending. Kareen caught it; added Membership Status column priority and freeze/resign → inactive mapping.</div></li>
+    <li><div class="check-icon check-done">K</div><div><strong>QR codes</strong> — Requested both BPI and GCash QR codes, not just BPI. Small detail, big UX difference.</div></li>
+  </ul>
+</div>
+
+<div class="slide" id="slide-7">
+  <div class="slide-header"><span>What's next</span><span>Slide 8 of 10</span></div>
+  <div class="slide-title">Phase 2 — 26 stories across 4 priorities</div>
+  <div class="slide-sub">Planned in priority order so officers can replace all manual workflows before members are onboarded.</div>
+  <div style="display:flex;flex-direction:column;gap:10px;">
+    <div style="display:flex;gap:10px;align-items:flex-start;">
+      <div style="width:10px;height:10px;border-radius:50%;background:#A32D2D;flex-shrink:0;margin-top:4px;"></div>
+      <div><div style="font-size:13px;font-weight:500;color:var(--color-text-primary);">Priority 1 — Officer efficiency</div><div style="font-size:12px;color:var(--color-text-secondary);">Bulk actions, export, AI screenshot reader, training post generator for Messenger</div></div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:flex-start;">
+      <div style="width:10px;height:10px;border-radius:50%;background:#BA7517;flex-shrink:0;margin-top:4px;"></div>
+      <div><div style="font-size:13px;font-weight:500;color:var(--color-text-primary);">Priority 2 — Replace Messenger workflows</div><div style="font-size:12px;color:var(--color-text-secondary);">Training schedule, sign-ups, boat lineup builder, race events, awards system</div></div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:flex-start;">
+      <div style="width:10px;height:10px;border-radius:50%;background:#534AB7;flex-shrink:0;margin-top:4px;"></div>
+      <div><div style="font-size:13px;font-weight:500;color:var(--color-text-primary);">Priority 3 — Member onboarding</div><div style="font-size:12px;color:var(--color-text-secondary);">Member login, digital ID card, QR self check-in, session sign-ups</div></div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:flex-start;">
+      <div style="width:10px;height:10px;border-radius:50%;background:#3B6D11;flex-shrink:0;margin-top:4px;"></div>
+      <div><div style="font-size:13px;font-weight:500;color:var(--color-text-primary);">Priority 4 — Engagement</div><div style="font-size:12px;color:var(--color-text-secondary);">Announcements, featured spotlight, photo carousel, Facebook video embed</div></div>
+    </div>
+  </div>
+  <div style="margin-top:1.5rem;padding:14px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);">
+    <div style="font-size:12px;color:var(--color-text-secondary);">New in Phase 2: Messenger post generator, Messenger poll import → auto sign-ups, boat lineup builder with quorum check, race history from 2026, awards + badge system</div>
+  </div>
+</div>
+
+<div class="slide" id="slide-8">
+  <div class="slide-header"><span>Rollout plan</span><span>Slide 9 of 10</span></div>
+  <div class="slide-title">Four phases — officers first, members second</div>
+  <div class="slide-sub">Designed to replace existing workflows gradually, not all at once.</div>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-left"><div class="tl-dot" style="background:#FAECE7;color:#712B13;">A</div><div class="tl-line"></div></div>
+      <div class="tl-content"><div class="tl-time">Now — 2 weeks</div><div class="tl-title">Officer data entry</div><div class="tl-desc">Bulk import members, record 2026 payments, backfill attendance, verify all profiles. App becomes single source of truth.</div></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-left"><div class="tl-dot" style="background:#FAEEDA;color:#633806;">B</div><div class="tl-line"></div></div>
+      <div class="tl-content"><div class="tl-time">Weeks 3–4</div><div class="tl-title">Officer full operation</div><div class="tl-desc">Training schedule in app, Messenger post generator replaces manual typing, payments and attendance fully live. Test with 2–3 trusted members.</div></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-left"><div class="tl-dot" style="background:#EEEDFE;color:#3C3489;">C</div><div class="tl-line"></div></div>
+      <div class="tl-content"><div class="tl-time">After Phase 2 Priority 3</div><div class="tl-title">Member soft launch</div><div class="tl-desc">Member login goes live. Announce in GC. Members verify own profiles, use digital ID, QR check-in at training.</div></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-left"><div class="tl-dot" style="background:#EAF3DE;color:#27500A;">D</div></div>
+      <div class="tl-content"><div class="tl-time">Full rollout</div><div class="tl-title">App is the primary channel</div><div class="tl-desc">Announcements replace Messenger for official posts. Members sign up for training in app. Digital ID used for race registration.</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-9">
+  <div class="slide-header"><span>Key takeaways</span><span>Slide 10 of 10</span></div>
+  <div class="slide-title">What AIDLC taught us</div>
+  <div class="slide-sub">10 hours. 1 developer with a coding background but years away from code. 1 AI assistant. 1 live app.</div>
+  <div class="stat-grid" style="margin-bottom:1.5rem;">
+    <div class="stat"><div class="big-number">62</div><div class="stat-lbl">Unit tests passing</div></div>
+    <div class="stat"><div class="big-number">22</div><div class="stat-lbl">Phase 2 stories planned</div></div>
+    <div class="stat"><div class="big-number">0</div><div class="stat-lbl">TypeScript errors at build</div></div>
+  </div>
+  <ul class="check-list">
+    <li><div class="check-icon check-done">1</div><div>The human drives every decision — AI generates, human approves, corrects, and improves</div></li>
+    <li><div class="check-icon check-done">2</div><div>Domain knowledge is irreplaceable — Kareen's corrections made the app accurate to actual dragonboat operations</div></li>
+    <li><div class="check-icon check-done">3</div><div>Document as you go — specs, decisions, and corrections become institutional knowledge</div></li>
+    <li><div class="check-icon check-done">4</div><div>Test-driven gives confidence — 62 tests mean refactoring and deploying without fear</div></li>
+    <li><div class="check-icon check-next">5</div><div>AIDLC is not about replacing developers — it's about amplifying a motivated person with domain knowledge</div></li>
+  </ul>
+</div>
+
+</div>
+
+<div class="nav">
+  <button id="prev-btn" onclick="navigate(-1)" disabled>Back</button>
+  <div class="dots" id="dots"></div>
+  <button id="next-btn" onclick="navigate(1)">Next</button>
+</div>
+
+<script>
+var current = 0;
+var total = 10;
+var dotsEl = document.getElementById('dots');
+for (var i = 0; i < total; i++) {
+  var d = document.createElement('div');
+  d.className = 'dot' + (i === 0 ? ' active' : '');
+  d.setAttribute('data-i', i);
+  d.onclick = (function(idx){ return function(){ goTo(idx); }; })(i);
+  dotsEl.appendChild(d);
+}
+function goTo(n) {
+  document.getElementById('slide-' + current).classList.remove('active');
+  document.querySelectorAll('.dot')[current].classList.remove('active');
+  current = n;
+  document.getElementById('slide-' + current).classList.add('active');
+  document.querySelectorAll('.dot')[current].classList.add('active');
+  document.getElementById('prev-btn').disabled = current === 0;
+  document.getElementById('next-btn').disabled = current === total - 1;
+}
+function navigate(dir) { goTo(Math.max(0, Math.min(total-1, current + dir))); }
+</script>
