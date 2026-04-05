@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poseidon Dragons — Built with AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal-deep: #04342C;
+    --teal-mid: #085041;
+    --teal-bright: #1D9E75;
+    --teal-light: #9FE1CB;
+    --gold: #C9973A;
+    --ink: #12110F;
+    --ink-3: #6B6860;
+    --paper: #FAF9F6;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--ink);
+    color: var(--paper);
+    overflow: hidden;
+  }
+
+  .presenter {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* subtle bg glow */
+  .presenter::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 80% 15%, rgba(29,158,117,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 60% at 5% 85%, rgba(4,52,44,0.5) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── SLIDE AREA ── */
+  .slides-wrapper {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 3.5rem 5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    opacity: 0;
+    transform: translateX(50px);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .slide.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: all;
+  }
+
+  .slide.exit {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+
+  /* ── TYPOGRAPHY ── */
+  .eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 1rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--teal-bright);
+    margin-bottom: 1.4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .eyebrow .slide-num {
+    color: var(--ink-3);
+    font-size: 0.85rem;
+  }
+
+  .slide-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.8rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--paper);
+    margin-bottom: 1rem;
+  }
+
+  .slide-title em {
+    font-style: italic;
+    color: var(--teal-light);
+  }
+
+  .slide-sub {
+    font-size: 1.4rem;
+    line-height: 1.7;
+    color: var(--ink-3);
+    max-width: 720px;
+    margin-bottom: 2rem;
+  }
+
+  /* ── STATS ── */
+  .stat-row {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .stat-row-3 { grid-template-columns: repeat(3, 1fr); }
+  .stat-row-2 { grid-template-columns: repeat(2, 1fr); }
+
+  .stat-block {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
+    padding: 1.4rem 1.6rem;
+  }
+
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.2rem;
+    font-weight: 700;
+    color: var(--teal-light);
+    line-height: 1;
+  }
+
+  .stat-unit {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.3rem;
+    color: var(--ink-3);
+    margin-left: 4px;
+  }
+
+  .stat-label {
+    font-size: 1rem;
+    color: var(--ink-3);
+    margin-top: 0.4rem;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── PILLS / TAGS ── */
+  .pill {
+    display: inline-block;
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 3px;
+    margin: 4px 5px 4px 0;
+  }
+
+  .pill-teal { background: rgba(29,158,117,0.15); color: var(--teal-light); border: 1px solid rgba(29,158,117,0.3); }
+  .pill-gold { background: rgba(201,151,58,0.15); color: var(--gold); border: 1px solid rgba(201,151,58,0.3); }
+  .pill-purple { background: rgba(100,90,220,0.15); color: #B8B2FF; border: 1px solid rgba(100,90,220,0.3); }
+  .pill-coral { background: rgba(163,45,45,0.15); color: #F4A0A0; border: 1px solid rgba(163,45,45,0.3); }
+  .pill-gray { background: rgba(255,255,255,0.06); color: var(--ink-3); border: 1px solid rgba(255,255,255,0.1); }
+
+  /* ── CHECKLIST ── */
+  .check-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .check-list li {
+    display: flex;
+    gap: 1rem;
+    font-size: 1.3rem;
+    color: var(--paper);
+    align-items: flex-start;
+    line-height: 1.6;
+  }
+
+  .check-icon {
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .check-done  { background: rgba(29,158,117,0.2); color: var(--teal-bright); border: 1px solid rgba(29,158,117,0.4); }
+  .check-soon  { background: rgba(201,151,58,0.15); color: var(--gold); border: 1px solid rgba(201,151,58,0.3); }
+  .check-future{ background: rgba(255,255,255,0.05); color: var(--ink-3); border: 1px solid rgba(255,255,255,0.1); }
+
+  .check-list li .label { color: var(--ink-3); }
+
+  /* ── FEATURE GRID ── */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .feature-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
+    padding: 1.2rem 1.4rem;
+  }
+
+  .feature-card-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--paper);
+    margin-bottom: 0.4rem;
+  }
+
+  .feature-card-desc {
+    font-size: 1rem;
+    color: var(--ink-3);
+    line-height: 1.6;
+  }
+
+  /* ── TIMELINE ── */
+  .timeline { display: flex; flex-direction: column; }
+
+  .tl-item {
+    display: flex;
+    gap: 1.2rem;
+    padding-bottom: 1.4rem;
+  }
+
+  .tl-item:last-child { padding-bottom: 0; }
+
+  .tl-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 2.4rem;
+  }
+
+  .tl-dot {
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    font-family: 'DM Mono', monospace;
+    flex-shrink: 0;
+    border: 1px solid;
+  }
+
+  .tl-line {
+    width: 1px;
+    flex: 1;
+    background: rgba(255,255,255,0.08);
+    margin-top: 4px;
+    min-height: 10px;
+  }
+
+  .tl-content { flex: 1; padding-top: 2px; }
+
+  .tl-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--ink-3);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+
+  .tl-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--paper);
+    margin-bottom: 3px;
+  }
+
+  .tl-desc {
+    font-size: 1rem;
+    color: var(--ink-3);
+    line-height: 1.6;
+  }
+
+  .dot-teal   { background: rgba(29,158,117,0.12); color: var(--teal-bright); border-color: rgba(29,158,117,0.4); }
+  .dot-gold   { background: rgba(201,151,58,0.12); color: var(--gold); border-color: rgba(201,151,58,0.3); }
+  .dot-purple { background: rgba(100,90,220,0.12); color: #B8B2FF; border-color: rgba(100,90,220,0.3); }
+  .dot-coral  { background: rgba(163,45,45,0.12); color: #F4A0A0; border-color: rgba(163,45,45,0.3); }
+
+  /* ── PULLQUOTE ── */
+  .pullquote {
+    border-left: 4px solid var(--teal-bright);
+    padding: 1rem 1.4rem;
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.35rem;
+    color: var(--teal-light);
+    line-height: 1.7;
+    background: rgba(29,158,117,0.06);
+    border-radius: 0 6px 6px 0;
+    margin-top: 1rem;
+  }
+
+  /* ── PROGRESS BARS ── */
+  .prog-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .prog-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.9rem;
+    color: var(--ink-3);
+    min-width: 180px;
+  }
+
+  .prog-track {
+    flex: 1;
+    height: 8px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .prog-fill {
+    height: 100%;
+    border-radius: 4px;
+  }
+
+  .prog-note {
+    font-size: 0.9rem;
+    color: var(--ink-3);
+    min-width: 90px;
+    text-align: right;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* ── PHASE CARDS ── */
+  .phase-card {
+    display: flex;
+    gap: 1.2rem;
+    padding: 1.2rem 1.4rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
+    margin-bottom: 0.9rem;
+    align-items: flex-start;
+  }
+
+  .phase-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 5px 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .badge-live { background: rgba(29,158,117,0.2); color: var(--teal-bright); border: 1px solid rgba(29,158,117,0.4); }
+  .badge-now  { background: rgba(201,151,58,0.2); color: var(--gold); border: 1px solid rgba(201,151,58,0.4); }
+  .badge-next { background: rgba(255,255,255,0.05); color: var(--ink-3); border: 1px solid rgba(255,255,255,0.1); }
+
+  .phase-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--paper);
+    margin-bottom: 0.3rem;
+  }
+
+  .phase-desc {
+    font-size: 1rem;
+    color: var(--ink-3);
+    line-height: 1.6;
+  }
+
+  /* ── WIDE STAT BANNER ── */
+  .banner {
+    background: rgba(29,158,117,0.08);
+    border: 1px solid rgba(29,158,117,0.22);
+    border-radius: 6px;
+    padding: 1.2rem 1.6rem;
+    margin-bottom: 1rem;
+  }
+
+  .banner-val {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--teal-light);
+    margin-bottom: 0.3rem;
+  }
+
+  .banner-desc {
+    font-size: 1rem;
+    color: var(--ink-3);
+    line-height: 1.6;
+  }
+
+  /* ── SECTION LABEL ── */
+  .sec-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 0.75rem;
+    margin-top: 1.2rem;
+  }
+
+  .sec-label:first-child { margin-top: 0; }
+
+  /* ── TWO COL ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+
+  /* ── NAV ── */
+  .nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 5rem 1.4rem;
+    z-index: 10;
+    position: relative;
+  }
+
+  .nav-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.9rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.6rem 1.4rem;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04);
+    color: var(--paper);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .nav-btn:hover:not(:disabled) {
+    background: rgba(29,158,117,0.15);
+    border-color: var(--teal-bright);
+    color: var(--teal-light);
+  }
+
+  .nav-btn:disabled { opacity: 0.2; cursor: default; }
+
+  .dots { display: flex; gap: 8px; align-items: center; }
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--ink-3);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .dot.active {
+    background: var(--teal-bright);
+    width: 22px;
+    border-radius: 3px;
+  }
+
+  /* cover rule */
+  .cover-rule {
+    width: 56px; height: 3px;
+    background: var(--teal-bright);
+    margin: 1.4rem 0;
+  }
+
+  /* vs table */
+  .vs-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 1.15rem;
+  }
+
+  .vs-table th {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: 0.5rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .vs-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  .vs-table td:first-child { color: var(--ink-3); }
+  .vs-table td:last-child { color: var(--paper); }
+
+  .vs-table tr:last-child td { border-bottom: none; }
+</style>
+</head>
+<body>
+
+<div class="presenter">
+  <div class="slides-wrapper">
+
+    <!-- ─── 01 COVER ─── -->
+    <div class="slide active" id="slide-0">
+      <div class="eyebrow"><span>Cebu Poseidon Dragons</span><span class="slide-num">01 / 20</span></div>
+      <div style="font-size:1.1rem; color:var(--ink-3); font-family:'DM Mono',monospace; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.6rem;">A story about</div>
+      <div style="font-family:'Playfair Display',serif; font-size:4.4rem; font-weight:700; line-height:1.1; margin-bottom:0.6rem;">
+        Domain knowledge<br>meets <em style="font-style:italic;color:var(--teal-light);">AI-guided</em><br>development
+      </div>
+      <div class="cover-rule"></div>
+      <div style="font-size:1.4rem; color:var(--ink-3); line-height:1.7; max-width:640px;">
+        How a manager who last wrote production code in 2008 built a full team management app for 140+ dragon boat athletes — in a week (3/28-4/5).
+      </div>
+      <div class="stat-row stat-row-3" style="margin-top:2rem;">
+        <div class="stat-block"><div class="stat-num">362</div><div class="stat-label">Tests passing</div></div>
+        <div class="stat-block"><div class="stat-num">Live</div><div class="stat-label">poseidon-dragons.web.app</div></div>
+        <div class="stat-block"><div class="stat-num">&lt;1 <span class="stat-unit">mo</span></div><div class="stat-label">MVP → full platform</div></div>
+      </div>
+    </div>
+
+    <!-- ─── 02 THE PROBLEM ─── -->
+    <div class="slide" id="slide-1">
+      <div class="eyebrow"><span>The problem</span><span class="slide-num">02 / 20</span></div>
+      <div class="slide-title">Everything was <em>manual chaos</em></div>
+      <div class="slide-sub">140+ athletes. Three disconnected tools. No audit trail.</div>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-card-title">📱 Messenger</div>
+          <div class="feature-card-desc">Schedules, attendance polls, payment screenshots — buried in a group chat</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">📊 Google Sheets</div>
+          <div class="feature-card-desc">Member roster updated manually. No validation, no role control.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">📁 Google Drive</div>
+          <div class="feature-card-desc">Payment screenshots and IDs scattered in folders — zero link to member records</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">🚫 No history</div>
+          <div class="feature-card-desc">No change log, no confirmed payments, no attendance beyond old chat messages</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 03 WHO BUILT IT ─── -->
+    <div class="slide" id="slide-2">
+      <div class="eyebrow"><span>The builder</span><span class="slide-num">03 / 20</span></div>
+      <div class="slide-title">Not a developer.<br><em>Something better.</em></div>
+      <div class="timeline" style="margin-top:0.5rem;">
+        <div class="tl-item">
+          <div class="tl-left"><div class="tl-dot dot-teal">04</div><div class="tl-line"></div></div>
+          <div class="tl-content"><div class="tl-time">2004 – 2007</div><div class="tl-title">Software Engineer — Java & C</div><div class="tl-desc">Windows printer drivers at Lexmark. Last production code.</div></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-left"><div class="tl-dot dot-gold">07</div><div class="tl-line"></div></div>
+          <div class="tl-content"><div class="tl-time">2007 – 2019</div><div class="tl-title">PM → PO → Scrum Master</div><div class="tl-desc">50+ firmware/software deliveries. SAFe Agilist. Certified Product Owner.</div></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-left"><div class="tl-dot dot-purple">19</div><div class="tl-line"></div></div>
+          <div class="tl-content"><div class="tl-time">2019 – Present</div><div class="tl-title">Engineering Manager, Mobile</div><div class="tl-desc">Global team of 7–10 devs. <strong>Lexmark's worldwide AI Ambassador.</strong></div></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-left"><div class="tl-dot dot-coral">23</div></div>
+          <div class="tl-content"><div class="tl-time">2023 – Present</div><div class="tl-title">Dragon Boat Team Manager</div><div class="tl-desc">Cebu Poseidon Dragons. Philippine National Team — ICF World Champions 2024.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 04 GAP YEAR CODING ─── -->
+    <div class="slide" id="slide-3">
+      <div class="eyebrow"><span>The builder</span><span class="slide-num">04 / 20</span></div>
+      <div class="slide-title">Coding in the <em>gap years</em></div>
+      <div class="slide-sub">Not away from code — just building differently, with what was available.</div>
+      <ul class="check-list">
+        <li><div class="check-icon check-done">★</div><div><strong>4 Pics 1 Word</strong> — company-wide game using Google Forms + modified HTML so employees could type answers directly into the survey</div></li>
+        <li><div class="check-icon check-done">★</div><div><strong>Family Feud clone</strong> — built for Christmas parties using Google APIs + Visual Basic scripting</div></li>
+        <li><div class="check-icon check-done">★</div><div><strong>MatLab scripts</strong> — data analysis tools and ad hoc automation projects</div></li>
+        <li><div class="check-icon check-done">★</div><div><strong>Power Automate + Copilot Studio</strong> — enterprise AI automation workflows at Lexmark</div></li>
+      </ul>
+      <div class="pullquote" style="margin-top:1.5rem;">A Java/C developer — now building a React + TypeScript + Firebase app for 140 athletes. 18 years later.</div>
+    </div>
+
+    <!-- ─── 05 AIDLC APPROACH ─── -->
+    <div class="slide" id="slide-4">
+      <div class="eyebrow"><span>The approach</span><span class="slide-num">05 / 20</span></div>
+      <div class="slide-title">What is <em>AI-DLC?</em></div>
+      <div class="slide-sub">An AI-guided software development lifecycle. Not "AI wrote my app."<br>The human drives every decision. AI executes with precision.</div>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-left"><div class="tl-dot dot-teal">1</div><div class="tl-line"></div></div>
+          <div class="tl-content"><div class="tl-time">Inception</div><div class="tl-title">Requirements → decisions, human approves every gate</div></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-left"><div class="tl-dot dot-teal">2</div><div class="tl-line"></div></div>
+          <div class="tl-content"><div class="tl-time">Construction</div><div class="tl-title">AI generates code → Kareen reviews and corrects → document the decision</div></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-left"><div class="tl-dot dot-teal">3</div><div class="tl-line"></div></div>
+          <div class="tl-content"><div class="tl-time">Each unit</div><div class="tl-title">Tests written alongside every feature — 362/362 passing, always</div></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-left"><div class="tl-dot dot-gold">4</div></div>
+          <div class="tl-content"><div class="tl-time">Operations</div><div class="tl-title">Everything documented — specs survive across sessions and team members</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 06 AI TOOLS USED ─── -->
+    <div class="slide" id="slide-5">
+      <div class="eyebrow"><span>The approach</span><span class="slide-num">06 / 20</span></div>
+      <div class="slide-title">AI tools used —<br><em>to build it and in it</em></div>
+      <div class="sec-label">Tools used to build</div>
+      <div style="margin-bottom:1.2rem;">
+        <span class="pill pill-teal">Claude (architect + coder)</span>
+        <span class="pill pill-gold">Gemini 2.0 Flash (AI features)</span>
+        <span class="pill pill-purple">GitHub Copilot</span>
+        <span class="pill pill-gray">Copilot Studio (Lexmark)</span>
+      </div>
+      <div class="sec-label">AI features built into the app</div>
+      <ul class="check-list">
+        <li><div class="check-icon check-done">AI</div><div><strong>Payment screenshot reader</strong> — Gemini reads GCash/BPI screenshots, auto-fills payment forms</div></li>
+        <li><div class="check-icon check-done">AI</div><div><strong>Messenger import parser</strong> — paste a chat thread, AI extracts attendance, contacts, or payments</div></li>
+        <li><div class="check-icon check-done">AI</div><div><strong>Post generator</strong> — AI-assisted drafting of Messenger/Facebook posts from structured data</div></li>
+        <li><div class="check-icon check-done">AI</div><div><strong>Treasury upload parser</strong> — AI reads uploaded treasury documents and extracts records</div></li>
+      </ul>
+    </div>
+
+    <!-- ─── 07 TECH STACK ─── -->
+    <div class="slide" id="slide-6">
+      <div class="eyebrow"><span>The tech stack</span><span class="slide-num">07 / 20</span></div>
+      <div class="slide-title">Modern. Free-tier. <em>No devops overhead.</em></div>
+      <div class="sec-label">Frontend</div>
+      <div style="margin-bottom:0.6rem;">
+        <span class="pill pill-teal">React + TypeScript</span>
+        <span class="pill pill-teal">Vite 6</span>
+        <span class="pill pill-teal">Tailwind CSS v3</span>
+        <span class="pill pill-teal">shadcn/ui</span>
+        <span class="pill pill-teal">html2canvas</span>
+        <span class="pill pill-teal">QR code + scanner</span>
+      </div>
+      <div class="sec-label">Firebase (Backend-as-a-Service)</div>
+      <div style="margin-bottom:0.6rem;">
+        <span class="pill pill-purple">Firestore</span>
+        <span class="pill pill-purple">Auth</span>
+        <span class="pill pill-purple">Storage</span>
+        <span class="pill pill-purple">Hosting</span>
+        <span class="pill pill-purple">Cloud Functions</span>
+        <span class="pill pill-purple">Secret Manager</span>
+      </div>
+      <div class="sec-label">Testing</div>
+      <div style="margin-bottom:0.6rem;">
+        <span class="pill pill-gray">Vitest</span>
+        <span class="pill pill-gray">React Testing Library</span>
+        <span class="pill pill-gray">362 tests / 0 errors</span>
+      </div>
+      <div class="pullquote" style="margin-top:1rem;">Zero server maintenance. Zero devops. Scales to 500+ members on Firebase's free/Blaze tier.</div>
+    </div>
+
+    <!-- ─── 08 MVP FEATURES ─── -->
+    <div class="slide" id="slide-7">
+      <div class="eyebrow"><span>Phase 1 — MVP</span><span class="slide-num">08 / 20</span></div>
+      <div class="slide-title">MVP — live in <em>~10 hours</em></div>
+      <div class="slide-sub">First working session to production deploy.</div>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-card-title">Public landing + Apply form</div>
+          <div class="feature-card-desc">Team info, Google Maps, membership application with photo upload</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">Officer login + roles</div>
+          <div class="feature-card-desc">Firebase Auth — officer, treasurer, team_manager, head_officer</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">Member roster</div>
+          <div class="feature-card-desc">Search, filter, CRUD, bulk import from Sheets / CSV / Excel</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">Attendance + Payments</div>
+          <div class="feature-card-desc">Session tracking, GCash/BPI QR codes, AI screenshot reader</div>
+        </div>
+      </div>
+      <div class="stat-row stat-row-3" style="margin-top:1rem;">
+        <div class="stat-block"><div class="stat-num">62</div><div class="stat-label">Tests at launch</div></div>
+        <div class="stat-block"><div class="stat-num">0</div><div class="stat-label">TypeScript errors</div></div>
+        <div class="stat-block"><div class="stat-num">12</div><div class="stat-label">Working sessions</div></div>
+      </div>
+    </div>
+
+    <!-- ─── 09 PHASES 2–4 FEATURES ─── -->
+    <div class="slide" id="slide-8">
+      <div class="eyebrow"><span>Phases 2–4</span><span class="slide-num">09 / 20</span></div>
+      <div class="slide-title">MVP → <em>full platform</em></div>
+      <div class="slide-sub">Every feature replacing a manual Messenger or Sheets workflow.</div>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-card-title">Training schedule + sign-ups</div>
+          <div class="feature-card-desc">Monthly calendar, session management, member self sign-up</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">Boat lineup builder</div>
+          <div class="feature-card-desc">22 + 12-seater configs, drag & drop, all race categories</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">Race events + Awards</div>
+          <div class="feature-card-desc">Placement per category, team placements, award badges on profiles</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">Admin module</div>
+          <div class="feature-card-desc">Income, expenses, budget tracking, treasury upload, analytics</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">Member portal + Digital ID</div>
+          <div class="feature-card-desc">Member login, self-edit profile, downloadable ID card, QR check-in</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">Guest management + Fee automation</div>
+          <div class="feature-card-desc">Guest registration, guest portal, automated member fee tracking</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 10 TEST GROWTH ─── -->
+    <div class="slide" id="slide-9">
+      <div class="eyebrow"><span>By the numbers</span><span class="slide-num">10 / 20</span></div>
+      <div class="slide-title">362 tests. <em>Always green.</em></div>
+      <div class="slide-sub">Tests grew with every feature. Zero regressions shipped.</div>
+      <div class="prog-row"><div class="prog-label">MVP (Phase 1)</div><div class="prog-track"><div class="prog-fill" style="width:17%;background:#9FE1CB;"></div></div><div class="prog-note">62 tests</div></div>
+      <div class="prog-row"><div class="prog-label">P2 Priority 1</div><div class="prog-track"><div class="prog-fill" style="width:27%;background:#5DCAA5;"></div></div><div class="prog-note">98 tests</div></div>
+      <div class="prog-row"><div class="prog-label">P2 Priority 2a</div><div class="prog-track"><div class="prog-fill" style="width:41%;background:#1D9E75;"></div></div><div class="prog-note">149 tests</div></div>
+      <div class="prog-row"><div class="prog-label">P2 Priority 3</div><div class="prog-track"><div class="prog-fill" style="width:51%;background:#0F6E56;"></div></div><div class="prog-note">183 tests</div></div>
+      <div class="prog-row"><div class="prog-label">Member Onboarding</div><div class="prog-track"><div class="prog-fill" style="width:56%;background:#0F6E56;"></div></div><div class="prog-note">204 tests</div></div>
+      <div class="prog-row"><div class="prog-label">Admin Module</div><div class="prog-track"><div class="prog-fill" style="width:86%;background:#085041;"></div></div><div class="prog-note">310 tests</div></div>
+      <div class="prog-row"><div class="prog-label">Onboarding Tutorial</div><div class="prog-track"><div class="prog-fill" style="width:100%;background:#04342C;border:1px solid #1D9E75;"></div></div><div class="prog-note">396 tests</div></div>
+      <div class="prog-row"><div class="prog-label">Guest & Fee (current)</div><div class="prog-track"><div class="prog-fill" style="width:100%;background:#04342C;border:1px solid var(--gold);"></div></div><div class="prog-note">362 ✅</div></div>
+      <div class="stat-row stat-row-3" style="margin-top:1.2rem;">
+        <div class="stat-block"><div class="stat-num">362</div><div class="stat-label">Total tests now</div></div>
+        <div class="stat-block"><div class="stat-num">0</div><div class="stat-label">TypeScript errors</div></div>
+        <div class="stat-block"><div class="stat-num">140+</div><div class="stat-label">Members in system</div></div>
+      </div>
+    </div>
+
+    <!-- ─── 11 DOMAIN CORRECTIONS ─── -->
+    <div class="slide" id="slide-10">
+      <div class="eyebrow"><span>Domain knowledge wins</span><span class="slide-num">11 / 20</span></div>
+      <div class="slide-title">The corrections that <em>made it real</em></div>
+      <div class="slide-sub">Every correction became a documented architectural decision. This is what AI can't do alone.</div>
+      <ul class="check-list">
+        <li><div class="check-icon check-done">K</div><div><strong>Tailwind v4 broke the build</strong> — caught immediately, pinned to v3, enforced in all future specs</div></li>
+        <li><div class="check-icon check-done">K</div><div><strong>Dragonboat positions</strong> — AI used generic labels; Kareen corrected to Bow/Left, Stroke/Right, Ambidextrous, Drummer, Helm</div></li>
+        <li><div class="check-icon check-done">K</div><div><strong>Race categories</strong> — the Open/Mixed/Women/Men × Standard/Short × Premier/U24/U18/Masters × distance matrix came entirely from Kareen</div></li>
+        <li><div class="check-icon check-done">K</div><div><strong>Critical auth bug</strong> — discovered member docs had random Firestore IDs, breaking login for all existing members. Entire Member Onboarding epic born from this catch.</div></li>
+        <li><div class="check-icon check-done">K</div><div><strong>Switched AI providers</strong> — moved from Anthropic to Gemini mid-development to save cost, without changing callers. Product ownership in action.</div></li>
+      </ul>
+    </div>
+
+    <!-- ─── 12 CURRENT STATE ─── -->
+    <div class="slide" id="slide-11">
+      <div class="eyebrow"><span>Current state · April 2026</span><span class="slide-num">12 / 20</span></div>
+      <div class="slide-title">What's <em>live today</em></div>
+      <div class="slide-sub">Full platform deployed and in active use as of April 5, 2026.</div>
+      <div class="banner"><div class="banner-val">Member Onboarding — DEPLOYED ✅</div><div class="banner-desc">Cloud Functions live. Officers can send welcome emails + portal access to all 140+ members. Auth lifecycle (disable/re-enable/delete) fully automated.</div></div>
+      <ul class="check-list">
+        <li><div class="check-icon check-done">✓</div><div><strong>Admin Module</strong> — income, expenses, budget, treasury, analytics — 310 tests</div></li>
+        <li><div class="check-icon check-done">✓</div><div><strong>Onboarding Tutorial</strong> — interactive guided tour for officers and members — 396 tests</div></li>
+        <li><div class="check-icon check-done">✓</div><div><strong>Guest & Fee Epic</strong> — guest registration, guest portal, fee automation — 362 tests</div></li>
+        <li><div class="check-icon check-done">✓</div><div><strong>Interactive onboarding tutorial</strong> for both officer and member portals</div></li>
+      </ul>
+    </div>
+
+    <!-- ─── 13 BACKLOG ─── -->
+    <div class="slide" id="slide-12">
+      <div class="eyebrow"><span>What's next</span><span class="slide-num">13 / 20</span></div>
+      <div class="slide-title">Active <em>backlog</em></div>
+      <div class="slide-sub">Building continues. These are the next items in queue.</div>
+      <ul class="check-list">
+        <li><div class="check-icon check-soon">→</div><div><strong>BUG-017</strong> — Admin reports export/display (under investigation)</div></li>
+        <li><div class="check-icon check-soon">→</div><div><strong>CR-004 — Bulk schedule creation</strong> — recurring sessions: weekly Sat/Sun boat, Tue/Thu AM, Thu PM pool/run</div></li>
+        <li><div class="check-icon check-soon">→</div><div><strong>CR-005 — Import attendance from file</strong> — CSV upload for officers</div></li>
+        <li><div class="check-icon check-soon">→</div><div><strong>BACK-018 — QR scanner session-awareness</strong> — select today's session or auto-create on first scan</div></li>
+        <li><div class="check-icon check-future">○</div><div><strong>CR-002 — Borrowed members</strong> — athletes from other teams, taggable in lineups, no portal access</div></li>
+        <li><div class="check-icon check-future">○</div><div><strong>Profile change notifications + change log</strong> — member ↔ officer edit alerts (deferred)</div></li>
+      </ul>
+    </div>
+
+    <!-- ─── 14 ROLLOUT A+B ─── -->
+    <div class="slide" id="slide-13">
+      <div class="eyebrow"><span>Rollout status</span><span class="slide-num">14 / 20</span></div>
+      <div class="slide-title">How close to <em>full rollout?</em></div>
+      <div class="slide-sub">Phases A and B are complete. The app works. Now getting 140+ people onto it.</div>
+      <div class="phase-card">
+        <div class="phase-badge badge-live">Live ✓</div>
+        <div>
+          <div class="phase-title">A — Officers fully operational</div>
+          <div class="phase-desc">Roster imported. Payments, attendance, schedule, lineups, races, awards, admin — all running in-app.</div>
+        </div>
+      </div>
+      <div class="phase-card">
+        <div class="phase-badge badge-live">Live ✓</div>
+        <div>
+          <div class="phase-title">B — Member account provisioning ready</div>
+          <div class="phase-desc">"Send Portal Invite" button live. Welcome emails with password setup links. Existing 140+ members can be migrated individually.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 15 ROLLOUT C+D ─── -->
+    <div class="slide" id="slide-14">
+      <div class="eyebrow"><span>Rollout status</span><span class="slide-num">15 / 20</span></div>
+      <div class="slide-title">Member launch <em>in progress</em></div>
+      <div class="phase-card">
+        <div class="phase-badge badge-now">In Progress</div>
+        <div>
+          <div class="phase-title">C — Member soft launch</div>
+          <div class="phase-desc">Officers sending portal invites to active members. Members can log in, view digital ID, self-edit profile, check attendance/payment history, sign up for training, and use QR check-in. Announcing in GC.</div>
+        </div>
+      </div>
+      <div class="phase-card">
+        <div class="phase-badge badge-next">Next</div>
+        <div>
+          <div class="phase-title">D — App becomes the primary channel</div>
+          <div class="phase-desc">Official announcements move from Messenger to in-app. Training sign-ups managed in app. Digital ID used at race registration desks. Messenger becomes casual chat only.</div>
+        </div>
+      </div>
+      <div style="margin-top:1rem; padding:1rem 1.4rem; background:rgba(29,158,117,0.08); border:1px solid rgba(29,158,117,0.2); border-radius:6px; font-size:1.1rem; color:var(--paper); line-height:1.6;">
+        <strong>Estimated timeline:</strong> Full rollout (Phase D) within 4–6 weeks, pending member onboarding pace.
+      </div>
+    </div>
+
+    <!-- ─── 16 WITHOUT AI ─── -->
+    <div class="slide" id="slide-15">
+      <div class="eyebrow"><span>The productivity story</span><span class="slide-num">16 / 20</span></div>
+      <div class="slide-title">Without AI — <em>the traditional path</em></div>
+      <ul class="check-list">
+        <li><div class="check-icon check-future">✗</div><div>Re-learn modern React, TypeScript, Firebase from scratch — <strong>months</strong></div></li>
+        <li><div class="check-icon check-future">✗</div><div>Architect data model, Firestore rules, Cloud Functions — <strong>weeks</strong></div></li>
+        <li><div class="check-icon check-future">✗</div><div>Write 362 tests alongside each feature — <strong>additional weeks</strong></div></li>
+        <li><div class="check-icon check-future">✗</div><div>Debug CORS, Firestore rules, mobile drag & drop — <strong>days per issue</strong></div></li>
+        <li><div class="check-icon check-future">✗</div><div>Estimated timeline solo: <strong>6–12 months</strong> for a junior dev</div></li>
+      </ul>
+    </div>
+
+    <!-- ─── 17 WITH AI ─── -->
+    <div class="slide" id="slide-16">
+      <div class="eyebrow"><span>The productivity story</span><span class="slide-num">17 / 20</span></div>
+      <div class="slide-title">With AI-DLC — <em>what actually happened</em></div>
+      <ul class="check-list">
+        <li><div class="check-icon check-done">✓</div><div>MVP live in approximately <strong>10 hours</strong> of working sessions</div></li>
+        <li><div class="check-icon check-done">✓</div><div>MVP → full platform (4 phases) in <strong>one week (3/28-4/5)</strong></div></li>
+        <li><div class="check-icon check-done">✓</div><div>362 tests always passing — <strong>ship with confidence, no fear</strong></div></li>
+        <li><div class="check-icon check-done">✓</div><div>All architecture decisions documented as <strong>institutional knowledge</strong></div></li>
+        <li><div class="check-icon check-done">✓</div><div>Domain expertise fully expressed — <strong>the app fits how the team actually works</strong></div></li>
+      </ul>
+      <div class="pullquote" style="margin-top:1.5rem;">The constraint was never technical ability. It was time. AI-DLC removed the constraint.</div>
+    </div>
+
+    <!-- ─── 18 WHAT KAREEN BROUGHT ─── -->
+    <div class="slide" id="slide-17">
+      <div class="eyebrow"><span>The productivity story</span><span class="slide-num">18 / 20</span></div>
+      <div class="slide-title">What <em>Kareen brought</em> that AI couldn't</div>
+      <ul class="check-list">
+        <li><div class="check-icon check-done">K</div><div>Dragonboat operations knowledge — positions, race categories, quorum rules</div></li>
+        <li><div class="check-icon check-done">K</div><div>Product ownership instincts — knowing what to build now vs. defer</div></li>
+        <li><div class="check-icon check-done">K</div><div>User empathy — she <em>is</em> the user. She runs the team.</div></li>
+        <li><div class="check-icon check-done">K</div><div>Catching the auth architecture bug before 140 members tried to log in</div></li>
+        <li><div class="check-icon check-done">K</div><div>Managing rollout pace — individual invites so the welcome email lands well</div></li>
+        <li><div class="check-icon check-done">K</div><div>AI literacy — as Lexmark's AI Ambassador, she knew this approach was possible</div></li>
+      </ul>
+    </div>
+
+    <!-- ─── 19 KEY TAKEAWAYS ─── -->
+    <div class="slide" id="slide-18">
+      <div class="eyebrow"><span>Key takeaways</span><span class="slide-num">19 / 20</span></div>
+      <div class="slide-title">What <em>AIDLC</em> taught us</div>
+      <ul class="check-list">
+        <li><div class="check-icon check-done">1</div><div><strong>The human drives every decision.</strong> AI generates. The PM approves, corrects, and directs.</div></li>
+        <li><div class="check-icon check-done">2</div><div><strong>Domain knowledge is irreplaceable.</strong> No AI knows how a dragonboat team actually operates.</div></li>
+        <li><div class="check-icon check-done">3</div><div><strong>Document as you go.</strong> Specs + decisions survive across sessions and become the team's institutional memory.</div></li>
+        <li><div class="check-icon check-done">4</div><div><strong>Tests give you freedom.</strong> 362 tests mean you can refactor and ship without fear.</div></li>
+        <li><div class="check-icon check-done">5</div><div><strong>AI literacy is a career skill.</strong> Being Lexmark's AI Ambassador gave Kareen the instinct to reach for this approach.</div></li>
+      </ul>
+    </div>
+
+    <!-- ─── 20 CLOSE ─── -->
+    <div class="slide" id="slide-19">
+      <div class="eyebrow"><span>Cebu Poseidon Dragons</span><span class="slide-num">20 / 20</span></div>
+      <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+        <div style="font-family:'Playfair Display',serif; font-size:4.2rem; font-weight:700; line-height:1.1; margin-bottom:1.4rem;">
+          A Java/C developer<br>who last shipped in 2007<br>built this <em style="color:var(--teal-light);">in a week (3/28-4/5).</em>
+        </div>
+        <div class="cover-rule"></div>
+        <div style="font-size:1.35rem; color:var(--ink-3); line-height:1.7; margin-bottom:2rem; max-width:640px;">
+          With domain knowledge, product instincts, and AI as a development partner — the constraint was never skill. It was time.
+        </div>
+        <div class="stat-row stat-row-3">
+          <div class="stat-block"><div class="stat-num">362</div><div class="stat-label">Tests passing</div></div>
+          <div class="stat-block"><div class="stat-num">18 <span class="stat-unit">yr</span></div><div class="stat-label">Since last prod code</div></div>
+          <div class="stat-block"><div class="stat-num">Live</div><div class="stat-label">& rolling out now</div></div>
+        </div>
+        <div style="margin-top:1.4rem; font-family:'DM Mono',monospace; font-size:0.85rem; color:var(--ink-3); letter-spacing:0.08em;">
+          Built with Claude · Gemini · 20+ years of knowing how to ship software
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /slides-wrapper -->
+
+  <div class="nav-bar">
+    <button class="nav-btn" id="prev-btn" onclick="navigate(-1)" disabled>← Back</button>
+    <div class="dots" id="dots"></div>
+    <button class="nav-btn" id="next-btn" onclick="navigate(1)">Next →</button>
+  </div>
+</div>
+
+<script>
+  var current = 0;
+  var total = 20;
+  var dotsEl = document.getElementById('dots');
+
+  for (var i = 0; i < total; i++) {
+    var d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    (function(idx) { d.onclick = function() { goTo(idx); }; })(i);
+    dotsEl.appendChild(d);
+  }
+
+  function goTo(n) {
+    var prev = document.getElementById('slide-' + current);
+    prev.classList.remove('active');
+    prev.classList.add('exit');
+    setTimeout(function() { prev.classList.remove('exit'); }, 380);
+    document.querySelectorAll('.dot')[current].classList.remove('active');
+    current = n;
+    var next = document.getElementById('slide-' + current);
+    next.classList.add('active');
+    document.querySelectorAll('.dot')[current].classList.add('active');
+    document.getElementById('prev-btn').disabled = (current === 0);
+    document.getElementById('next-btn').disabled = (current === total - 1);
+  }
+
+  function navigate(dir) {
+    goTo(Math.max(0, Math.min(total - 1, current + dir)));
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') navigate(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   navigate(-1);
+  });
+</script>
+</body>
+</html>
