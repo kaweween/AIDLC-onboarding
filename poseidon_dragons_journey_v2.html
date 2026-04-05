@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poseidon Dragons — Built with AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal-deep: #04342C;
+    --teal-mid: #085041;
+    --teal-bright: #1D9E75;
+    --teal-light: #9FE1CB;
+    --teal-pale: #E1F5EE;
+    --gold: #C9973A;
+    --gold-light: #FAEEDA;
+    --purple: #3C3489;
+    --purple-light: #EEEDFE;
+    --coral: #A32D2D;
+    --coral-light: #FAECE7;
+    --ink: #12110F;
+    --ink-2: #2E2C28;
+    --ink-3: #5C5950;
+    --paper: #FAF9F6;
+    --paper-2: #F1EFE8;
+    --border: #DDD9CE;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--ink);
+    color: var(--paper);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .presenter {
+    width: 100%;
+    max-width: 860px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* Background texture */
+  .presenter::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 80% 20%, rgba(29,158,117,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 60% at 10% 80%, rgba(4,52,44,0.6) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .slides-wrapper {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 3rem 3.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transform: translateX(40px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+    overflow-y: auto;
+  }
+
+  .slide.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: all;
+  }
+
+  .slide.exit {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+
+  /* Slide label */
+  .slide-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--teal-bright);
+    margin-bottom: 1.2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .slide-eyebrow .slide-num {
+    color: var(--ink-3);
+    font-size: 10px;
+  }
+
+  .slide-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.6rem;
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--paper);
+    margin-bottom: 0.6rem;
+  }
+
+  .slide-title em {
+    font-style: italic;
+    color: var(--teal-light);
+  }
+
+  .slide-sub {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--ink-3);
+    margin-bottom: 1.8rem;
+    max-width: 620px;
+  }
+
+  /* Nav bar */
+  .nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 3.5rem 1.5rem;
+    z-index: 10;
+    position: relative;
+  }
+
+  .nav-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 8px 20px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04);
+    color: var(--paper);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .nav-btn:hover:not(:disabled) {
+    background: rgba(29,158,117,0.15);
+    border-color: var(--teal-bright);
+    color: var(--teal-light);
+  }
+
+  .nav-btn:disabled { opacity: 0.2; cursor: default; }
+
+  .dots {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--ink-3);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .dot.active {
+    background: var(--teal-bright);
+    width: 20px;
+    border-radius: 3px;
+  }
+
+  /* Stat blocks */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat-block {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 4px;
+    padding: 16px 18px;
+  }
+
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: var(--teal-light);
+    line-height: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+
+  .stat-unit {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    color: var(--ink-3);
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--ink-3);
+    margin-top: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  /* Tags / pills */
+  .pill {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 2px;
+    margin: 3px 4px 3px 0;
+  }
+
+  .pill-teal { background: rgba(29,158,117,0.15); color: var(--teal-light); border: 1px solid rgba(29,158,117,0.3); }
+  .pill-gold { background: rgba(201,151,58,0.15); color: var(--gold); border: 1px solid rgba(201,151,58,0.3); }
+  .pill-purple { background: rgba(60,52,137,0.2); color: #A9A3FF; border: 1px solid rgba(60,52,137,0.4); }
+  .pill-coral { background: rgba(163,45,45,0.15); color: #F4A0A0; border: 1px solid rgba(163,45,45,0.3); }
+  .pill-gray { background: rgba(255,255,255,0.06); color: var(--ink-3); border: 1px solid rgba(255,255,255,0.08); }
+
+  /* Timeline */
+  .timeline { display: flex; flex-direction: column; gap: 0; }
+
+  .tl-item {
+    display: flex;
+    gap: 16px;
+    padding-bottom: 18px;
+    position: relative;
+  }
+
+  .tl-item:last-child { padding-bottom: 0; }
+
+  .tl-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 36px;
+  }
+
+  .tl-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    font-family: 'DM Mono', monospace;
+    flex-shrink: 0;
+    border: 1px solid;
+  }
+
+  .tl-line {
+    width: 1px;
+    flex: 1;
+    background: rgba(255,255,255,0.08);
+    margin-top: 4px;
+    min-height: 12px;
+  }
+
+  .tl-content { padding-top: 3px; flex: 1; }
+
+  .tl-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--ink-3);
+    margin-bottom: 2px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .tl-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--paper);
+    margin-bottom: 3px;
+  }
+
+  .tl-desc {
+    font-size: 0.82rem;
+    color: var(--ink-3);
+    line-height: 1.6;
+  }
+
+  /* Feature grid */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .feature-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 4px;
+    padding: 14px 16px;
+    transition: border-color 0.2s;
+  }
+
+  .feature-card:hover { border-color: rgba(29,158,117,0.3); }
+
+  .feature-card-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--paper);
+    margin-bottom: 4px;
+  }
+
+  .feature-card-desc {
+    font-size: 0.76rem;
+    color: var(--ink-3);
+    line-height: 1.6;
+  }
+
+  /* Checklist */
+  .check-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .check-list li {
+    display: flex;
+    gap: 12px;
+    font-size: 0.85rem;
+    color: var(--paper);
+    align-items: flex-start;
+    line-height: 1.6;
+  }
+
+  .check-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .check-done { background: rgba(29,158,117,0.2); color: var(--teal-bright); border: 1px solid rgba(29,158,117,0.4); }
+  .check-soon { background: rgba(201,151,58,0.15); color: var(--gold); border: 1px solid rgba(201,151,58,0.3); }
+  .check-future { background: rgba(255,255,255,0.05); color: var(--ink-3); border: 1px solid rgba(255,255,255,0.1); }
+
+  /* Quote */
+  .pullquote {
+    border-left: 3px solid var(--teal-bright);
+    padding: 12px 18px;
+    margin: 14px 0;
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--teal-light);
+    line-height: 1.7;
+    background: rgba(29,158,117,0.06);
+    border-radius: 0 4px 4px 0;
+  }
+
+  /* Progress bar */
+  .prog-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .prog-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--ink-3);
+    min-width: 130px;
+    letter-spacing: 0.04em;
+  }
+
+  .prog-track {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .prog-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.8s cubic-bezier(.4,0,.2,1);
+  }
+
+  .prog-note {
+    font-size: 0.68rem;
+    color: var(--ink-3);
+    min-width: 90px;
+    text-align: right;
+  }
+
+  /* Section label */
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 8px;
+    margin-top: 14px;
+  }
+
+  .section-label:first-child { margin-top: 0; }
+
+  /* Two col */
+  .two-col {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: rgba(255,255,255,0.06);
+    margin: 12px 0;
+  }
+
+  /* Big hero number */
+  .hero-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 5rem;
+    font-weight: 700;
+    color: var(--teal-light);
+    line-height: 1;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  .hero-num sup {
+    font-size: 1.8rem;
+    color: var(--ink-3);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+  }
+
+  /* Rollout phase card */
+  .phase-card {
+    display: flex;
+    gap: 14px;
+    padding: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 4px;
+    margin-bottom: 10px;
+    align-items: flex-start;
+  }
+
+  .phase-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 4px 8px;
+    border-radius: 2px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    text-transform: uppercase;
+  }
+
+  .badge-live { background: rgba(29,158,117,0.2); color: var(--teal-bright); border: 1px solid rgba(29,158,117,0.4); }
+  .badge-now { background: rgba(201,151,58,0.2); color: var(--gold); border: 1px solid rgba(201,151,58,0.4); }
+  .badge-next { background: rgba(255,255,255,0.05); color: var(--ink-3); border: 1px solid rgba(255,255,255,0.1); }
+
+  .phase-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--paper);
+    margin-bottom: 3px;
+  }
+
+  .phase-desc {
+    font-size: 0.76rem;
+    color: var(--ink-3);
+    line-height: 1.6;
+  }
+
+  /* Cover accent */
+  .cover-accent {
+    font-family: 'Playfair Display', serif;
+    font-size: 4.5rem;
+    font-weight: 700;
+    line-height: 1.05;
+    color: var(--paper);
+    margin-bottom: 1rem;
+  }
+
+  .cover-accent .ital { font-style: italic; color: var(--teal-light); }
+
+  /* Big wide stat */
+  .wide-stat {
+    background: rgba(29,158,117,0.07);
+    border: 1px solid rgba(29,158,117,0.2);
+    border-radius: 4px;
+    padding: 16px 20px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .wide-stat-val {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--teal-light);
+  }
+
+  .wide-stat-label {
+    font-size: 0.8rem;
+    color: var(--ink-3);
+    max-width: 500px;
+    line-height: 1.5;
+  }
+
+  /* scroll */
+  .slide::-webkit-scrollbar { width: 4px; }
+  .slide::-webkit-scrollbar-track { background: transparent; }
+  .slide::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+  /* Horizontal rule used as a decorative separator in cover */
+  .cover-rule {
+    width: 48px;
+    height: 2px;
+    background: var(--teal-bright);
+    margin: 1.2rem 0;
+  }
+
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    margin-bottom: 4px;
+  }
+
+  /* Timeline dot colors */
+  .dot-teal { background: rgba(29,158,117,0.15); color: var(--teal-bright); border-color: rgba(29,158,117,0.4); }
+  .dot-gold { background: rgba(201,151,58,0.1); color: var(--gold); border-color: rgba(201,151,58,0.3); }
+  .dot-purple { background: rgba(60,52,137,0.15); color: #A9A3FF; border-color: rgba(60,52,137,0.4); }
+  .dot-coral { background: rgba(163,45,45,0.15); color: #F4A0A0; border-color: rgba(163,45,45,0.3); }
+</style>
+</head>
+<body>
+
+<div class="presenter">
+
+  <div class="slides-wrapper">
+
+    <!-- SLIDE 0: COVER -->
+    <div class="slide active" id="slide-0">
+      <div class="slide-eyebrow">
+        <span>Cebu Poseidon Dragons</span>
+        <span class="slide-num">01 / 12</span>
+      </div>
+      <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+        <div style="font-size:0.8rem; color:var(--ink-3); margin-bottom:0.5rem; font-family:'DM Mono',monospace; letter-spacing:0.12em; text-transform:uppercase;">A story about what happens when</div>
+        <div class="cover-accent">
+          Domain knowledge<br>
+          meets <span class="ital">AI-guided</span><br>
+          development
+        </div>
+        <div class="cover-rule"></div>
+        <div style="font-size:0.95rem; color:var(--ink-3); line-height:1.8; max-width:540px;">
+          How a Software Engineering Manager who last wrote production code in 2008 built a full team management app for 140+ dragon boat athletes — in a week — using AI as a development partner.
+        </div>
+        <div class="stat-row" style="margin-top:2rem;">
+          <div class="stat-block">
+            <div class="stat-num">362 <span class="stat-unit">tests</span></div>
+            <div class="stat-label">All passing</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-num">30+ <span class="stat-unit">features</span></div>
+            <div class="stat-label">Across 4 phases</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-num">Live</div>
+            <div class="stat-label">poseidon-dragons.web.app</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 1: KAREEN'S BACKGROUND -->
+    <div class="slide" id="slide-1">
+      <div class="slide-eyebrow">
+        <span>The builder</span>
+        <span class="slide-num">02 / 12</span>
+      </div>
+      <div class="slide-title">Not a developer.<br><em>Something better.</em></div>
+      <div class="slide-sub">A Java/C developer turned people manager, turned dragon boat team manager, turned accidental full-stack app builder.</div>
+
+      <div class="two-col" style="margin-bottom: 1rem;">
+        <div>
+          <div class="section-label">Professional background</div>
+          <div class="timeline">
+            <div class="tl-item">
+              <div class="tl-left"><div class="tl-dot dot-teal">04</div><div class="tl-line"></div></div>
+              <div class="tl-content"><div class="tl-time">2004–2007</div><div class="tl-title">Software Engineer</div><div class="tl-desc">Java & C — Windows printer drivers at Lexmark. Last production code.</div></div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-left"><div class="tl-dot dot-gold">07</div><div class="tl-line"></div></div>
+              <div class="tl-content"><div class="tl-time">2007–2019</div><div class="tl-title">PM → PO → Scrum Master</div><div class="tl-desc">50+ firmware/software deliveries. Certified PO. SAFe Agilist.</div></div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-left"><div class="tl-dot dot-purple">19</div><div class="tl-line"></div></div>
+              <div class="tl-content"><div class="tl-time">2019–Present</div><div class="tl-title">Engineering Manager, Mobile</div><div class="tl-desc">Leading 7–10 global developers. AI Ambassador for Lexmark worldwide. Microsoft Power Platform.</div></div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-left"><div class="tl-dot dot-coral">24</div></div>
+              <div class="tl-content"><div class="tl-time">2024</div><div class="tl-title">Philippine National Team</div><div class="tl-desc">Overall Champions — ICF Palawan Dragon Boat World Championships.</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-label">Coding in the gap years</div>
+          <div style="font-size:0.82rem; color:var(--ink-3); line-height:1.7; margin-bottom:12px;">
+            Not entirely away from code — just building differently:
+          </div>
+          <ul class="check-list">
+            <li><div class="check-icon check-done">★</div><div><strong>Visual Basic + Google Forms</strong> — custom 4 Pics 1 Word game for company-wide events, with HTML-modified forms so players could type answers directly</div></li>
+            <li><div class="check-icon check-done">★</div><div><strong>Family Feud clone</strong> — built for the Christmas party using Google APIs + scripting</div></li>
+            <li><div class="check-icon check-done">★</div><div><strong>MatLab side projects</strong> — data analysis tools, ad hoc scripts</div></li>
+            <li><div class="check-icon check-done">★</div><div><strong>Power Automate + Copilot Studio</strong> — enterprise automation at Lexmark</div></li>
+          </ul>
+
+          <div class="pullquote" style="margin-top:14px;">
+            "A Java and C developer who hadn't shipped production code since 2008 — now building a React + TypeScript + Firebase app for 140 athletes."
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: THE PROBLEM -->
+    <div class="slide" id="slide-2">
+      <div class="slide-eyebrow">
+        <span>The problem</span>
+        <span class="slide-num">03 / 12</span>
+      </div>
+      <div class="slide-title">Everything was <em>manual chaos</em></div>
+      <div class="slide-sub">140+ athletes, 3 disconnected tools, zero structure. Officers doing data entry by hand in Messenger group chats.</div>
+      <div class="feature-grid" style="margin-bottom:1.2rem;">
+        <div class="feature-card">
+          <div class="feature-card-title">📱 Messenger</div>
+          <div class="feature-card-desc">Training schedules, attendance polls, announcements, payment screenshots — all buried in one group chat with no structure or history</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">📊 Google Sheets</div>
+          <div class="feature-card-desc">Member roster updated manually by officers. No validation, no role control. Anyone with the link could edit anything.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">📁 Google Drive</div>
+          <div class="feature-card-desc">Payment screenshots, ID photos, docs scattered in folders with zero link to member records</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">🚫 No audit trail</div>
+          <div class="feature-card-desc">No change history, no payment confirmation system, no attendance records beyond chat messages going back months</div>
+        </div>
+      </div>
+      <div class="pullquote">"Officers had to manually update three different places every time anything changed about a member — and still had no reliable record."</div>
+    </div>
+
+    <!-- SLIDE 3: AIDLC APPROACH -->
+    <div class="slide" id="slide-3">
+      <div class="slide-eyebrow">
+        <span>The approach</span>
+        <span class="slide-num">04 / 12</span>
+      </div>
+      <div class="slide-title">AI-DLC — <em>guided development</em></div>
+      <div class="slide-sub">Not "AI wrote my app." A structured methodology where the human drives every decision and AI executes with precision.</div>
+
+      <div class="two-col">
+        <div>
+          <div class="section-label">How it works</div>
+          <div class="timeline">
+            <div class="tl-item">
+              <div class="tl-left"><div class="tl-dot dot-teal">1</div><div class="tl-line"></div></div>
+              <div class="tl-content"><div class="tl-time">Inception</div><div class="tl-title">Requirements → decisions</div><div class="tl-desc">Plain language → structured user stories, data model, tech stack, architecture decisions. Human approves every gate.</div></div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-left"><div class="tl-dot dot-teal">2</div><div class="tl-line"></div></div>
+              <div class="tl-content"><div class="tl-time">Construction</div><div class="tl-title">Generate → Review → Correct</div><div class="tl-desc">AI writes code, Kareen reviews and corrects. Every correction becomes a documented decision that shapes the next generation.</div></div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-left"><div class="tl-dot dot-teal">3</div><div class="tl-line"></div></div>
+              <div class="tl-content"><div class="tl-time">Each unit</div><div class="tl-title">Tests before deploy</div><div class="tl-desc">Unit tests written alongside every feature. 362/362 passing before any deployment. Zero tolerance for regressions.</div></div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-left"><div class="tl-dot dot-gold">4</div></div>
+              <div class="tl-content"><div class="tl-time">Operations</div><div class="tl-title">Document as you go</div><div class="tl-desc">Specs, ADRs, corrections, backlog — all living docs. Institutional knowledge survives across sessions.</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-label">AI tools used</div>
+          <div class="tag-row" style="margin-bottom: 12px;">
+            <span class="pill pill-teal">Claude (primary architect)</span>
+            <span class="pill pill-gold">Gemini 2.0 Flash (AI readers)</span>
+            <span class="pill pill-purple">Copilot (Lexmark workflows)</span>
+            <span class="pill pill-gray">GitHub Copilot</span>
+          </div>
+          <div class="section-label">AI features in the app</div>
+          <ul class="check-list">
+            <li><div class="check-icon check-done">AI</div><div>Payment screenshot reader — Gemini parses GCash/BPI screenshots via Cloud Function</div></li>
+            <li><div class="check-icon check-done">AI</div><div>Messenger import parser — AI extracts attendance, contacts, payments from copy-pasted chat</div></li>
+            <li><div class="check-icon check-done">AI</div><div>Post generator — AI-assisted Messenger/Facebook post drafting from structured data</div></li>
+            <li><div class="check-icon check-done">AI</div><div>Treasury upload parser — AI reads uploaded treasury documents</div></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: TECH STACK -->
+    <div class="slide" id="slide-4">
+      <div class="slide-eyebrow">
+        <span>The tech stack</span>
+        <span class="slide-num">05 / 12</span>
+      </div>
+      <div class="slide-title">Modern, free-tier friendly, <em>extensible</em></div>
+      <div class="slide-sub">Every tool chosen to work within free-tier constraints while supporting 140+ members and future mobile apps. Zero devops overhead.</div>
+
+      <div class="section-label">Frontend</div>
+      <div class="tag-row">
+        <span class="pill pill-teal">React + TypeScript</span>
+        <span class="pill pill-teal">Vite 6</span>
+        <span class="pill pill-teal">Tailwind CSS v3</span>
+        <span class="pill pill-teal">shadcn/ui</span>
+        <span class="pill pill-teal">React Hook Form</span>
+        <span class="pill pill-teal">html2canvas</span>
+        <span class="pill pill-teal">@zxing/browser (QR)</span>
+      </div>
+
+      <div class="section-label">Firebase (Backend-as-a-Service)</div>
+      <div class="tag-row">
+        <span class="pill pill-purple">Firestore</span>
+        <span class="pill pill-purple">Authentication</span>
+        <span class="pill pill-purple">Storage</span>
+        <span class="pill pill-purple">Hosting</span>
+        <span class="pill pill-purple">Cloud Functions (Node.js)</span>
+        <span class="pill pill-purple">Secret Manager</span>
+      </div>
+
+      <div class="section-label">AI / integrations</div>
+      <div class="tag-row">
+        <span class="pill pill-gold">Gemini 2.0 Flash (AI parsing)</span>
+        <span class="pill pill-gold">qrcode library</span>
+      </div>
+
+      <div class="section-label">Developer tooling</div>
+      <div class="tag-row">
+        <span class="pill pill-gray">Vitest</span>
+        <span class="pill pill-gray">React Testing Library</span>
+        <span class="pill pill-gray">GitHub</span>
+        <span class="pill pill-gray">VS Code</span>
+      </div>
+
+      <div class="section-label">Key architectural decisions</div>
+      <div class="tag-row">
+        <span class="pill pill-coral">Tailwind v3 pinned</span>
+        <span class="pill pill-coral">useEffect navigation only</span>
+        <span class="pill pill-coral">Admin SDK via Cloud Functions only</span>
+        <span class="pill pill-coral">Auth UID = Firestore member doc ID</span>
+        <span class="pill pill-coral">Gemini over Anthropic (cost)</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 5: WHAT WAS BUILT -->
+    <div class="slide" id="slide-5">
+      <div class="slide-eyebrow">
+        <span>What we built</span>
+        <span class="slide-num">06 / 12</span>
+      </div>
+      <div class="slide-title">From MVP to a <em>full platform</em></div>
+      <div class="slide-sub">4 phases of development. Every feature replacing a manual workflow that used to live in Messenger or Sheets.</div>
+
+      <div class="section-label">Phase 1 — MVP (Live)</div>
+      <div class="feature-grid" style="margin-bottom:1rem;">
+        <div class="feature-card">
+          <div class="feature-card-title">Public landing + Apply form</div>
+          <div class="feature-card-desc">Team info, Google Maps, membership application with photo upload</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">Officer login + role-based access</div>
+          <div class="feature-card-desc">Firebase Auth — officer, treasurer, team_manager, head_officer</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">Member roster</div>
+          <div class="feature-card-desc">Search, filter, CRUD, bulk import from Sheets/CSV/Excel</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">Attendance + Payments</div>
+          <div class="feature-card-desc">Session tracking, GCash/BPI QR codes, AI screenshot reader</div>
+        </div>
+      </div>
+
+      <div class="section-label">Phases 2–4 additions (all live)</div>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-card-title">Training schedule + sign-ups</div>
+          <div class="feature-card-desc">Monthly calendar, session management, member self sign-up</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">Boat lineup builder</div>
+          <div class="feature-card-desc">22 + 12-seater configs, drag & drop, all race categories</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">Member portal + Digital ID</div>
+          <div class="feature-card-desc">Member login, self-edit profile, QR check-in, downloadable ID card</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">Race events + Awards</div>
+          <div class="feature-card-desc">Race tracking, placement per category, award badges</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">Admin module</div>
+          <div class="feature-card-desc">Income, expenses, budget tracking, treasury upload, analytics</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">Guest management + Fee automation</div>
+          <div class="feature-card-desc">Guest registration, guest portal, automated member fee tracking</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6: THE NUMBERS -->
+    <div class="slide" id="slide-6">
+      <div class="slide-eyebrow">
+        <span>The numbers</span>
+        <span class="slide-num">07 / 12</span>
+      </div>
+      <div class="slide-title">Development <em>by the data</em></div>
+      <div class="slide-sub">From 62 tests at MVP launch to 362 tests passing today — with zero TypeScript build errors throughout.</div>
+
+      <div class="stat-row">
+        <div class="stat-block">
+          <div class="stat-num">362</div>
+          <div class="stat-label">Tests passing (all green)</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-num">0</div>
+          <div class="stat-label">TypeScript build errors</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-num">140+</div>
+          <div class="stat-label">Members in the system</div>
+        </div>
+      </div>
+
+      <div class="section-label">Test growth by phase</div>
+      <div class="prog-row"><div class="prog-label">MVP (Phase 1)</div><div class="prog-track"><div class="prog-fill" style="width:17%;background:#9FE1CB;"></div></div><div class="prog-note">62 tests</div></div>
+      <div class="prog-row"><div class="prog-label">Phase 2 Priority 1</div><div class="prog-track"><div class="prog-fill" style="width:27%;background:#5DCAA5;"></div></div><div class="prog-note">98 tests</div></div>
+      <div class="prog-row"><div class="prog-label">Phase 2 Priority 2a</div><div class="prog-track"><div class="prog-fill" style="width:41%;background:#1D9E75;"></div></div><div class="prog-note">149 tests</div></div>
+      <div class="prog-row"><div class="prog-label">Phase 2 Priority 2b</div><div class="prog-track"><div class="prog-fill" style="width:41%;background:#1D9E75;"></div></div><div class="prog-note">149 tests</div></div>
+      <div class="prog-row"><div class="prog-label">Phase 2 Priority 3</div><div class="prog-track"><div class="prog-fill" style="width:51%;background:#0F6E56;"></div></div><div class="prog-note">183 tests</div></div>
+      <div class="prog-row"><div class="prog-label">Member Onboarding</div><div class="prog-track"><div class="prog-fill" style="width:57%;background:#0F6E56;"></div></div><div class="prog-note">204 tests</div></div>
+      <div class="prog-row"><div class="prog-label">Admin Module</div><div class="prog-track"><div class="prog-fill" style="width:86%;background:#085041;"></div></div><div class="prog-note">310 tests</div></div>
+      <div class="prog-row"><div class="prog-label">Onboarding Tutorial</div><div class="prog-track"><div class="prog-fill" style="width:100%;background:#04342C;border:1px solid #1D9E75;"></div></div><div class="prog-note">396 tests</div></div>
+      <div class="prog-row"><div class="prog-label">Guest & Fee Epic</div><div class="prog-track"><div class="prog-fill" style="width:100%;background:#04342C;border:1px solid var(--gold);"></div></div><div class="prog-note">362 ✅ (current)</div></div>
+    </div>
+
+    <!-- SLIDE 7: HUMAN IN THE LOOP -->
+    <div class="slide" id="slide-7">
+      <div class="slide-eyebrow">
+        <span>Domain knowledge wins</span>
+        <span class="slide-num">08 / 12</span>
+      </div>
+      <div class="slide-title">The corrections that <em>made it real</em></div>
+      <div class="slide-sub">Every correction Kareen made became a documented architectural decision. This is the difference between a generic app and one that actually fits a dragonboat team.</div>
+
+      <ul class="check-list">
+        <li><div class="check-icon check-done">K</div><div><strong>Tailwind v4 broke the build</strong> — caught immediately. Pinned to v3. Now documented and enforced in all generation specs.</div></li>
+        <li><div class="check-icon check-done">K</div><div><strong>Dragonboat positions</strong> — generic labels corrected to actual positions: Bow/Left, Stroke/Right, Ambidextrous, Drummer, Helm. AI didn't know dragonboat.</div></li>
+        <li><div class="check-icon check-done">K</div><div><strong>Login freeze</strong> — navigate() during render caused infinite loop. Fixed with useEffect pattern, now a hard NFR in all specs.</div></li>
+        <li><div class="check-icon check-done">K</div><div><strong>Critical architecture bug</strong> — discovered that member docs had random Firestore IDs but auth resolves by UID. Entire Member Onboarding epic was born from this catch.</div></li>
+        <li><div class="check-icon check-done">K</div><div><strong>Race categories</strong> — AI didn't know the Open/Mixed/Women/Men × Standard/Short × Premier/U24/U18/Masters × distance matrix. Kareen specified it exactly.</div></li>
+        <li><div class="check-icon check-done">K</div><div><strong>Gemini over Anthropic</strong> — cost decision made mid-development. Switched AI providers without changing callers. Practical product ownership.</div></li>
+        <li><div class="check-icon check-done">K</div><div><strong>Guest & fee automation</strong> — entire epics added after MVP because Kareen knew the operational gaps that data entry alone doesn't reveal.</div></li>
+      </ul>
+
+      <div class="pullquote" style="margin-top:16px;">"AI generates. The person with domain knowledge makes it accurate, useful, and real."</div>
+    </div>
+
+    <!-- SLIDE 8: CURRENT STATE -->
+    <div class="slide" id="slide-8">
+      <div class="slide-eyebrow">
+        <span>Current state · April 2026</span>
+        <span class="slide-num">09 / 12</span>
+      </div>
+      <div class="slide-title">What's <em>live today</em></div>
+      <div class="slide-sub">The full platform is deployed and in active use. Member onboarding is live. The focus has shifted from building to rollout.</div>
+
+      <div class="wide-stat">
+        <div class="wide-stat-val">MOB-DEPLOY ✅</div>
+        <div class="wide-stat-label">Member onboarding Cloud Functions live in production as of April 5, 2026. Auth provisioning, welcome emails, lifecycle management — all automated.</div>
+      </div>
+
+      <div class="section-label">Active epics — completed</div>
+      <ul class="check-list" style="margin-bottom:14px;">
+        <li><div class="check-icon check-done">✓</div><div><strong>Admin Module (BACK-004–010)</strong> — Income, expenses, budget, reports, treasury upload, analytics — 310 tests</div></li>
+        <li><div class="check-icon check-done">✓</div><div><strong>Onboarding Tutorial (Epic 3)</strong> — Interactive guided tour for officers and members — 396 tests</div></li>
+        <li><div class="check-icon check-done">✓</div><div><strong>Guest & Fee Epic (BACK-015/016)</strong> — Guest registration, guest portal, member fee automation — 362 tests</div></li>
+        <li><div class="check-icon check-done">✓</div><div><strong>Member Onboarding (MOB)</strong> — Cloud Function lifecycle, Firestore rules, welcome emails — deployed</div></li>
+      </ul>
+
+      <div class="section-label">Current backlog</div>
+      <ul class="check-list">
+        <li><div class="check-icon check-soon">→</div><div><strong>BUG-017</strong> — AdminReports export/display (investigating)</div></li>
+        <li><div class="check-icon check-soon">→</div><div><strong>CR-004</strong> — Bulk schedule creation (recurring sessions: weekly Sat/Sun boat, Tue/Thu AM, Thu PM pool/run)</div></li>
+        <li><div class="check-icon check-soon">→</div><div><strong>CR-005</strong> — Import attendance from file (CSV format TBD)</div></li>
+        <li><div class="check-icon check-soon">→</div><div><strong>BACK-018</strong> — QR scanner session-awareness (today's sessions dropdown vs. auto-create)</div></li>
+        <li><div class="check-icon check-future">○</div><div><strong>CR-002</strong> — Borrowed members from other teams (taggable in lineups, no portal access)</div></li>
+        <li><div class="check-icon check-future">○</div><div><strong>Profile change notifications + change log</strong> — member ↔ officer edit alerts (deferred backlog)</div></li>
+      </ul>
+    </div>
+
+    <!-- SLIDE 9: ROLLOUT PROGRESS -->
+    <div class="slide" id="slide-9">
+      <div class="slide-eyebrow">
+        <span>Rollout status</span>
+        <span class="slide-num">10 / 12</span>
+      </div>
+      <div class="slide-title">How close are we to <em>full rollout?</em></div>
+      <div class="slide-sub">The app is built. The focus now is getting 140+ members onboarded and making it the primary channel for team operations.</div>
+
+      <div class="phase-card">
+        <div class="phase-badge badge-live">Live ✓</div>
+        <div>
+          <div class="phase-title">A — Officer data + operations</div>
+          <div class="phase-desc">Member roster imported. Payments, attendance, schedule, lineups, race events, awards all running in-app. Admin module tracking team finances. Officers fully operational.</div>
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-badge badge-live">Live ✓</div>
+        <div>
+          <div class="phase-title">B — Member account provisioning</div>
+          <div class="phase-desc">Cloud Functions deployed. "Send Portal Invite" live — officers can send welcome emails with password setup links. Existing 140+ members can be migrated individually. Auth lifecycle (disable on inactive, re-enable on reactivation) automated.</div>
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-badge badge-now">In Progress</div>
+        <div>
+          <div class="phase-title">C — Member soft launch</div>
+          <div class="phase-desc">Officers are sending portal invites to active members. Members can log in, view digital ID, self-edit profile, view attendance/payment history, sign up for training sessions, and use QR check-in. Announcing in GC.</div>
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-badge badge-next">Next</div>
+        <div>
+          <div class="phase-title">D — App as primary channel</div>
+          <div class="phase-desc">Official announcements move from Messenger to in-app. Training sign-ups managed in app. Digital ID used at race registration desks. Messenger becomes casual chat only.</div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px; padding:12px 16px; background:rgba(29,158,117,0.08); border:1px solid rgba(29,158,117,0.2); border-radius:4px;">
+        <div style="font-family:'DM Mono',monospace; font-size:0.72rem; color:var(--teal-bright); margin-bottom:4px; letter-spacing:0.1em; text-transform:uppercase;">Rollout estimate</div>
+        <div style="font-size:0.85rem; color:var(--paper); line-height:1.6;">Phases A + B complete. Phase C actively in progress as of April 2026. Full rollout (D) expected within 4–6 weeks pending member onboarding pace.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 10: PRODUCTIVITY STORY -->
+    <div class="slide" id="slide-10">
+      <div class="slide-eyebrow">
+        <span>The productivity story</span>
+        <span class="slide-num">11 / 12</span>
+      </div>
+      <div class="slide-title">What AI-guided development <em>actually unlocks</em></div>
+      <div class="slide-sub">This isn't about replacing developers. It's about what becomes possible when someone with deep domain knowledge, product instincts, and management experience gets AI as a technical execution partner.</div>
+
+      <div class="two-col">
+        <div>
+          <div class="section-label">Without AI (traditional)</div>
+          <ul class="check-list">
+            <li><div class="check-icon check-future">✗</div><div>Re-learn modern React, TypeScript, Firebase from scratch — months</div></li>
+            <li><div class="check-icon check-future">✗</div><div>Architect data model, Firestore rules, Cloud Functions — weeks</div></li>
+            <li><div class="check-icon check-future">✗</div><div>Write 362 tests alongside features — additional weeks</div></li>
+            <li><div class="check-icon check-future">✗</div><div>Debug production issues, security rules, CORS, mobile DnD — days per issue</div></li>
+            <li><div class="check-icon check-future">✗</div><div>Estimated: 6–12 months for a junior dev, solo</div></li>
+          </ul>
+        </div>
+        <div>
+          <div class="section-label">With AI-DLC</div>
+          <ul class="check-list">
+            <li><div class="check-icon check-done">✓</div><div>MVP live in ~10 hours of working sessions</div></li>
+            <li><div class="check-icon check-done">✓</div><div>Full platform (MVP + 4 phases) in roughly 2–3 weeks elapsed</div></li>
+            <li><div class="check-icon check-done">✓</div><div>362 tests always passing — no fear of shipping</div></li>
+            <li><div class="check-icon check-done">✓</div><div>Architecture decisions documented as institutional knowledge</div></li>
+            <li><div class="check-icon check-done">✓</div><div>Domain expertise + product instincts fully expressed in the product</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="pullquote" style="margin-top:1.2rem;">
+        "The constraint was never technical ability. It was time and context-switching. AI-DLC removed both. The result is a product that could only have been built by someone who actually runs this team."
+      </div>
+
+      <div class="section-label" style="margin-top:14px;">What Kareen brought that AI couldn't</div>
+      <div class="tag-row">
+        <span class="pill pill-gold">Dragonboat operations knowledge</span>
+        <span class="pill pill-gold">Product ownership instincts</span>
+        <span class="pill pill-gold">User empathy (she IS the user)</span>
+        <span class="pill pill-gold">Knowing when to defer vs. build now</span>
+        <span class="pill pill-gold">Catching the auth architecture bug</span>
+        <span class="pill pill-gold">Managing rollout pace for 140 people</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 11: KEY TAKEAWAYS -->
+    <div class="slide" id="slide-11">
+      <div class="slide-eyebrow">
+        <span>Key takeaways</span>
+        <span class="slide-num">12 / 12</span>
+      </div>
+      <div class="slide-title">What <em>AIDLC</em> taught us</div>
+      <div class="slide-sub">A Software Engineering Manager who hadn't shipped production code since 2008 built a full-featured team management platform — tested, secure, and in production use — in under a month.</div>
+
+      <div class="stat-row">
+        <div class="stat-block">
+          <div class="stat-num">362</div>
+          <div class="stat-label">Tests passing</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-num">18 <span class="stat-unit">yr</span></div>
+          <div class="stat-label">Since last prod code</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-num">~1 <span class="stat-unit">mo</span></div>
+          <div class="stat-label">MVP → full platform</div>
+        </div>
+      </div>
+
+      <ul class="check-list" style="margin-bottom:1rem;">
+        <li><div class="check-icon check-done">1</div><div><strong>The human drives every decision</strong> — AI generates, human approves, corrects, and directs. The PM instinct is the superpower.</div></li>
+        <li><div class="check-icon check-done">2</div><div><strong>Domain knowledge is irreplaceable</strong> — Kareen's corrections made the app accurate to actual dragonboat team operations. No AI could have done that.</div></li>
+        <li><div class="check-icon check-done">3</div><div><strong>Document as you go</strong> — specs, ADRs, corrections become institutional knowledge that survives across sessions and versions.</div></li>
+        <li><div class="check-icon check-done">4</div><div><strong>Tests give you freedom</strong> — 362 tests mean refactoring and deploying without fear. Ship confidently.</div></li>
+        <li><div class="check-icon check-done">5</div><div><strong>Being an AI Ambassador matters</strong> — Kareen's role championing AI at Lexmark gave her the instinct to reach for this approach. AI literacy is now a career skill.</div></li>
+        <li><div class="check-icon check-soon">→</div><div><strong>Next</strong> — Full member rollout underway. Messenger as a workflow tool gets retired. The app becomes the single source of truth for Poseidon Dragons.</div></li>
+      </ul>
+
+      <div style="padding:12px 18px; background:rgba(29,158,117,0.07); border:1px solid rgba(29,158,117,0.2); border-radius:4px; font-size:0.82rem; color:var(--ink-3); line-height:1.6;">
+        Built with Claude · Gemini · Lexmark AI tools · and 20+ years of knowing how to ship software
+      </div>
+    </div>
+
+  </div><!-- end slides-wrapper -->
+
+  <div class="nav-bar">
+    <button class="nav-btn" id="prev-btn" onclick="navigate(-1)" disabled>← Back</button>
+    <div class="dots" id="dots"></div>
+    <button class="nav-btn" id="next-btn" onclick="navigate(1)">Next →</button>
+  </div>
+
+</div>
+
+<script>
+  var current = 0;
+  var total = 12;
+  var dotsEl = document.getElementById('dots');
+
+  for (var i = 0; i < total; i++) {
+    var d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.setAttribute('data-i', i);
+    (function(idx) {
+      d.onclick = function() { goTo(idx); };
+    })(i);
+    dotsEl.appendChild(d);
+  }
+
+  function goTo(n) {
+    var prev = document.getElementById('slide-' + current);
+    prev.classList.remove('active');
+    prev.classList.add('exit');
+    setTimeout(function() { prev.classList.remove('exit'); }, 400);
+    document.querySelectorAll('.dot')[current].classList.remove('active');
+    current = n;
+    var next = document.getElementById('slide-' + current);
+    next.classList.add('active');
+    document.querySelectorAll('.dot')[current].classList.add('active');
+    document.getElementById('prev-btn').disabled = current === 0;
+    document.getElementById('next-btn').disabled = current === total - 1;
+  }
+
+  function navigate(dir) {
+    goTo(Math.max(0, Math.min(total - 1, current + dir)));
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') navigate(1);
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') navigate(-1);
+  });
+</script>
+
+</body>
+</html>
