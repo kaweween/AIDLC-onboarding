@@ -3,726 +3,495 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AIDLC Setup Simulation — Azure DevOps + GitHub Copilot</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=DM+Sans:wght@400;500;600;700&display=swap');
-:root{
-  --bg:#0D1117;--bg2:#161B22;--bg3:#21262D;
-  --border:#30363D;--border2:#484F58;
-  --green:#3FB950;--green-dim:#1B4D2A;
-  --blue:#58A6FF;--blue-dim:#1B3A6B;
-  --amber:#E3B341;--amber-dim:#4D3800;
-  --coral:#F85149;--coral-dim:#4D1A19;
-  --purple:#BC8CFF;--purple-dim:#2D1F5E;
-  --teal:#39C5CF;--teal-dim:#0D3A3D;
-  --white:#E6EDF3;--muted:#8B949E;--dim:#484F58;
-  --navy-light:#1E2761;
-  --font-mono:'JetBrains Mono',monospace;
-  --font-ui:'DM Sans',sans-serif;
-}
-*{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--white);font-family:var(--font-ui);font-size:15px;line-height:1.6;min-height:100vh;}
-
-/* TOP HEADER */
-.sim-header{background:linear-gradient(135deg,#1E2761,#028090);padding:28px 48px 24px;display:flex;align-items:flex-start;gap:20px;}
-.sim-header .icon{width:52px;height:52px;background:rgba(255,255,255,0.12);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;margin-top:2px;}
-.sim-header h1{font-size:22px;font-weight:700;color:#fff;margin-bottom:4px;}
-.sim-header p{font-size:14px;color:rgba(255,255,255,0.7);}
-.sim-header .stack-pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
-.pill{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:3px 10px;font-size:12px;color:rgba(255,255,255,0.85);}
-
-/* LAYOUT */
-.sim-body{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 130px);}
-
-/* SIDEBAR */
-.sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:20px 0;}
-.sidebar-section{padding:8px 20px 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--dim);}
-.step-item{display:flex;align-items:flex-start;gap:10px;padding:9px 20px;cursor:pointer;transition:background .15s;border-left:3px solid transparent;}
-.step-item:hover{background:var(--bg3);}
-.step-item.active{background:var(--bg3);border-left-color:var(--blue);}
-.step-item.done{border-left-color:var(--green);}
-.step-item.done .step-num{background:var(--green);color:#000;}
-.step-item.active .step-num{background:var(--blue);color:#000;}
-.step-num{min-width:22px;height:22px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--font-mono);color:var(--muted);margin-top:1px;}
-.step-label{font-size:13px;color:var(--muted);line-height:1.35;}
-.step-item.active .step-label,.step-item.done .step-label{color:var(--white);}
-.step-sublabel{font-size:11px;color:var(--dim);margin-top:2px;}
-
-/* MAIN AREA */
-.main-area{display:flex;flex-direction:column;overflow:hidden;}
-
-/* PROGRESS */
-.progress-bar-container{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 28px;display:flex;align-items:center;gap:14px;}
-.progress-bar-outer{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;}
-.progress-bar-inner{height:100%;background:linear-gradient(90deg,var(--blue),var(--teal));border-radius:3px;transition:width .4s ease;}
-.progress-label{font-size:12px;color:var(--muted);font-family:var(--font-mono);white-space:nowrap;}
-
-/* STEP CONTENT */
-.step-content-area{flex:1;overflow-y:auto;padding:28px;}
-.step-panel{display:none;}
-.step-panel.active{display:block;}
-
-/* STEP HEADER */
-.step-header{margin-bottom:20px;}
-.step-header .phase-tag{display:inline-flex;align-items:center;gap:6px;background:var(--blue-dim);border:1px solid var(--blue);border-radius:6px;padding:4px 12px;font-size:12px;color:var(--blue);font-weight:600;margin-bottom:10px;}
-.step-header h2{font-size:20px;font-weight:700;color:var(--white);margin-bottom:6px;}
-.step-header p{font-size:14px;color:var(--muted);line-height:1.6;}
-
-/* TERMINAL */
-.terminal{background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:16px 0;}
-.terminal-header{background:var(--bg2);padding:10px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);}
-.terminal-dots{display:flex;gap:6px;}
-.dot{width:12px;height:12px;border-radius:50%;}
-.dot-r{background:#FF5F57;}.dot-y{background:#FFBD2E;}.dot-g{background:#28CA41;}
-.terminal-title{margin-left:8px;font-size:12px;color:var(--muted);font-family:var(--font-mono);}
-.terminal-body{padding:16px 20px;font-family:var(--font-mono);font-size:13px;line-height:1.7;}
-.t-prompt{color:var(--green);}
-.t-cmd{color:var(--white);}
-.t-comment{color:var(--dim);}
-.t-output{color:var(--muted);}
-.t-success{color:var(--green);}
-.t-warn{color:var(--amber);}
-.t-error{color:var(--coral);}
-.t-info{color:var(--blue);}
-.t-highlight{color:var(--teal);}
-.t-line{display:flex;gap:8px;margin-bottom:2px;}
-.t-line.gap{margin-bottom:10px;}
-
-/* FILE TREE */
-.filetree{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;font-family:var(--font-mono);font-size:13px;margin:16px 0;}
-.ft-header{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:10px;}
-.ft-line{padding:2px 0;color:var(--muted);}
-.ft-folder{color:var(--blue);}
-.ft-file{color:var(--green);}
-.ft-file.new{color:var(--amber);}
-.ft-indent{display:inline-block;width:20px;}
-.ft-new-badge{display:inline-block;background:var(--amber-dim);border:1px solid var(--amber);border-radius:3px;padding:0 5px;font-size:10px;color:var(--amber);margin-left:6px;}
-
-/* VS WINDOW */
-.vs-window{background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:16px 0;}
-.vs-titlebar{background:#3C3C3C;padding:8px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #555;}
-.vs-titlebar .vs-title{font-size:12px;color:#ccc;font-family:var(--font-mono);}
-.vs-tab{background:#1E1E1E;border:1px solid #555;border-bottom:none;padding:4px 12px;font-size:12px;font-family:var(--font-mono);color:#ccc;border-radius:4px 4px 0 0;}
-.vs-tab.active-tab{background:#252526;color:#fff;border-bottom:1px solid #252526;}
-.vs-body{background:#1E1E1E;padding:16px 20px;font-family:var(--font-mono);font-size:13px;line-height:1.7;}
-.vs-ln{color:#858585;margin-right:16px;font-size:11px;user-select:none;display:inline-block;width:24px;text-align:right;}
-.kw{color:#569CD6;}.str{color:#CE9178;}.cmt{color:#6A9955;}.fn{color:#DCDCAA;}.var{color:#9CDCFE;}.sym{color:#D4D4D4;}
-
-/* COPILOT PANEL */
-.copilot-chat{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:16px 0;}
-.copilot-header{background:linear-gradient(90deg,#1A237E,#283593);padding:12px 16px;font-size:13px;font-weight:600;color:white;display:flex;align-items:center;gap:8px;}
-.copilot-body{padding:16px;}
-.chat-msg{margin-bottom:12px;}
-.chat-msg .sender{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
-.chat-msg.user .sender{color:var(--amber);}
-.chat-msg.ai .sender{color:var(--blue);}
-.chat-msg .bubble{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.6;}
-.chat-msg.user .bubble{background:var(--amber-dim);border-color:var(--amber);}
-.chat-msg.ai .bubble{background:var(--blue-dim);border-color:var(--blue);}
-
-/* CALLOUT */
-.callout{border-radius:8px;padding:13px 16px;margin:12px 0;font-size:13px;display:flex;gap:10px;}
-.callout.info{background:var(--blue-dim);border:1px solid var(--blue);}
-.callout.warn{background:var(--amber-dim);border:1px solid var(--amber);}
-.callout.success{background:var(--green-dim);border:1px solid var(--green);}
-.callout.tip{background:var(--purple-dim);border:1px solid var(--purple);}
-.callout .icon{font-size:16px;margin-top:1px;flex-shrink:0;}
-.callout p{margin:0;color:var(--white);}
-.callout strong{color:inherit;}
-
-/* NAV BUTTONS */
-.nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding-top:20px;border-top:1px solid var(--border);}
-.btn{padding:9px 22px;border-radius:7px;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-ui);transition:all .15s;}
-.btn-primary{background:var(--blue);color:#000;}
-.btn-primary:hover{background:#79BBFF;}
-.btn-secondary{background:var(--bg3);color:var(--white);border:1px solid var(--border2);}
-.btn-secondary:hover{background:var(--bg2);}
-.btn:disabled{opacity:.4;cursor:default;}
-.step-counter{font-size:13px;color:var(--muted);font-family:var(--font-mono);}
-
-/* CHECKLIST */
-.check-list{list-style:none;margin:12px 0;}
-.check-list li{display:flex;align-items:flex-start;gap:10px;padding:8px 12px;border-radius:6px;margin-bottom:4px;font-size:13px;}
-.check-list li.done-item{background:var(--green-dim);}
-.check-list li.pending-item{background:var(--bg3);}
-.check-icon{font-size:14px;margin-top:1px;}
-
-h3.subsection{font-size:14px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:1px;margin:18px 0 8px;display:flex;align-items:center;gap:8px;}
-h3.subsection::before{content:'';display:inline-block;width:3px;height:14px;background:var(--teal);border-radius:2px;}
-</style>
+<title>AIDLC Setup Simulator</title>
+<meta name="description" content="Interactive walkthrough: install AI-DLC 2.11 natively and configure it for Claude Code and GitHub Copilot in an Azure DevOps repo.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
 </head>
 <body>
 
-<div class="sim-header">
+<header class="sim-header">
   <div class="icon">⚙️</div>
   <div>
-    <h1>Simulation 1: AIDLC Setup</h1>
-    <p>Interactive walkthrough — setting up AIDLC in your Azure DevOps repo using GitHub Copilot in Visual Studio</p>
+    <h1>Simulation 1: AIDLC Setup (v2.11)</h1>
+    <p>Install the native <code>aidlc</code> command, then configure one repo for Claude Code and GitHub Copilot side by side.</p>
     <div class="stack-pills">
+      <span class="pill">AI-DLC 2.11.0</span>
+      <span class="pill">Claude Code</span>
+      <span class="pill">GitHub Copilot · VS Code ≥ 1.130 / CLI ≥ 1.0.74</span>
       <span class="pill">Azure DevOps Repos</span>
-      <span class="pill">Visual Studio 2022</span>
-      <span class="pill">GitHub Copilot Business</span>
       <span class="pill">Jenkins</span>
-      <span class="pill">Windows / macOS</span>
+      <span class="pill">Windows · macOS · Linux</span>
     </div>
   </div>
-</div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
 
 <div class="sim-body">
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <div class="sidebar-section">Setup Steps</div>
-    <div class="step-item active" id="nav-0" onclick="goTo(0)">
-      <div class="step-num">1</div>
-      <div><div class="step-label">Prerequisites</div><div class="step-sublabel">Copilot, permissions, tooling</div></div>
+  <nav class="sidebar" id="steps-nav" aria-label="Setup steps"></nav>
+  <main class="main-area">
+    <div class="progress-bar-container">
+      <div class="progress-bar-outer"><div class="progress-bar-inner" id="progress"></div></div>
+      <div class="progress-label" id="progress-label">Step 1</div>
     </div>
-    <div class="step-item" id="nav-1" onclick="goTo(1)">
-      <div class="step-num">2</div>
-      <div><div class="step-label">Download AIDLC Rules</div><div class="step-sublabel">awslabs open-source rules</div></div>
+    <div class="step-content-area">
+
+<!-- 1 -->
+<section class="step-panel" data-section="Before you start" data-title="What changed in v2" data-sub="Rule files → native engine">
+  <div class="step-header">
+    <div class="phase-tag">🧭 Orientation</div>
+    <h2>AIDLC is no longer a folder of rule files</h2>
+    <p>Our March 2026 guides had you copy <code>core-workflow.md</code> into <code>.github/copilot-instructions.md</code> and a folder of phase rules into <code>.aidlc-rule-details/</code>. The upstream project (<code>awslabs/aidlc-workflows</code>) has since become a <strong>native engine</strong>: one installed command, <code>aidlc</code>, that projects a full runtime (hooks, agents, skills, scopes, sensors) into each repo and enforces the workflow deterministically.</p>
+  </div>
+
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Topic</th><th>v1 (our old guide)</th><th>v2.11 (current)</th></tr>
+    <tr><td><strong>Install</strong></td><td>git clone, copy two folders by hand</td><td><code>install.ps1</code> / <code>install.sh</code> → <code>aidlc config --harness &lt;tool&gt;</code></td></tr>
+    <tr><td><strong>Start a workflow</strong></td><td>"Using AI-DLC, …" phrase</td><td><code>/aidlc &lt;what you want&gt;</code> (Codex: <code>$aidlc</code>)</td></tr>
+    <tr><td><strong>Lifecycle</strong></td><td>3 phases (Inception, Construction, Operations)</td><td>5 phases, 33 stages, 11 scopes (plus composed plans)</td></tr>
+    <tr><td><strong>Who enforces it</strong></td><td>The model reading prose rules</td><td>A deterministic engine + 17 hooks; the model never decides routing</td></tr>
+    <tr><td><strong>Artefacts</strong></td><td><code>aidlc-docs/</code>, <code>audit.md</code></td><td><code>aidlc/spaces/&lt;space&gt;/intents/&lt;YYMMDD-label&gt;/</code>, sharded <code>audit/</code></td></tr>
+    <tr><td><strong>Team standards</strong></td><td>One <code>semantic-context.md</code></td><td>Memory layer (org → team → project → phase rules) + Team knowledge + DocumentKB</td></tr>
+    <tr><td><strong>Supported tools</strong></td><td>Anything that reads instructions</td><td>Claude Code, GitHub Copilot (CLI + VS Code), Kiro CLI/IDE, Codex CLI, Cursor, opencode</td></tr>
+  </table></div>
+
+  <div class="callout warn"><div class="icon">⚠️</div><p><strong>Visual Studio 2022 is not a supported surface.</strong> The Copilot harness relies on hook and skill features that exist only in <strong>VS Code ≥ 1.130</strong> (agent mode) and <strong>Copilot CLI ≥ 1.0.74</strong>. Keep Visual Studio for editing and debugging, and run AIDLC from VS Code, the Copilot CLI or Claude Code.</p></div>
+
+  <h3 class="subsection">What you'll have at the end</h3>
+  <div class="cards">
+    <div class="card blue"><h4>One machine install</h4><p><code>aidlc</code> on your PATH with every harness runtime. No Bun or Node.js needed.</p></div>
+    <div class="card green"><h4>Two harnesses, one repo</h4><p><code>.claude/</code> for Claude Code and <code>.aidlc/</code> + <code>.github/</code> for Copilot share one <code>aidlc/</code> workspace.</p></div>
+    <div class="card purple"><h4>Hooks you can trust</h4><p>Approval gates, audit, sensors and guards run as hooks, so the workflow holds even when the model gets creative.</p></div>
+    <div class="card amber"><h4>A clean doctor</h4><p><code>aidlc doctor</code> and <code>/aidlc --doctor</code> both green before your first workflow.</p></div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="step-panel" data-section="Before you start" data-title="Prerequisites" data-sub="Tools, versions, access">
+  <div class="step-header">
+    <div class="phase-tag">✅ Checklist</div>
+    <h2>Before you start</h2>
+    <p>The native runtime needs nothing extra. Your <em>harness</em> (the AI tool) still has its own requirements. Pick the tools your team will use:</p>
+  </div>
+
+  <div data-tabs>
+    <div class="tabs">
+      <button class="tab-btn on" data-tab="claude">Claude Code</button>
+      <button class="tab-btn" data-tab="vscode">Copilot in VS Code</button>
+      <button class="tab-btn" data-tab="cli">Copilot CLI</button>
     </div>
-    <div class="step-item" id="nav-2" onclick="goTo(2)">
-      <div class="step-num">3</div>
-      <div><div class="step-label">Clone &amp; Configure Repo</div><div class="step-sublabel">Azure DevOps → local</div></div>
+    <div class="tab-pane on" data-pane="claude">
+      <ul class="check-list">
+        <li class="ok"><span class="ci">✓</span><div><strong>Claude Code installed and signed in</strong>: subscription, API key, Amazon Bedrock or an enterprise gateway. AIDLC keeps whatever provider you already use.</div></li>
+        <li class="ok"><span class="ci">✓</span><div><strong>Project hooks allowed.</strong> If your organisation sets <code>allowManagedHooksOnly</code>, project hooks are blocked and <code>/aidlc --doctor</code> will say so.</div></li>
+      </ul>
     </div>
-    <div class="step-item" id="nav-3" onclick="goTo(3)">
-      <div class="step-num">4</div>
-      <div><div class="step-label">Add Steering Files</div><div class="step-sublabel">copilot-instructions.md</div></div>
+    <div class="tab-pane" data-pane="vscode">
+      <ul class="check-list">
+        <li class="ok"><span class="ci">✓</span><div><strong>VS Code ≥ 1.130</strong>: check with <code>code --version</code>. VS Code agent hooks are a Preview feature.</div></li>
+        <li class="ok"><span class="ci">✓</span><div><strong>Copilot Business/Enterprise</strong> sign-in (or a Custom Endpoint provider). AIDLC pins no model: every agent uses your chat's model.</div></li>
+        <li><span class="ci">○</span><div><strong>Org policy allows "Chat: Use Hooks"</strong> (<code>chat.useHooks</code>). Your organisation can turn it off; if it does, gates go unrecorded.</div></li>
+      </ul>
     </div>
-    <div class="step-item" id="nav-4" onclick="goTo(4)">
-      <div class="step-num">5</div>
-      <div><div class="step-label">Add Rule Details</div><div class="step-sublabel">.aidlc-rule-details/ folder</div></div>
-    </div>
-    <div class="step-item" id="nav-5" onclick="goTo(5)">
-      <div class="step-num">6</div>
-      <div><div class="step-label">Semantic Context</div><div class="step-sublabel">Your codebase conventions</div></div>
-    </div>
-    <div class="step-item" id="nav-6" onclick="goTo(6)">
-      <div class="step-num">7</div>
-      <div><div class="step-label">Commit &amp; Push</div><div class="step-sublabel">Azure DevOps + branch policy</div></div>
-    </div>
-    <div class="step-item" id="nav-7" onclick="goTo(7)">
-      <div class="step-num">8</div>
-      <div><div class="step-label">Verify in VS</div><div class="step-sublabel">Test AIDLC trigger</div></div>
-    </div>
-    <div class="step-item" id="nav-8" onclick="goTo(8)">
-      <div class="step-num">9</div>
-      <div><div class="step-label">Setup Complete</div><div class="step-sublabel">What's next</div></div>
+    <div class="tab-pane" data-pane="cli">
+      <ul class="check-list">
+        <li class="ok"><span class="ci">✓</span><div><strong>Copilot CLI ≥ 1.0.74</strong>: check with <code>copilot --version</code>. Install with <code>npm install -g @github/copilot</code>.</div></li>
+        <li class="ok"><span class="ci">✓</span><div>GitHub sign-in or <strong>BYOK</strong> (for example Amazon Bedrock via <code>COPILOT_PROVIDER_BASE_URL</code> + <code>COPILOT_PROVIDER_TYPE</code>).</div></li>
+      </ul>
     </div>
   </div>
 
-  <!-- MAIN -->
-  <div class="main-area">
-    <div class="progress-bar-container">
-      <div class="progress-bar-outer"><div class="progress-bar-inner" id="progress" style="width:11%"></div></div>
-      <div class="progress-label" id="progress-label">Step 1 / 9</div>
+  <h3 class="subsection">For everyone</h3>
+  <ul class="check-list">
+    <li class="ok"><span class="ci">✓</span><div><strong>A normal (non-admin) terminal.</strong> The installer is per-user. An elevated "Run as administrator" window gets a warning and a prompt.</div></li>
+    <li class="ok"><span class="ci">✓</span><div><strong>Git + Azure DevOps contributor access</strong> to the repo, and a feature branch you can raise a PR from.</div></li>
+    <li><span class="ci">○</span><div><strong>Optional: GitHub CLI (<code>gh</code>).</strong> With it, the installer also verifies the signed release attestation; without it, SHA-256 checksums are still verified.</div></li>
+  </ul>
+</section>
+
+<!-- 3 -->
+<section class="step-panel" data-section="Machine" data-title="Install aidlc" data-sub="One command per machine">
+  <div class="step-header">
+    <div class="phase-tag">📦 Install</div>
+    <h2>Install the native <code>aidlc</code> command</h2>
+    <p>Do this once per machine. It downloads the latest stable release, verifies it and installs every harness runtime.</p>
+  </div>
+
+  <div data-tabs>
+    <div class="tabs">
+      <button class="tab-btn on" data-tab="win">Windows PowerShell</button>
+      <button class="tab-btn" data-tab="nix">macOS / Linux / WSL</button>
     </div>
-
-    <div class="step-content-area">
-
-      <!-- STEP 0: Prerequisites -->
-      <div class="step-panel active" id="step-0">
-        <div class="step-header">
-          <div class="phase-tag">⚙️ Prerequisites</div>
-          <h2>Before You Start</h2>
-          <p>Confirm the following are in place for your team. AIDLC setup takes approximately 20–30 minutes per repo once prerequisites are met.</p>
-        </div>
-
-        <h3 class="subsection">Access &amp; Licensing</h3>
-        <ul class="check-list">
-          <li class="done-item"><span class="check-icon">✓</span><div><strong>GitHub Copilot Business or Enterprise</strong> — Individual tier does not support project-level instruction files needed for AIDLC. Confirm your org licence at <code style="font-family:var(--font-mono);font-size:12px;color:var(--amber)">github.com/settings/copilot</code>.</div></li>
-          <li class="done-item"><span class="check-icon">✓</span><div><strong>GitHub Copilot extension in Visual Studio 2022</strong> — Install via Extensions → Manage Extensions → search "GitHub Copilot". Version 1.156+ required.</div></li>
-          <li class="done-item"><span class="check-icon">✓</span><div><strong>Azure DevOps Contributor access</strong> on the target repo — you need push rights to the main/develop branch for the initial commit.</div></li>
-          <li class="pending-item"><span class="check-icon">○</span><div><strong>Branch policy exception (one-time)</strong> — the setup commit adds new folders and files. If your repo has a "no direct push" policy, raise a temporary exception with your tech lead, or create the setup via a PR.</div></li>
-          <li class="pending-item"><span class="check-icon">○</span><div><strong>Git installed on your machine</strong> — verify with <code style="font-family:var(--font-mono);font-size:12px;color:var(--amber)">git --version</code> in terminal. Version 2.40+ recommended.</div></li>
-          <li class="pending-item"><span class="check-icon">○</span><div><strong>Azure Repos credential helper</strong> — ensure you can clone and push without re-entering credentials. Use <code style="font-family:var(--font-mono);font-size:12px;color:var(--amber)">git credential-manager configure</code>.</div></li>
-        </ul>
-
-        <h3 class="subsection">XCode / CLI Users</h3>
-        <div class="callout tip">
-          <div class="icon">💡</div>
-          <p>XCode does not natively run GitHub Copilot. For iOS/macOS projects: use <strong>Claude</strong> (add <code>CLAUDE.md</code> at project root instead of <code>.github/copilot-instructions.md</code>) or use <strong>Cursor</strong> (place rules in <code>.cursor/rules/</code>). The AIDLC rule content is identical — only the file location differs. CLI-only developers can use <code>claude</code> CLI tool and place <code>CLAUDE.md</code> at the project root.</p>
-        </div>
-
-        <h3 class="subsection">What You're About to Create</h3>
-        <div class="filetree">
-          <div class="ft-header">Repository Structure After Setup</div>
-          <div class="ft-line"><span class="ft-folder">📁 your-service/</span></div>
-          <div class="ft-line"><span class="ft-indent"></span><span class="ft-folder">📁 .github/</span> <span class="ft-new-badge">NEW</span></div>
-          <div class="ft-line"><span class="ft-indent"></span><span class="ft-indent"></span><span class="ft-file new">📄 copilot-instructions.md</span> <span style="font-size:11px;color:var(--dim)">← AIDLC core workflow</span></div>
-          <div class="ft-line"><span class="ft-indent"></span><span class="ft-folder">📁 .aidlc-rule-details/</span> <span class="ft-new-badge">NEW</span></div>
-          <div class="ft-line"><span class="ft-indent"></span><span class="ft-indent"></span><span class="ft-file new">📄 inception-rules.md</span></div>
-          <div class="ft-line"><span class="ft-indent"></span><span class="ft-indent"></span><span class="ft-file new">📄 construction-rules.md</span></div>
-          <div class="ft-line"><span class="ft-indent"></span><span class="ft-indent"></span><span class="ft-file new">📄 operations-rules.md</span></div>
-          <div class="ft-line"><span class="ft-indent"></span><span class="ft-folder">📁 aidlc-docs/</span> <span class="ft-new-badge">NEW</span></div>
-          <div class="ft-line"><span class="ft-indent"></span><span class="ft-indent"></span><span class="ft-file new">📄 semantic-context.md</span> <span style="font-size:11px;color:var(--dim)">← Your team fills this</span></div>
-          <div class="ft-line"><span class="ft-indent"></span><span class="ft-indent"></span><span class="ft-file">📄 .gitkeep</span></div>
-          <div class="ft-line"><span class="ft-indent"></span><span class="ft-folder">📁 src/</span></div>
-          <div class="ft-line"><span class="ft-indent"></span><span class="ft-folder">📁 tests/</span></div>
-          <div class="ft-line"><span class="ft-indent"></span><span class="ft-file">📄 Jenkinsfile</span></div>
-        </div>
-
-        <div class="nav-row">
-          <button class="btn btn-secondary" disabled>← Back</button>
-          <span class="step-counter" id="ctr-0">Step 1 of 9</span>
-          <button class="btn btn-primary" onclick="goTo(1)">Next: Download Rules →</button>
+    <div class="tab-pane on" data-pane="win">
+      <div class="terminal typer">
+        <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">PowerShell (not elevated)</div><button class="run-btn">▶ Run</button></div>
+        <div class="terminal-body">
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">irm https://github.com/awslabs/aidlc-workflows/releases/latest/download/install.ps1 | iex</span></span>
+<span class="l t-output">Downloading version.json...</span>
+<span class="l t-output">Downloading checksums.txt...</span>
+<span class="l t-output">Downloading aidlc-release.intoto.jsonl...</span>
+<span class="l t-warn">WARN GitHub CLI attestation verification is unavailable; continuing with SHA-256 release checksums.</span>
+<span class="l t-output">Downloading aidlc-windows-x64.exe...</span>
+<span class="l t-output" data-wait="600">Downloading aidlc-runtime-2.11.0.tar.gz...</span>
+<span class="l t-success">Installed AI-DLC 2.11.0</span>
+<span class="l t-output">Account: CONTOSO\marcus.l</span>
+<span class="l t-output">Command: C:\Users\marcus.l\AppData\Local\aidlc\bin\aidlc.cmd</span>
+<span class="l t-output">Added C:\Users\marcus.l\AppData\Local\aidlc\bin to your user PATH.</span>
+<span class="l"> </span>
+<span class="l t-hl">Next: In your project, run: aidlc config</span>
+<span class="l t-output">Restart existing terminals or IDEs if they cannot find aidlc.</span>
         </div>
       </div>
-
-      <!-- STEP 1: Download AIDLC Rules -->
-      <div class="step-panel" id="step-1">
-        <div class="step-header">
-          <div class="phase-tag">📦 Download</div>
-          <h2>Download AIDLC Workflow Rules</h2>
-          <p>The AIDLC rules are open-sourced by AWS Labs under the MIT-0 licence. You download them once and commit them to each repo that will use AIDLC.</p>
-        </div>
-
-        <div class="callout info">
-          <div class="icon">ℹ️</div>
-          <p><strong>MIT-0 Licence:</strong> No attribution required. You can modify, redistribute, and use these rules in proprietary products. Pin to a specific release tag so your team uses a known-good version.</p>
-        </div>
-
-        <h3 class="subsection">Option A: Download via Git (Recommended)</h3>
-        <div class="terminal">
-          <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">PowerShell / Terminal</div></div>
-          <div class="terminal-body">
-            <div class="t-line"><span class="t-comment"># Clone the aidlc-workflows repo to a local tools folder</span></div>
-            <div class="t-line gap"><span class="t-prompt">$</span><span class="t-cmd"> git clone https://github.com/awslabs/aidlc-workflows.git C:\tools\aidlc-workflows</span></div>
-            <div class="t-line"><span class="t-comment"># macOS/Linux:</span></div>
-            <div class="t-line gap"><span class="t-prompt">$</span><span class="t-cmd"> git clone https://github.com/awslabs/aidlc-workflows.git ~/tools/aidlc-workflows</span></div>
-            <div class="t-line"><span class="t-output">Cloning into 'aidlc-workflows'...</span></div>
-            <div class="t-line"><span class="t-output">remote: Enumerating objects: 142, done.</span></div>
-            <div class="t-line"><span class="t-output">remote: Counting objects: 100% (142/142), done.</span></div>
-            <div class="t-line gap"><span class="t-success">✓ Cloned successfully</span></div>
-            <div class="t-line"><span class="t-comment"># Check what's inside</span></div>
-            <div class="t-line"><span class="t-prompt">$</span><span class="t-cmd"> ls C:\tools\aidlc-workflows</span></div>
-            <div class="t-line"><span class="t-highlight">aws-aidlc-rules/</span><span class="t-output">          </span><span class="t-highlight">aws-aidlc-rule-details/</span><span class="t-output">       README.md</span></div>
-          </div>
-        </div>
-
-        <h3 class="subsection">Option B: Download via GitHub Releases (No Git Needed)</h3>
-        <div class="terminal">
-          <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">PowerShell</div></div>
-          <div class="terminal-body">
-            <div class="t-line"><span class="t-comment"># Download the latest release zip directly</span></div>
-            <div class="t-line"><span class="t-prompt">$</span><span class="t-cmd"> $url = "https://github.com/awslabs/aidlc-workflows/archive/refs/heads/main.zip"</span></div>
-            <div class="t-line"><span class="t-prompt">$</span><span class="t-cmd"> Invoke-WebRequest -Uri $url -OutFile "C:\tools\aidlc-workflows.zip"</span></div>
-            <div class="t-line gap"><span class="t-prompt">$</span><span class="t-cmd"> Expand-Archive "C:\tools\aidlc-workflows.zip" -DestinationPath "C:\tools\"</span></div>
-            <div class="t-line"><span class="t-success">✓ Extracted to C:\tools\aidlc-workflows-main\</span></div>
-          </div>
-        </div>
-
-        <h3 class="subsection">Verify the Contents</h3>
-        <div class="terminal">
-          <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">PowerShell</div></div>
-          <div class="terminal-body">
-            <div class="t-line"><span class="t-prompt">$</span><span class="t-cmd"> ls C:\tools\aidlc-workflows\aws-aidlc-rules\</span></div>
-            <div class="t-line gap"><span class="t-highlight">core-workflow.md</span><span class="t-output">     </span><span class="t-comment"># ← This becomes .github/copilot-instructions.md</span></div>
-            <div class="t-line"><span class="t-prompt">$</span><span class="t-cmd"> ls C:\tools\aidlc-workflows\aws-aidlc-rule-details\</span></div>
-            <div class="t-line"><span class="t-highlight">inception-rules.md</span><span class="t-output">   </span><span class="t-highlight">construction-rules.md</span><span class="t-output">   </span><span class="t-highlight">operations-rules.md</span></div>
-          </div>
-        </div>
-
-        <div class="nav-row">
-          <button class="btn btn-secondary" onclick="goTo(0)">← Back</button>
-          <span class="step-counter">Step 2 of 9</span>
-          <button class="btn btn-primary" onclick="goTo(2)">Next: Clone Repo →</button>
+      <div class="callout tip"><div class="icon">💡</div><p>Prefer to read a script before running it? Download first: <code>irm …/install.ps1 -OutFile install.ps1</code>, review it, then run <code>powershell -ExecutionPolicy Bypass -File install.ps1</code>. Use <code>-NoModifyPath</code> to skip PATH changes and <code>-Version 2.11.0</code> to pin a release.</p></div>
+    </div>
+    <div class="tab-pane" data-pane="nix">
+      <div class="terminal typer">
+        <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">bash / zsh</div><button class="run-btn">▶ Run</button></div>
+        <div class="terminal-body">
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">curl -fsSL https://github.com/awslabs/aidlc-workflows/releases/latest/download/install.sh | sh</span></span>
+<span class="l t-output">Downloading version.json...</span>
+<span class="l t-output">Downloading checksums.txt...</span>
+<span class="l t-output" data-wait="600">Downloading aidlc-runtime-2.11.0.tar.gz...</span>
+<span class="l t-success">Installed AI-DLC 2.11.0</span>
+<span class="l t-warn">If `aidlc` is not found, apply the PATH line the installer prints.</span>
         </div>
       </div>
+    </div>
+  </div>
 
-      <!-- STEP 2: Clone Repo -->
-      <div class="step-panel" id="step-2">
-        <div class="step-header">
-          <div class="phase-tag">📁 Repository</div>
-          <h2>Clone Your Azure DevOps Repo</h2>
-          <p>Clone the target service repo locally. We'll add AIDLC files and push them back. This example uses a .NET billing service called <strong>billing-service</strong>.</p>
-        </div>
+  <h3 class="subsection">Check it</h3>
+  <div class="terminal">
+    <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">new terminal</div></div>
+    <div class="terminal-body">
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">aidlc version</span></span>
+<span class="l t-success">aidlc 2.11.0 (runtime 2.11.0)</span>
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">aidlc update --check</span></span>
+<span class="l t-output">binary 2.11.0 is latest</span>
+    </div>
+  </div>
+  <div class="callout info"><div class="icon">ℹ️</div><p>The machine install never touches a repo. Projects get their files from <code>aidlc config</code> in the next steps, and <code>aidlc update</code> later updates only the machine.</p></div>
+</section>
 
-        <h3 class="subsection">Clone from Azure DevOps</h3>
-        <div class="terminal">
-          <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">PowerShell — Azure DevOps Repo Clone</div></div>
-          <div class="terminal-body">
-            <div class="t-line"><span class="t-comment"># Navigate to your dev folder</span></div>
-            <div class="t-line gap"><span class="t-prompt">$</span><span class="t-cmd"> cd C:\dev</span></div>
-            <div class="t-line"><span class="t-comment"># Clone using Azure DevOps HTTPS URL</span></div>
-            <div class="t-line"><span class="t-comment"># Format: https://dev.azure.com/{org}/{project}/_git/{repo}</span></div>
-            <div class="t-line gap"><span class="t-prompt">$</span><span class="t-cmd"> git clone https://dev.azure.com/MyOrg/Platform/_git/billing-service</span></div>
-            <div class="t-line"><span class="t-output">Cloning into 'billing-service'...</span></div>
-            <div class="t-line"><span class="t-output">remote: Azure Repos</span></div>
-            <div class="t-line"><span class="t-output">remote: Found 1482 objects to send. (12ms)</span></div>
-            <div class="t-line gap"><span class="t-success">✓ done</span></div>
-            <div class="t-line gap"><span class="t-prompt">$</span><span class="t-cmd"> cd billing-service</span></div>
-            <div class="t-line"><span class="t-comment"># Create a new branch for the AIDLC setup (recommended)</span></div>
-            <div class="t-line gap"><span class="t-prompt">$</span><span class="t-cmd"> git checkout -b feat/add-aidlc-setup</span></div>
-            <div class="t-line"><span class="t-success">Switched to a new branch 'feat/add-aidlc-setup'</span></div>
-          </div>
-        </div>
+<!-- 4 -->
+<section class="step-panel" data-section="Project" data-title="Clone & branch" data-sub="Azure DevOps → local">
+  <div class="step-header">
+    <div class="phase-tag">📁 Repository</div>
+    <h2>Clone the service and make a setup branch</h2>
+    <p>We'll configure <strong>billing-service</strong>, a .NET 8 service in Azure DevOps. Treat the AIDLC files like any other code: they arrive through a reviewed PR.</p>
+  </div>
+  <div class="terminal">
+    <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">PowerShell</div></div>
+    <div class="terminal-body">
+<span class="l"><span class="t-prompt">PS C:\dev&gt;</span> <span class="t-cmd">git clone https://dev.azure.com/MyOrg/Platform/_git/billing-service</span></span>
+<span class="l t-output">Cloning into 'billing-service'...</span>
+<span class="l"><span class="t-prompt">PS C:\dev&gt;</span> <span class="t-cmd">cd billing-service; git switch -c chore/aidlc-v2-setup</span></span>
+<span class="l t-success">Switched to a new branch 'chore/aidlc-v2-setup'</span>
+    </div>
+  </div>
+  <div class="callout tip"><div class="icon">💡</div><p><strong>Already ran the v1 setup in this repo?</strong> Leave the old files in place for now. Step 11 shows what to move and what to delete once v2 is working.</p></div>
+</section>
 
-        <h3 class="subsection">Open in Visual Studio</h3>
-        <div class="terminal">
-          <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">PowerShell</div></div>
-          <div class="terminal-body">
-            <div class="t-line"><span class="t-comment"># Open the solution in Visual Studio from command line</span></div>
-            <div class="t-line"><span class="t-prompt">$</span><span class="t-cmd"> start BillingService.sln</span></div>
-            <div class="t-line"><span class="t-comment"># Or open VS first, then: File → Open → Folder → select billing-service/</span></div>
-          </div>
-        </div>
+<!-- 5 -->
+<section class="step-panel" data-section="Project" data-title="Configure Claude Code" data-sub="aidlc config --harness claude">
+  <div class="step-header">
+    <div class="phase-tag purple">🟣 Harness 1</div>
+    <h2>Configure the repo for Claude Code</h2>
+    <p>Run from the repo root. <code>config</code> is local and transactional: it writes the harness runtime, creates the <code>aidlc/</code> workspace, merges into files you already own and records what it owns for later refreshes. Add <code>--dry-run</code> to preview.</p>
+  </div>
+  <div class="terminal typer">
+    <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">PowerShell: C:\dev\billing-service</div><button class="run-btn">▶ Run</button></div>
+    <div class="terminal-body">
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">aidlc config --harness claude</span></span>
+<span class="l t-success" data-wait="700">configured C:\dev\billing-service for Claude Code 2.11.0; next: open Claude Code in this</span>
+<span class="l t-success">project (if it is already open in this folder, exit it and start it again) and run `/aidlc --doctor`</span>
+    </div>
+  </div>
 
-        <div class="callout warn">
-          <div class="icon">⚠️</div>
-          <p><strong>Branch Policy Note:</strong> If your Azure DevOps repo has a branch policy requiring PR reviews on <code>main</code> or <code>develop</code>, create the AIDLC setup on a feature branch and submit a PR. The AIDLC rule files should be treated as any other code — reviewed and approved before merging.</p>
-        </div>
+  <div class="filetree">
+    <div class="ft-header">What Claude Code gets</div>
+<pre><span class="ft-folder">billing-service/</span>
+├── <span class="ft-folder">.claude/</span>                       <span class="badge-new">NEW</span> <span class="ft-note">the engine for Claude Code</span>
+│   ├── <span class="ft-file">CLAUDE.md</span>                  <span class="ft-note">@-imports the method from aidlc/…/memory</span>
+│   ├── <span class="ft-file">settings.json</span>              <span class="ft-note">hooks, status line, pre-approved engine commands</span>
+│   ├── <span class="ft-folder">agents/</span>                    <span class="ft-note">14 personas (11 experts, 2 reviewers, composer)</span>
+│   ├── <span class="ft-folder">skills/</span>                    <span class="ft-note">/aidlc + scope/stage runners + session skills</span>
+│   ├── <span class="ft-folder">hooks/ knowledge/ scopes/ sensors/ tools/ rules/</span>
+│   └── <span class="ft-file">settings.local.json.example</span>
+├── <span class="ft-folder">aidlc/</span>                         <span class="badge-new">NEW</span> <span class="ft-note">the shared, harness-neutral workspace</span>
+│   └── <span class="ft-folder">spaces/default/</span>
+│       ├── <span class="ft-folder">memory/</span>                 <span class="ft-note">org.md · team.md · project.md · phases/ · templates/</span>
+│       └── <span class="ft-folder">intents/</span>                <span class="ft-note">one record dir per piece of work</span>
+└── <span class="ft-file">.gitignore</span>                     <span class="ft-note">+ one "# AI-DLC: local working files" block</span></pre>
+  </div>
+  <div class="callout info"><div class="icon">ℹ️</div><p><strong>Optional extras:</strong> <code>--mcp defaults</code> adds <code>.mcp.json</code> with context7 and four AWS MCP servers (they stay unavailable without credentials and never block a run). <code>aidlc config providers</code> records Amazon Bedrock if your team uses it; otherwise Claude Code keeps its current provider.</p></div>
+</section>
 
-        <div class="nav-row">
-          <button class="btn btn-secondary" onclick="goTo(1)">← Back</button>
-          <span class="step-counter">Step 3 of 9</span>
-          <button class="btn btn-primary" onclick="goTo(3)">Next: Add Steering Files →</button>
-        </div>
-      </div>
+<!-- 6 -->
+<section class="step-panel" data-section="Project" data-title="Add GitHub Copilot" data-sub="aidlc config --harness copilot">
+  <div class="step-header">
+    <div class="phase-tag teal">🔷 Harness 2</div>
+    <h2>Add the Copilot harness alongside</h2>
+    <p>Since 2.10, harnesses that don't collide can coexist in one repo. One Copilot install serves <strong>both</strong> the Copilot CLI and VS Code agent mode.</p>
+  </div>
+  <div class="terminal typer">
+    <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">PowerShell: C:\dev\billing-service</div><button class="run-btn">▶ Run</button></div>
+    <div class="terminal-body">
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">aidlc config --harness copilot</span></span>
+<span class="l t-success" data-wait="700">configured C:\dev\billing-service for GitHub Copilot 2.11.0; next: start Copilot CLI or VS Code</span>
+<span class="l t-success">agent mode, then run `/aidlc --doctor`</span>
+<span class="l t-warn">Outstanding actions:</span>
+<span class="l t-warn">  trust/copilot-folder-untrusted: Copilot CLI has not trusted this folder - run `aidlc config trust`</span>
+    </div>
+  </div>
 
-      <!-- STEP 3: Add Steering Files -->
-      <div class="step-panel" id="step-3">
-        <div class="step-header">
-          <div class="phase-tag">📝 Core Workflow</div>
-          <h2>Add the Core AIDLC Steering File</h2>
-          <p>The <code>.github/copilot-instructions.md</code> file is what GitHub Copilot reads to understand the AIDLC workflow. This single file activates AIDLC for every developer who opens this repo in Visual Studio.</p>
-        </div>
+  <div class="filetree">
+    <div class="ft-header">What Copilot gets (merged, never overwriting yours)</div>
+<pre><span class="ft-folder">billing-service/</span>
+├── <span class="ft-folder">.aidlc/</span>                        <span class="badge-new">NEW</span> <span class="ft-note">engine tree: tools, hooks + Copilot adapter, agents, scopes, sensors</span>
+├── <span class="ft-folder">.github/</span>                       <span class="ft-note">your pipelines and templates untouched</span>
+│   ├── <span class="ft-file">hooks/aidlc.json</span>           <span class="badge-new">NEW</span> <span class="ft-note">SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, PreCompact, Subagent*, Stop</span>
+│   ├── <span class="ft-folder">agents/aidlc-*-agent.md</span>    <span class="badge-new">NEW</span> <span class="ft-note">14 native custom agents</span>
+│   └── <span class="ft-folder">skills/aidlc*/</span>             <span class="badge-new">NEW</span> <span class="ft-note">/aidlc and every runner</span>
+├── <span class="ft-file">AGENTS.md</span>                      <span class="badge-new">NEW</span> <span class="ft-note">onboarding + @-imports of the method</span>
+├── <span class="ft-file">.vscode/settings.json</span>          <span class="badge-new">NEW</span> <span class="ft-note">"chat.useHooks": true, "chat.agent.maxRequests": 200</span>
+└── <span class="ft-folder">aidlc/</span>                         <span class="ft-note">SAME workspace as Claude: both tools see the same work</span></pre>
+  </div>
+  <div class="callout success"><div class="icon">✓</div><p>Because the record lives in the neutral <code>aidlc/</code> tree, a developer can start a feature in Claude Code and a teammate can pick it up in VS Code. A plain <code>/aidlc</code> in a new session carries on with the work in progress.</p></div>
+</section>
 
-        <h3 class="subsection">Create the .github directory and copy the core workflow</h3>
-        <div class="terminal">
-          <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">PowerShell — inside billing-service/</div></div>
-          <div class="terminal-body">
-            <div class="t-line"><span class="t-comment"># Create .github directory (if it doesn't exist)</span></div>
-            <div class="t-line gap"><span class="t-prompt">$</span><span class="t-cmd"> New-Item -ItemType Directory -Force -Path ".github"</span></div>
-            <div class="t-line"><span class="t-comment"># Copy the AIDLC core-workflow.md as copilot-instructions.md</span></div>
-            <div class="t-line gap"><span class="t-prompt">$</span><span class="t-cmd"> Copy-Item "C:\tools\aidlc-workflows\aws-aidlc-rules\core-workflow.md" `
-    ".github\copilot-instructions.md"</span></div>
-            <div class="t-line gap"><span class="t-success">✓ Created .github/copilot-instructions.md</span></div>
-            <div class="t-line"><span class="t-comment"># Verify it's there</span></div>
-            <div class="t-line"><span class="t-prompt">$</span><span class="t-cmd"> Get-Content ".github\copilot-instructions.md" | Select-Object -First 5</span></div>
-            <div class="t-line gap"><span class="t-output">---</span></div>
-            <div class="t-line"><span class="t-output">name: AI-DLC Core Workflow</span></div>
-            <div class="t-line"><span class="t-output">description: Core workflow rules for the AI-Driven Development Lifecycle</span></div>
-            <div class="t-line"><span class="t-output">version: 1.0</span></div>
-            <div class="t-line"><span class="t-success">✓ File content verified</span></div>
-          </div>
-        </div>
+<!-- 7 -->
+<section class="step-panel" data-section="Project" data-title="Trust & hooks" data-sub="Make sure hooks actually run">
+  <div class="step-header">
+    <div class="phase-tag amber">🔐 Trust</div>
+    <h2>Let each tool run the project's hooks</h2>
+    <p>Gates, the audit trail and the guards are hooks. If a tool silently skips them, approvals can't be recorded. Each surface has its own trust switch:</p>
+  </div>
 
-        <h3 class="subsection">What this file does</h3>
-        <div class="vs-window">
-          <div class="vs-titlebar"><div class="vs-tab active-tab">.github/copilot-instructions.md</div><div style="margin-left:auto;font-size:11px;color:#888;">Markdown Preview</div></div>
-          <div class="vs-body" style="font-family:var(--font-ui);font-size:13px;line-height:1.7;color:#D4D4D4;background:#1E1E1E;padding:16px 20px;">
-            <div style="color:#569CD6;font-weight:700;margin-bottom:8px;"># AIDLC Core Workflow</div>
-            <div style="color:#6A9955;margin-bottom:8px;">## Trigger</div>
-            <div style="margin-bottom:8px;">When a user begins a prompt with <span style="color:#CE9178;">"Using AI-DLC, ..."</span>, activate the AIDLC workflow. Detect whether the workspace is a <span style="color:#9CDCFE;">greenfield</span> or <span style="color:#9CDCFE;">brownfield</span> project and proceed accordingly.</div>
-            <div style="color:#6A9955;margin-bottom:8px;">## Phase Sequence</div>
-            <div style="margin-bottom:4px;">1. <span style="color:#DCDCAA;">Workspace Detection</span> → identify project type</div>
-            <div style="margin-bottom:4px;">2. <span style="color:#DCDCAA;">Inception Phase</span> → requirements and stories</div>
-            <div style="margin-bottom:4px;">3. <span style="color:#DCDCAA;">Construction Phase</span> → design and code</div>
-            <div style="margin-bottom:8px;">4. <span style="color:#DCDCAA;">Operations Phase</span> → IaC and deployment</div>
-            <div style="color:#6A9955;margin-bottom:8px;">## Human Checkpoints</div>
-            <div>Mandatory human approval required before every phase transition. Store all artefacts in <span style="color:#CE9178;">aidlc-docs/</span> folder.</div>
-          </div>
-        </div>
+  <div data-tabs>
+    <div class="tabs">
+      <button class="tab-btn on" data-tab="c">Claude Code</button>
+      <button class="tab-btn" data-tab="v">VS Code</button>
+      <button class="tab-btn" data-tab="cl">Copilot CLI</button>
+    </div>
+    <div class="tab-pane on" data-pane="c">
+      <ol class="body">
+        <li>Start <code>claude</code> in the repo. Approve the project hooks when prompted (or later via <code>/hooks</code>).</li>
+        <li>If Claude Code was already open in this folder, <strong>exit and start again</strong>. <code>/clear</code> is not enough.</li>
+        <li>If the doctor reports <code>disableAllHooks</code>, override it with <code>"disableAllHooks": false</code> in your local Claude settings file.</li>
+      </ol>
+    </div>
+    <div class="tab-pane" data-pane="v">
+      <ol class="body">
+        <li>Open the folder and choose <strong>Trust</strong> (VS Code Workspace Trust).</li>
+        <li><code>aidlc config</code> already set <code>"chat.useHooks": true</code> in <code>.vscode/settings.json</code>. The folder value wins over a user setting that is off, but an <strong>organisation policy can still disable it</strong>.</li>
+        <li>VS Code never reads the Copilot CLI trust list, and a skipped hook leaves no chat message. Since 2.11, AIDLC's first reply stops and tells you when no hook ran (look in the <em>Agent Debug Logs</em> panel).</li>
+      </ol>
+    </div>
+    <div class="tab-pane" data-pane="cl">
+      <ol class="body">
+        <li>Run <code>copilot</code> interactively once in the repo and choose <strong>"Yes, and remember this folder for future sessions"</strong>. That adds the folder to <code>trustedFolders</code> in <code>%USERPROFILE%\.copilot\config.json</code>. AIDLC never edits that file for you.</li>
+        <li>Headless runs (<code>copilot -p</code>) additionally need the environment variable <code>GITHUB_COPILOT_PROMPT_MODE_REPO_HOOKS</code> set to 1, or every hook silently does nothing.</li>
+      </ol>
+    </div>
+  </div>
 
-        <div class="callout info">
-          <div class="icon">ℹ️</div>
-          <p><strong>How GitHub Copilot reads this:</strong> GitHub Copilot Business/Enterprise automatically loads <code>.github/copilot-instructions.md</code> as context for every chat session in that repo. No additional configuration in VS is needed — it's convention-based. The file is version-controlled so every team member gets the same AI behaviour automatically.</p>
-        </div>
+  <h3 class="subsection">Record that the team reviewed the allowlists</h3>
+  <div class="terminal">
+    <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">PowerShell</div></div>
+    <div class="terminal-body">
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">aidlc config trust --harness copilot --show</span></span>
+<span class="l t-output">Trust configuration for copilot</span>
+<span class="l t-output">  Allowlist reviewed: not recorded</span>
+<span class="l t-output">  Trust and allowlist files:</span>
+<span class="l t-output">    C:\dev\billing-service\.aidlc\tools\data\harness.json</span>
+<span class="l t-output">    C:\dev\billing-service\.github\hooks\aidlc.json</span>
+<span class="l t-output">    C:\Users\marcus.l\.copilot\config.json</span>
+<span class="l t-warn">  Unmet: copilot-folder-untrusted - Copilot CLI has not trusted this folder</span>
+<span class="l"> </span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">aidlc config trust --harness copilot --acknowledge --yes</span></span>
+<span class="l t-success">  Trust        recorded allowlist review acknowledgement</span>
+<span class="l t-output">  Recorded the trust answer in .aidlc/tools/data/harness.json. To undo: aidlc config trust --reset --yes --harness copilot</span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">aidlc config trust --harness claude --acknowledge --yes</span></span>
+    </div>
+  </div>
+  <div class="callout warn"><div class="icon">⚠️</div><p>With two harnesses present, the trust, models, providers and flags subcommands need <code>--harness &lt;name&gt;</code>. Without it they stop with <em>"multiple project harnesses are present; pass one --harness &lt;name&gt;"</em>.</p></div>
+</section>
 
-        <div class="nav-row">
-          <button class="btn btn-secondary" onclick="goTo(2)">← Back</button>
-          <span class="step-counter">Step 4 of 9</span>
-          <button class="btn btn-primary" onclick="goTo(4)">Next: Add Rule Details →</button>
-        </div>
-      </div>
+<!-- 8 -->
+<section class="step-panel" data-section="Project" data-title="Run the doctor" data-sub="Terminal and in-chat checks">
+  <div class="step-header">
+    <div class="phase-tag green">🩺 Verify</div>
+    <h2>Run the doctor in the terminal and in each tool</h2>
+    <p><code>aidlc doctor</code> checks the machine, the project and framework integrity, and names a fix for anything wrong. Warnings are advisory.</p>
+  </div>
+  <div class="terminal typer">
+    <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">PowerShell</div><button class="run-btn">▶ Run</button></div>
+    <div class="terminal-body">
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">aidlc doctor</span></span>
+<span class="l t-hl">AI-DLC doctor</span>
+<span class="l"> </span>
+<span class="l t-output">Machine</span>
+<span class="l t-success">  ok    all 12 checks passed</span>
+<span class="l"> </span>
+<span class="l t-output">Project (.claude, Claude Code)</span>
+<span class="l t-warn">  warn  AIDLC hooks have not run in this project yet</span>
+<span class="l t-output">        fix: This is expected before your first Claude Code chat in this folder. …</span>
+<span class="l t-warn">  warn  Workspace records: 8 uncommitted change(s) under aidlc/ (advisory - the shared records</span>
+<span class="l t-warn">        travel by git; commit &amp; push so teammates get them)</span>
+<span class="l t-success">  ok    45 checks passed</span>
+<span class="l"> </span>
+<span class="l t-output">Framework integrity</span>
+<span class="l t-success">  ok    all 12 checks passed</span>
+<span class="l"> </span>
+<span class="l t-success">0 problems, 2 warnings.</span>
+<span class="l t-output">Warnings are advisory - if everything works, ignore them.</span>
+    </div>
+  </div>
+  <p class="body">Both warnings clear themselves: the first after your first chat in the repo, the second after you commit (next step). Then confirm from inside each tool:</p>
+  <div class="chat">
+    <div class="chat-header copilot">🤖 VS Code · Copilot Chat (Agent) <span class="tag">billing-service</span></div>
+    <div class="chat-body">
+      <div class="msg user"><div class="who">Marcus</div><div class="bubble">/aidlc --doctor</div></div>
+      <div class="msg ai"><div class="who">AIDLC</div><div class="bubble">AI-DLC 2.11.0 on GitHub Copilot: 0 problems. Hooks ran for this message. Copilot CLI trust: covered. No work in progress. Describe what you want to build, or type <code>/aidlc --help</code>.</div></div>
+    </div>
+  </div>
+  <div class="callout info"><div class="icon">ℹ️</div><p><strong>Sharing a problem?</strong> <code>/aidlc --doctor --export</code> writes a small, redacted diagnostic report you can attach to a ticket. (The in-chat reply above is illustrative; your doctor lists each check.)</p></div>
+</section>
 
-      <!-- STEP 4: Rule Details -->
-      <div class="step-panel" id="step-4">
-        <div class="step-header">
-          <div class="phase-tag">📋 Rule Details</div>
-          <h2>Add the Phase Rule Detail Files</h2>
-          <p>The rule detail files contain phase-specific instructions. The core workflow file references them dynamically — Copilot loads the appropriate detail file at each phase transition.</p>
-        </div>
+<!-- 9 -->
+<section class="step-panel" data-section="Project" data-title="Team defaults (optional)" data-sub="Scope, models, guard policy">
+  <div class="step-header">
+    <div class="phase-tag">🎛️ Tune</div>
+    <h2>Optional team defaults</h2>
+    <p>None of these are required. Each one is a small, reviewable change.</p>
+  </div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>You want…</th><th>Do this</th></tr>
+    <tr><td>A different default workflow than <code>classic</code></td><td>Set <code>AWS_AIDLC_DEFAULT_SCOPE</code> in the <code>env</code> block of <code>.claude/settings.json</code>. Scopes: enterprise, feature, mvp, poc, bugfix, refactor, infra, security-patch, classic, workshop, express.</td></tr>
+    <tr><td>The developer agent to think harder</td><td><code>aidlc config models --harness claude --agent aidlc-developer-agent --effort high --project --yes</code> (or just ask in chat: "make the developer agent think harder").</td></tr>
+    <tr><td>Every change re-approved after edits, for everyone</td><td>Add a <code>## Guard Policy</code> section with <code>Mode: strict</code> to <code>aidlc/spaces/default/memory/team.md</code>. It wins over every scope and keeps plan approval on.</td></tr>
+    <tr><td>Company standards loaded by agents</td><td>Add Markdown under <code>aidlc/spaces/default/knowledge/&lt;agent&gt;/</code>. See the <a href="AIDLC_Sim_Knowledge.html">Knowledge simulator</a>.</td></tr>
+    <tr><td>MCP servers for Claude</td><td><code>aidlc config --harness claude --mcp defaults</code>. Never commit secrets in <code>.mcp.json</code>.</td></tr>
+    <tr><td>Personal overrides (model, env)</td><td>Copy <code>.claude/settings.local.json.example</code> to <code>settings.local.json</code> in the same folder (gitignored).</td></tr>
+  </table></div>
+  <div class="callout tip"><div class="icon">💡</div><p>To see every setting without changing anything: <code>aidlc config --show</code>. In chat, <code>/aidlc --config</code> walks you through project policy conversationally.</p></div>
+</section>
 
-        <h3 class="subsection">Copy the rule detail files</h3>
-        <div class="terminal">
-          <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">PowerShell</div></div>
-          <div class="terminal-body">
-            <div class="t-line"><span class="t-comment"># Create the rule details directory</span></div>
-            <div class="t-line gap"><span class="t-prompt">$</span><span class="t-cmd"> New-Item -ItemType Directory -Force -Path ".aidlc-rule-details"</span></div>
-            <div class="t-line"><span class="t-comment"># Copy all rule detail files</span></div>
-            <div class="t-line gap"><span class="t-prompt">$</span><span class="t-cmd"> Copy-Item "C:\tools\aidlc-workflows\aws-aidlc-rule-details\*" `
-    ".aidlc-rule-details\" -Recurse</span></div>
-            <div class="t-line"><span class="t-comment"># Verify</span></div>
-            <div class="t-line"><span class="t-prompt">$</span><span class="t-cmd"> ls .aidlc-rule-details\</span></div>
-            <div class="t-line"><span class="t-success">✓ inception-rules.md</span></div>
-            <div class="t-line"><span class="t-success">✓ construction-rules.md</span></div>
-            <div class="t-line"><span class="t-success">✓ operations-rules.md</span></div>
-          </div>
-        </div>
+<!-- 10 -->
+<section class="step-panel" data-section="Ship it" data-title="Commit & PR" data-sub="What's shared, what's local">
+  <div class="step-header">
+    <div class="phase-tag">🚀 Git</div>
+    <h2>Commit the setup and raise a PR in Azure DevOps</h2>
+    <p>The engine trees and the <code>aidlc/</code> workspace are shared through git. Cursors, session bindings and runtime scratch are gitignored by the block <code>config</code> added.</p>
+  </div>
+  <div class="terminal">
+    <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">PowerShell</div></div>
+    <div class="terminal-body">
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">git status --short</span></span>
+<span class="l t-info">?? .aidlc/</span>
+<span class="l t-info">?? .claude/</span>
+<span class="l t-info">?? .github/agents/   .github/hooks/   .github/skills/</span>
+<span class="l t-info">?? .vscode/settings.json</span>
+<span class="l t-info">?? AGENTS.md</span>
+<span class="l t-info">?? aidlc/</span>
+<span class="l t-info"> M .gitignore</span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">git add .aidlc .claude .github .vscode AGENTS.md aidlc .gitignore</span></span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">git commit -m "chore: set up AI-DLC 2.11 for Claude Code and GitHub Copilot"</span></span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">git push -u origin chore/aidlc-v2-setup</span></span>
+    </div>
+  </div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Committed (shared)</th><th>Gitignored (per person / machine)</th></tr>
+    <tr><td><code>.claude/</code>, <code>.aidlc/</code>, <code>.github/…aidlc*</code>, <code>AGENTS.md</code><br><code>aidlc/spaces/*/memory/**</code>, <code>knowledge/**</code>, <code>codekb/**</code><br><code>intents.json</code>, each intent's <code>aidlc-state.md</code>, <code>audit/</code> shards, artefacts</td><td><code>aidlc/active-space</code>, <code>…/intents/active-intent</code> (cursors)<br><code>aidlc/&#46;aidlc-sessions/</code> (session bindings)<br><code>runtime-graph.json</code>, engine and sensor scratch folders<br>your local Claude settings file</td></tr>
+  </table></div>
+  <div class="callout warn"><div class="icon">⚠️</div><p><strong>Branch policy:</strong> add your architect as a required reviewer for <code>aidlc/spaces/*/memory/</code> (team rules and Guard Policy) and <code>aidlc/spaces/*/knowledge/</code>. Don't hand-edit <code>.claude/</code>, <code>.aidlc/</code> or the generated <code>.github/</code> files: <code>aidlc config</code> refreshes them on upgrade.</p></div>
+</section>
 
-        <h3 class="subsection">Create the aidlc-docs folder structure</h3>
-        <div class="terminal">
-          <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">PowerShell</div></div>
-          <div class="terminal-body">
-            <div class="t-line"><span class="t-comment"># Create the artefacts folder with subdirectories</span></div>
-            <div class="t-line"><span class="t-prompt">$</span><span class="t-cmd"> New-Item -ItemType Directory -Force -Path "aidlc-docs\inception"</span></div>
-            <div class="t-line"><span class="t-prompt">$</span><span class="t-cmd"> New-Item -ItemType Directory -Force -Path "aidlc-docs\construction"</span></div>
-            <div class="t-line gap"><span class="t-prompt">$</span><span class="t-cmd"> New-Item -ItemType Directory -Force -Path "aidlc-docs\operations"</span></div>
-            <div class="t-line"><span class="t-comment"># Create .gitkeep files to ensure empty folders are tracked by git</span></div>
-            <div class="t-line"><span class="t-prompt">$</span><span class="t-cmd"> New-Item -ItemType File "aidlc-docs\inception\.gitkeep"</span></div>
-            <div class="t-line"><span class="t-prompt">$</span><span class="t-cmd"> New-Item -ItemType File "aidlc-docs\construction\.gitkeep"</span></div>
-            <div class="t-line"><span class="t-prompt">$</span><span class="t-cmd"> New-Item -ItemType File "aidlc-docs\operations\.gitkeep"</span></div>
-            <div class="t-line gap"><span class="t-success">✓ aidlc-docs/ folder structure created</span></div>
-          </div>
-        </div>
+<!-- 11 -->
+<section class="step-panel" data-section="Ship it" data-title="Migrate from v1" data-sub="Retire the old rule files">
+  <div class="step-header">
+    <div class="phase-tag amber">♻️ Migration</div>
+    <h2>Moving a repo off the v1 rule-file setup</h2>
+    <p>If this repo already had the March 2026 setup, map each old piece to its v2 home, then delete the old files in the same PR.</p>
+  </div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>v1 file</th><th>What to do in v2</th></tr>
+    <tr><td><code>.github/copilot-instructions.md</code> (core-workflow)</td><td><strong>Delete the AIDLC content.</strong> The engine and <code>AGENTS.md</code> replace it. Keep the file only if it held non-AIDLC Copilot instructions.</td></tr>
+    <tr><td><code>.aidlc-rule-details/</code></td><td><strong>Delete.</strong> Stage rules now ship inside the engine tree and are delivered per stage.</td></tr>
+    <tr><td><code>aidlc-docs/semantic-context.md</code></td><td>Split it: <em>must/never</em> rules → <code>aidlc/spaces/default/memory/team.md</code> or <code>project.md</code>; reference material (stack, patterns, API style) → <code>aidlc/spaces/default/knowledge/aidlc-shared/</code> or per-agent folders.</td></tr>
+    <tr><td><code>aidlc-docs/inception/…</code>, <code>construction/…</code>, <code>audit.md</code></td><td>Keep as history (or archive). New work writes to <code>aidlc/spaces/default/intents/&lt;YYMMDD-label&gt;/</code>.</td></tr>
+    <tr><td>Existing PRDs, Word briefs, PDFs</td><td><code>/aidlc knowledge onboard docs/</code> indexes them into DocumentKB so agents can cite them.</td></tr>
+  </table></div>
+  <div class="terminal">
+    <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">PowerShell</div></div>
+    <div class="terminal-body">
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">git rm -r .aidlc-rule-details</span></span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">git mv aidlc-docs docs/aidlc-v1-history</span></span>
+<span class="l t-comment"># edit .github/copilot-instructions.md: remove the AI-DLC core workflow section</span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">git commit -am "chore: retire AI-DLC v1 rule files"</span></span>
+    </div>
+  </div>
+</section>
 
-        <div class="nav-row">
-          <button class="btn btn-secondary" onclick="goTo(3)">← Back</button>
-          <span class="step-counter">Step 5 of 9</span>
-          <button class="btn btn-primary" onclick="goTo(5)">Next: Semantic Context →</button>
-        </div>
-      </div>
+<!-- 12 -->
+<section class="step-panel" data-section="Ship it" data-title="First run" data-sub="Prove the loop works">
+  <div class="step-header">
+    <div class="phase-tag green">🏁 First run</div>
+    <h2>A 15-minute smoke test with <code>express</code></h2>
+    <p>Use the smallest workflow to see the whole loop (stage, gate, record) before doing real work. Express runs up to 10 of 33 stages with no design pass, no reviewers and no plan-approval stop.</p>
+  </div>
+  <div class="chat reveal">
+    <div class="chat-header">🟣 Claude Code <span class="tag">billing-service · scratch branch</span></div>
+    <div class="chat-body">
+      <div class="msg user"><div class="who">Marcus</div><div class="bubble">/aidlc express add a GET /health/version endpoint that returns the assembly version</div></div>
+      <div class="msg ai"><div class="who">AIDLC</div><div class="bubble">This looks like "express" work, so I'd run the "express" plan for: "add a GET /health/version endpoint…": the stage and approval-gate counts are computed for this repo; no sensors, learnings ritual, summary confirmation or plan approval; lead agent only. Do you want me to go ahead with it, use a different plan, or tailor one to this task?</div></div>
+      <div class="msg user"><div class="who">Marcus</div><div class="bubble">go ahead</div></div>
+      <div class="msg ai"><div class="who">AIDLC · Initialization (automatic)</div><div class="bubble">Created <code>aidlc/spaces/default/intents/261011-health-version/</code>. Existing code detected, so Reverse Engineering runs first…</div></div>
+      <div class="msg ai"><div class="who">AIDLC · Approval gate</div><div class="bubble"><strong>Requirements Analysis complete.</strong><br>(1) Approve: continue to Code Generation<br>(2) Request Changes</div></div>
+      <div class="msg user"><div class="who">Marcus</div><div class="bubble">looks fine but return the git commit too</div></div>
+      <div class="msg ai"><div class="who">AIDLC</div><div class="bubble">Approved, and added "include the git commit SHA" to requirements.md. Plan written: …/code-generation-plan.md. Plan approval (you approve each code plan before it is built) is off for this piece of work (from scope express). Starting code generation now. Do you want me to go over the plan with you?</div></div>
+    </div>
+  </div>
+  <h3 class="subsection">You're done when</h3>
+  <ul class="check-list">
+    <li class="ok"><span class="ci">✓</span><div><code>aidlc doctor</code>: 0 problems, and the hook warning is gone after your first chat.</div></li>
+    <li class="ok"><span class="ci">✓</span><div>A record dir appeared under <code>aidlc/spaces/default/intents/</code> with <code>aidlc-state.md</code> and <code>audit/</code>.</div></li>
+    <li class="ok"><span class="ci">✓</span><div>The same work shows up from the other tool: open VS Code and type <code>/aidlc --status</code>.</div></li>
+  </ul>
+  <div class="callout tip"><div class="icon">➡️</div><p>Next: <a href="AIDLC_Sim_Greenfield.html">Greenfield</a> · <a href="AIDLC_Sim_Brownfield.html">Brownfield</a> · <a href="AIDLC_Sim_Knowledge.html">Knowledge &amp; learning loop</a> · <a href="AIDLC_Sim_Hooks.html">Hooks &amp; guards</a> · <a href="AIDLC_Sim_VSCode.html">VS Code &amp; CLI surfaces</a></p></div>
+</section>
 
-      <!-- STEP 5: Semantic Context -->
-      <div class="step-panel" id="step-5">
-        <div class="step-header">
-          <div class="phase-tag">🧠 Semantic Context</div>
-          <h2>Create Your Semantic Context Document</h2>
-          <p>This is the most important team-specific file. It tells AIDLC about your codebase, standards, and architectural decisions — so AI doesn't have to guess. Your architect should own this file and keep it up to date.</p>
-        </div>
+<!-- 13 -->
+<section class="step-panel" data-section="Ship it" data-title="Stay current" data-sub="Update, pin, uninstall">
+  <div class="step-header">
+    <div class="phase-tag">🔄 Lifecycle</div>
+    <h2>Keeping AIDLC up to date</h2>
+    <p>Updates are two steps: the machine, then each project. Open work carries on through a refresh.</p>
+  </div>
+  <div class="terminal">
+    <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">PowerShell</div></div>
+    <div class="terminal-body">
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">aidlc update</span>                                  <span class="t-comment"># machine: newest stable release</span></span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">cd C:\dev\billing-service</span></span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">aidlc config --harness claude --yes</span>           <span class="t-comment"># refresh each harness tree</span></span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">aidlc config --harness copilot --yes</span></span>
+<span class="l t-success">Updated. Your open work (health-version) carries on.</span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">aidlc doctor</span></span>
+    </div>
+  </div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Need</th><th>Command</th></tr>
+    <tr><td>Switch to an exact installed release</td><td><code>aidlc use 2.11.0</code></td></tr>
+    <tr><td>Try previews</td><td><code>aidlc config --channel preview</code> (back: <code>aidlc update --channel stable</code>)</td></tr>
+    <tr><td>Pin a project for CI</td><td>Project pins (upstream guide: <em>Install and Lifecycle → Project Pins and CI</em>); <code>--download</code> fetches exactly the release a project needs</td></tr>
+    <tr><td>Plugins after a refresh</td><td><code>/aidlc plugin sync</code></td></tr>
+    <tr><td>Remove from the machine</td><td><code>aidlc uninstall</code> (on Windows it removes only the PATH entry it added)</td></tr>
+  </table></div>
+  <div class="callout success"><div class="icon">✓</div><p><strong>Setup complete.</strong> Repeat steps 4–10 for each repo; steps 1–3 were one-time per machine.</p></div>
+</section>
 
-        <h3 class="subsection">Create semantic-context.md</h3>
-        <div class="vs-window">
-          <div class="vs-titlebar">
-            <div class="terminal-dots" style="margin-right:10px;"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
-            <div class="vs-tab active-tab">aidlc-docs/semantic-context.md</div>
-            <div style="margin-left:auto;font-size:11px;color:#888;">— new file, fill in for your team</div>
-          </div>
-          <div class="vs-body">
-<span class="vs-ln">1</span><span class="kw"># </span><span class="sym">Semantic Context — Billing Service</span><br>
-<span class="vs-ln">2</span><span class="cmt">## Purpose</span><br>
-<span class="vs-ln">3</span><span class="sym">This document provides context for AIDLC AI agents working in this repo.</span><br>
-<span class="vs-ln">4</span><span class="sym">Update when architectural decisions change.</span><br>
-<span class="vs-ln">5</span><br>
-<span class="vs-ln">6</span><span class="cmt">## Project Overview</span><br>
-<span class="vs-ln">7</span><span class="sym">- </span><span class="var">Service Name:</span><span class="sym"> billing-service</span><br>
-<span class="vs-ln">8</span><span class="sym">- </span><span class="var">Tech stack:</span><span class="sym"> .NET 8, C#, SQL Server, Azure Service Bus</span><br>
-<span class="vs-ln">9</span><span class="sym">- </span><span class="var">Auth:</span><span class="sym"> Azure AD, JWT tokens, role-based (Admin, Finance, Viewer)</span><br>
-<span class="vs-ln">10</span><span class="sym">- </span><span class="var">API style:</span><span class="sym"> REST, versioned (v1, v2), OpenAPI 3.0 documented</span><br>
-<span class="vs-ln">11</span><br>
-<span class="vs-ln">12</span><span class="cmt">## Architectural Patterns</span><br>
-<span class="vs-ln">13</span><span class="sym">- Repository pattern for all data access (never raw EF in controllers)</span><br>
-<span class="vs-ln">14</span><span class="sym">- CQRS: separate Commands (write) and Queries (read) via MediatR</span><br>
-<span class="vs-ln">15</span><span class="sym">- Domain events via Azure Service Bus for cross-service communication</span><br>
-<span class="vs-ln">16</span><br>
-<span class="vs-ln">17</span><span class="cmt">## Coding Standards</span><br>
-<span class="vs-ln">18</span><span class="sym">- Always use FluentValidation for input validation — never manual if-else</span><br>
-<span class="vs-ln">19</span><span class="sym">- Logging: Serilog structured logging. Always include correlation IDs.</span><br>
-<span class="vs-ln">20</span><span class="sym">- No raw SQL. Entity Framework with compiled queries for performance.</span><br>
-<span class="vs-ln">21</span><span class="sym">- Test framework: xUnit + FluentAssertions + NSubstitute for mocks</span><br>
-<span class="vs-ln">22</span><br>
-<span class="vs-ln">23</span><span class="cmt">## Security Requirements</span><br>
-<span class="vs-ln">24</span><span class="sym">- All endpoints require Azure AD auth unless explicitly marked [AllowAnonymous]</span><br>
-<span class="vs-ln">25</span><span class="sym">- PII must never be logged. Use [Sensitive] attribute.</span><br>
-<span class="vs-ln">26</span><span class="sym">- SQL injection protection: parameterised queries only (EF handles this)</span><br>
-<span class="vs-ln">27</span><br>
-<span class="vs-ln">28</span><span class="cmt">## CI/CD (Jenkins)</span><br>
-<span class="vs-ln">29</span><span class="sym">- Pipeline stages: Build → UnitTest → SAST(Checkmarx) → Deploy-Dev → IntTest → Deploy-Prod</span><br>
-<span class="vs-ln">30</span><span class="sym">- Never remove or bypass SAST stage in Jenkinsfile changes</span><br>
-<span class="vs-ln">31</span><span class="sym">- Environment configs injected via Azure Key Vault — never hardcode</span><br>
-          </div>
-        </div>
-
-        <div class="callout success">
-          <div class="icon">✓</div>
-          <p><strong>Best practice:</strong> Schedule a 30-minute architect session to fill in the semantic context properly. A well-written context document reduces AI clarification questions by ~60% and eliminates most standard-violation findings in code review.</p>
-        </div>
-
-        <div class="nav-row">
-          <button class="btn btn-secondary" onclick="goTo(4)">← Back</button>
-          <span class="step-counter">Step 6 of 9</span>
-          <button class="btn btn-primary" onclick="goTo(6)">Next: Commit &amp; Push →</button>
-        </div>
-      </div>
-
-      <!-- STEP 6: Commit & Push -->
-      <div class="step-panel" id="step-6">
-        <div class="step-header">
-          <div class="phase-tag">🚀 Git</div>
-          <h2>Commit and Push to Azure DevOps</h2>
-          <p>Commit all AIDLC files and push to your Azure DevOps remote. Then configure branch policies to protect the rule files.</p>
-        </div>
-
-        <h3 class="subsection">Stage and commit</h3>
-        <div class="terminal">
-          <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">PowerShell — billing-service/</div></div>
-          <div class="terminal-body">
-            <div class="t-line"><span class="t-comment"># Check what we're about to add</span></div>
-            <div class="t-line gap"><span class="t-prompt">$</span><span class="t-cmd"> git status</span></div>
-            <div class="t-line"><span class="t-output">Untracked files:</span></div>
-            <div class="t-line"><span class="t-info">        .github/copilot-instructions.md</span></div>
-            <div class="t-line"><span class="t-info">        .aidlc-rule-details/</span></div>
-            <div class="t-line gap"><span class="t-info">        aidlc-docs/</span></div>
-            <div class="t-line"><span class="t-comment"># Stage all AIDLC files</span></div>
-            <div class="t-line gap"><span class="t-prompt">$</span><span class="t-cmd"> git add .github/ .aidlc-rule-details/ aidlc-docs/</span></div>
-            <div class="t-line"><span class="t-comment"># Commit with a conventional commit message</span></div>
-            <div class="t-line gap"><span class="t-prompt">$</span><span class="t-cmd"> git commit -m "chore: add AIDLC workflow rules and semantic context
-
-- Add .github/copilot-instructions.md (AIDLC core workflow)
-- Add .aidlc-rule-details/ (phase-specific rules)
-- Add aidlc-docs/ structure for generated artefacts
-- Add aidlc-docs/semantic-context.md with team conventions
-
-Ref: AIDLC Setup Task #4821"</span></div>
-            <div class="t-line gap"><span class="t-success">[feat/add-aidlc-setup 3d7a8f1] chore: add AIDLC workflow rules and semantic context</span></div>
-            <div class="t-line gap"><span class="t-prompt">$</span><span class="t-cmd"> git push origin feat/add-aidlc-setup</span></div>
-            <div class="t-line"><span class="t-output">Enumerating objects: 12, done.</span></div>
-            <div class="t-line"><span class="t-success">✓ Branch 'feat/add-aidlc-setup' set up to track remote branch</span></div>
-          </div>
-        </div>
-
-        <h3 class="subsection">Create a PR in Azure DevOps</h3>
-        <div class="callout info">
-          <div class="icon">ℹ️</div>
-          <p>In Azure DevOps, navigate to <strong>Repos → Pull Requests → New Pull Request</strong>. Set source branch to <code>feat/add-aidlc-setup</code> and target to <code>develop</code> (or <code>main</code>). Add your tech lead and architect as reviewers. Use PR title: <em>"chore: AIDLC setup — billing-service"</em>.</p>
-        </div>
-
-        <h3 class="subsection">After merge: Set branch policy on rule files</h3>
-        <div class="callout warn">
-          <div class="icon">⚠️</div>
-          <p>In Azure DevOps → Repos → Branches → main → Branch Policies, add a <strong>Required Reviewer policy</strong> for changes to <code>.github/</code> and <code>.aidlc-rule-details/</code> requiring approval from your architect. This prevents accidental or unauthorised changes to AI steering rules.</p>
-        </div>
-
-        <div class="nav-row">
-          <button class="btn btn-secondary" onclick="goTo(5)">← Back</button>
-          <span class="step-counter">Step 7 of 9</span>
-          <button class="btn btn-primary" onclick="goTo(7)">Next: Verify in VS →</button>
-        </div>
-      </div>
-
-      <!-- STEP 7: Verify -->
-      <div class="step-panel" id="step-7">
-        <div class="step-header">
-          <div class="phase-tag">✅ Verification</div>
-          <h2>Verify AIDLC is Active in Visual Studio</h2>
-          <p>Open GitHub Copilot Chat in Visual Studio and test the AIDLC trigger to confirm the setup is working correctly.</p>
-        </div>
-
-        <h3 class="subsection">Test the AIDLC trigger</h3>
-        <div class="copilot-chat">
-          <div class="copilot-header">
-            <span style="font-size:16px;">🤖</span> GitHub Copilot Chat — billing-service [AIDLC active]
-          </div>
-          <div class="copilot-body">
-            <div class="chat-msg user">
-              <div class="sender">You (Developer)</div>
-              <div class="bubble">Using AI-DLC, what is the current state of this workspace?</div>
-            </div>
-            <div class="chat-msg ai">
-              <div class="sender">GitHub Copilot (AIDLC Workflow Active)</div>
-              <div class="bubble">
-                <strong>AI-DLC Workspace Detection</strong><br><br>
-                ✅ <strong>AIDLC rules loaded</strong> — I've detected the core workflow file at <code>.github/copilot-instructions.md</code> and rule details in <code>.aidlc-rule-details/</code>.<br><br>
-                📋 <strong>Semantic context</strong> — I've read <code>aidlc-docs/semantic-context.md</code>. This is a .NET 8 billing service using CQRS, Repository pattern, Azure AD auth, and xUnit testing.<br><br>
-                🔍 <strong>Project type</strong> — Brownfield (existing codebase detected). When you're ready to start a new feature, use:<br><br>
-                <code>"Using AI-DLC, I want to [describe your feature]"</code><br><br>
-                I will begin the Inception phase with Workspace Detection and Requirements Analysis.
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="callout success">
-          <div class="icon">✓</div>
-          <p><strong>Setup verified!</strong> Copilot correctly identified the AIDLC rules, read the semantic context, and detected the project as brownfield. Every developer on your team will get this same AIDLC-aware experience when they open this repo in Visual Studio.</p>
-        </div>
-
-        <h3 class="subsection">Troubleshooting: AIDLC not activating?</h3>
-        <ul style="font-size:13px;color:var(--muted);padding-left:20px;">
-          <li style="margin-bottom:6px;"><strong style="color:var(--white);">Copilot tier check:</strong> Ensure you're on Business or Enterprise. Individual tier doesn't load <code>copilot-instructions.md</code>. Check: VS → Extensions → GitHub Copilot → Account.</li>
-          <li style="margin-bottom:6px;"><strong style="color:var(--white);">Extension version:</strong> Update GitHub Copilot extension to latest. Old versions may not support project instructions.</li>
-          <li style="margin-bottom:6px;"><strong style="color:var(--white);">File location:</strong> The file must be exactly at <code>.github/copilot-instructions.md</code> from the repo root, not a subfolder.</li>
-          <li style="margin-bottom:6px;"><strong style="color:var(--white);">Restart VS:</strong> After committing new files, close and reopen Visual Studio to refresh the Copilot context.</li>
-        </ul>
-
-        <div class="nav-row">
-          <button class="btn btn-secondary" onclick="goTo(6)">← Back</button>
-          <span class="step-counter">Step 8 of 9</span>
-          <button class="btn btn-primary" onclick="goTo(8)">Next: Setup Complete →</button>
-        </div>
-      </div>
-
-      <!-- STEP 8: Complete -->
-      <div class="step-panel" id="step-8">
-        <div class="step-header">
-          <div class="phase-tag" style="background:var(--green-dim);border-color:var(--green);color:var(--green);">✅ Complete</div>
-          <h2>AIDLC Setup Complete</h2>
-          <p>Your repo is now AIDLC-enabled. Every developer who clones it and uses GitHub Copilot in Visual Studio will have the AIDLC workflow available.</p>
-        </div>
-
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:16px 0;">
-          <div style="background:var(--green-dim);border:1px solid var(--green);border-radius:8px;padding:16px;text-align:center;">
-            <div style="font-size:28px;font-weight:800;color:var(--green);">✓</div>
-            <div style="font-size:13px;color:var(--green);font-weight:600;">Core workflow</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:4px;">.github/copilot-instructions.md</div>
-          </div>
-          <div style="background:var(--green-dim);border:1px solid var(--green);border-radius:8px;padding:16px;text-align:center;">
-            <div style="font-size:28px;font-weight:800;color:var(--green);">✓</div>
-            <div style="font-size:13px;color:var(--green);font-weight:600;">Phase rules</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:4px;">.aidlc-rule-details/ (3 files)</div>
-          </div>
-          <div style="background:var(--green-dim);border:1px solid var(--green);border-radius:8px;padding:16px;text-align:center;">
-            <div style="font-size:28px;font-weight:800;color:var(--green);">✓</div>
-            <div style="font-size:13px;color:var(--green);font-weight:600;">Artefacts folder</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:4px;">aidlc-docs/ structure</div>
-          </div>
-          <div style="background:var(--green-dim);border:1px solid var(--green);border-radius:8px;padding:16px;text-align:center;">
-            <div style="font-size:28px;font-weight:800;color:var(--green);">✓</div>
-            <div style="font-size:13px;color:var(--green);font-weight:600;">Semantic context</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:4px;">Team conventions encoded</div>
-          </div>
-        </div>
-
-        <h3 class="subsection">What to Do Next</h3>
-        <ul class="check-list">
-          <li class="pending-item"><span class="check-icon">→</span><div><strong>Run the Greenfield Simulation</strong> — if starting a brand new project, follow the Greenfield AIDLC simulation next.</div></li>
-          <li class="pending-item"><span class="check-icon">→</span><div><strong>Run the Brownfield Simulation</strong> — for adding AIDLC to your existing billing-service features, follow the Brownfield simulation.</div></li>
-          <li class="pending-item"><span class="check-icon">→</span><div><strong>Repeat for each repo</strong> — run this same setup for every service that will use AIDLC. Steps 1–2 are one-time; steps 3–7 repeat per repo.</div></li>
-          <li class="pending-item"><span class="check-icon">→</span><div><strong>Schedule semantic context review</strong> — book 30 minutes with your architect in the next week to enrich <code>aidlc-docs/semantic-context.md</code>.</div></li>
-        </ul>
-
-        <div class="nav-row">
-          <button class="btn btn-secondary" onclick="goTo(7)">← Back</button>
-          <span class="step-counter">Step 9 of 9</span>
-          <button class="btn btn-primary" onclick="goTo(0)" style="background:var(--teal);">↩ Restart Simulation</button>
-        </div>
-      </div>
-
-    </div><!-- /step-content-area -->
-  </div><!-- /main-area -->
-</div><!-- /sim-body -->
-
-<script>
-const TOTAL = 9;
-let current = 0;
-
-function goTo(n) {
-  document.getElementById('step-' + current).classList.remove('active');
-  document.getElementById('nav-' + current).classList.remove('active');
-  if (current < n) document.getElementById('nav-' + current).classList.add('done');
-  
-  current = n;
-  document.getElementById('step-' + current).classList.add('active');
-  document.getElementById('nav-' + current).classList.add('active');
-  document.getElementById('nav-' + current).classList.remove('done');
-  
-  const pct = Math.round((current / (TOTAL - 1)) * 100);
-  document.getElementById('progress').style.width = pct + '%';
-  document.getElementById('progress-label').textContent = 'Step ' + (current + 1) + ' / ' + TOTAL;
-  
-  document.querySelector('.step-content-area').scrollTop = 0;
-}
-</script>
+    </div>
+  </main>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
 </body>
 </html>

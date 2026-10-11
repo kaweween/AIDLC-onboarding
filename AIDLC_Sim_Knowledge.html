@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIDLC Knowledge Simulator</title>
+<meta name="description" content="Interactive guide to AI-DLC 2.11 memory rules, team knowledge, DocumentKB, CodeKB and the learning loop.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<style>
+.stack{display:grid;gap:6px;margin:12px 0;}
+.layer{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;border:1px solid var(--border2);border-radius:9px;padding:9px 12px;background:var(--bg2);}
+.layer .n{font-family:var(--font-mono);font-weight:700;color:var(--muted);}
+.layer .p{font-family:var(--font-mono);font-size:12.5px;color:var(--white);word-break:break-all;}
+.layer .w{font-size:11.5px;color:var(--dim);}
+.layer.on{border-color:var(--green);background:var(--green-dim);}
+.layer.off{opacity:.45;}
+.layer .tag{font-size:11px;border-radius:4px;padding:1px 6px;border:1px solid var(--border2);color:var(--muted);white-space:nowrap;}
+.layer.on .tag{border-color:var(--green);color:var(--green);}
+.quiz{display:grid;gap:8px;margin:12px 0;}
+.qitem{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+.qitem .qt{font-size:14px;margin-bottom:8px;}
+.qitem .ans{font-size:13px;margin-top:8px;display:none;}
+.qitem.answered .ans{display:block;}
+.qitem button.ok{background:var(--green);color:#000;border-color:var(--green);}
+.qitem button.no{background:var(--coral);color:#000;border-color:var(--coral);}
+.cand{display:flex;gap:10px;align-items:flex-start;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:6px;font-size:13px;}
+.cand input{margin-top:4px;}
+.cand .h{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--purple);}
+@media (max-width:860px){.layer{grid-template-columns:28px 1fr;}.layer .tag{grid-column:2;justify-self:start;}}
+</style>
+</head>
+<body>
+
+<header class="sim-header">
+  <div class="icon">🧠</div>
+  <div>
+    <h1>Simulation 4: Knowledge, Memory &amp; the Learning Loop</h1>
+    <p>Where your team's standards live in AIDLC 2.11, what each agent actually loads, and how one correction becomes a rule for every future run.</p>
+    <div class="stack-pills">
+      <span class="pill">memory/ (rules)</span>
+      <span class="pill">knowledge/ (reference)</span>
+      <span class="pill">DocumentKB</span>
+      <span class="pill">CodeKB</span>
+      <span class="pill">Learning loop</span>
+      <span class="pill">Interactive</span>
+    </div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+
+<div class="sim-body">
+  <nav class="sidebar" id="steps-nav" aria-label="Steps"></nav>
+  <main class="main-area">
+    <div class="progress-bar-container">
+      <div class="progress-bar-outer"><div class="progress-bar-inner" id="progress"></div></div>
+      <div class="progress-label" id="progress-label">Step 1</div>
+    </div>
+    <div class="step-content-area">
+
+<!-- 1 -->
+<section class="step-panel" data-section="Concepts" data-title="Four kinds of context" data-sub="Rules, knowledge, docs, code">
+  <div class="step-header">
+    <div class="phase-tag purple">🗺️ Map</div>
+    <h2>The v1 "semantic context" doc is now four things</h2>
+    <p>Everything lives in the active <strong>space</strong> (<code>aidlc/spaces/default/</code> for most teams), committed to git, shared by every harness.</p>
+  </div>
+  <div class="cards">
+    <div class="card coral"><h4>📏 memory/ (rules)</h4><p>Short, prescriptive "always / never" practices. <code>org.md → team.md → project.md → phases/*.md</code>. Every applicable rule reaches every agent.</p></div>
+    <div class="card blue"><h4>📚 knowledge/ (reference)</h4><p>Long-form standards an agent consults: API patterns, coding conventions, SLO definitions. Shared or per-agent folders.</p></div>
+    <div class="card amber"><h4>📄 DocumentKB</h4><p>Your own PDFs, Word files and Markdown (PRDs, policies, briefs) indexed into a catalog agents can cite.</p></div>
+    <div class="card teal"><h4>🧩 CodeKB</h4><p>What each repo <em>is</em>: architecture and component inventory, written by Reverse Engineering, with a freshness marker.</p></div>
+  </div>
+  <div class="filetree">
+    <div class="ft-header">The space layout</div>
+<pre><span class="ft-folder">aidlc/spaces/default/</span>
+├── <span class="ft-folder">memory/</span>             <span class="ft-note">THE METHOD: how this team works</span>
+│   ├── <span class="ft-file">org.md</span>          <span class="ft-note">framework + organisation defaults</span>
+│   ├── <span class="ft-file">team.md</span>         <span class="ft-note">your team's affirmed practices</span>
+│   ├── <span class="ft-file">project.md</span>      <span class="ft-note">this project's specialisations (learnings land here)</span>
+│   ├── <span class="ft-folder">phases/</span>         <span class="ft-note">ideation.md · inception.md · construction.md · operation.md</span>
+│   └── <span class="ft-folder">templates/</span>      <span class="ft-note">your output-format overrides</span>
+├── <span class="ft-folder">knowledge/</span>          <span class="ft-note">DOMAIN KNOWLEDGE: empty until you add files</span>
+│   ├── <span class="ft-folder">aidlc-shared/</span>   <span class="ft-note">loaded by every agent</span>
+│   ├── <span class="ft-folder">aidlc-&lt;agent&gt;/</span>  <span class="ft-note">loaded only for that agent</span>
+│   ├── <span class="ft-folder">documents/</span>      <span class="ft-note">YOUR originals (you own this)</span>
+│   └── <span class="ft-folder">documentkb/</span>     <span class="ft-note">the catalog (tool-owned)</span>
+├── <span class="ft-folder">codekb/&lt;repo&gt;/</span>      <span class="ft-note">CODE KNOWLEDGE per repo</span>
+└── <span class="ft-folder">intents/</span>            <span class="ft-note">THE RECORD: one dir per piece of work</span></pre>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="step-panel" data-section="Concepts" data-title="Where does it go?" data-sub="Quick quiz">
+  <div class="step-header">
+    <div class="phase-tag green">🎯 Quiz</div>
+    <h2>Rule or knowledge? Sort these billing-service standards</h2>
+    <p>Rule of thumb from the upstream docs: <em>if a reviewer would reject a stage's output when it's violated, it's a rule (memory). If they'd use it as background, it's knowledge.</em></p>
+  </div>
+  <div class="quiz" id="quiz"></div>
+  <div class="callout info"><div class="icon">ℹ️</div><p>Rules are one line each, imperative. Knowledge can be long prose, tables, diagrams. Neither goes in <code>.claude/</code> or <code>.aidlc/</code>: those are framework files, overwritten on every upgrade.</p></div>
+</section>
+
+<!-- 3 -->
+<section class="step-panel" data-section="Load order" data-title="What an agent loads" data-sub="6-step stack, interactive">
+  <div class="step-header">
+    <div class="phase-tag blue">🧮 Simulator</div>
+    <h2>Pick a stage. See exactly what its lead agent loads.</h2>
+    <p>The conductor loads context in a strict order at every stage start. Team folders load only if they exist and contain files, and the folder name must match the agent slug exactly.</p>
+  </div>
+  <div class="ctl-row">
+    <div><label>Stage</label><br>
+      <select class="sel" id="k-stage"></select></div>
+    <div><label>Team has created</label><br>
+      <div class="seg" id="k-has">
+        <button data-v="shared" class="on">knowledge/aidlc-shared/</button>
+        <button data-v="agent" class="on">knowledge/&lt;agent&gt;/</button>
+      </div></div>
+  </div>
+  <div id="k-lead" class="body"></div>
+  <div class="stack" id="k-stack"></div>
+  <div class="callout tip"><div class="icon">💡</div><p>On inline stages, the agent reads your team's knowledge (steps 4–5) right after its persona and before the shipped methodology, so your standards frame how it reads the framework's.</p></div>
+</section>
+
+<!-- 4 -->
+<section class="step-panel" data-section="Load order" data-title="Add team knowledge" data-sub="Worked example">
+  <div class="step-header">
+    <div class="phase-tag">✍️ Hands-on</div>
+    <h2>Teach the developer agent your .NET conventions</h2>
+    <p>No registration and no config: the file's presence is the registration. It reloads at every stage start.</p>
+  </div>
+  <div class="terminal">
+    <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">PowerShell: billing-service</div></div>
+    <div class="terminal-body">
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">mkdir aidlc\spaces\default\knowledge\aidlc-developer-agent</span></span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">code aidlc\spaces\default\knowledge\aidlc-developer-agent\dotnet-conventions.md</span></span>
+    </div>
+  </div>
+  <div class="doc"><div class="doc-bar">knowledge/aidlc-developer-agent/dotnet-conventions.md<span class="state">one topic per file</span></div>
+<div class="doc-body"><span class="md-h"># .NET Conventions (billing-service)</span>
+
+<span class="md-h">## Data access</span>
+- Repository pattern; never EF Core directly in controllers.
+- Read queries use AsNoTracking().
+
+<span class="md-h">## CQRS</span>
+- Commands and queries via MediatR; validation with FluentValidation.
+
+<span class="md-h">## Long-running work</span>
+- Use the existing job pattern: POST → JobId → GET /jobs/{id}/status → GET /jobs/{id}/download.
+
+<span class="md-h">## Tests</span>
+- xUnit + FluentAssertions + NSubstitute.</div></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Wrong</th><th>Right</th></tr>
+    <tr><td>Editing <code>.claude/agents/aidlc-developer-agent.md</code></td><td>A file under <code>knowledge/aidlc-developer-agent/</code></td></tr>
+    <tr><td>A folder called <code>developer/</code></td><td><code>aidlc-developer-agent/</code> (a typo is silently ignored)</td></tr>
+    <tr><td>One giant <code>company-standards.md</code></td><td><code>api-standards.md</code>, <code>auth-standards.md</code>, …</td></tr>
+  </table></div>
+  <div class="chat">
+    <div class="chat-header">🟣 Claude Code <span class="tag">at any gate</span></div>
+    <div class="chat-body">
+      <div class="msg user"><div class="who">Jamie</div><div class="bubble">What team knowledge are you using for this stage?</div></div>
+      <div class="msg ai"><div class="who">AIDLC (developer agent)</div><div class="bubble">Team knowledge loaded for Code Generation: <code>knowledge/aidlc-shared/naming-conventions.md</code>, <code>knowledge/aidlc-developer-agent/dotnet-conventions.md</code>.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="step-panel" data-section="Documents" data-title="DocumentKB" data-sub="Index your PDFs & Word files">
+  <div class="step-header">
+    <div class="phase-tag amber">📄 DocumentKB</div>
+    <h2>Make the PO's Word brief citable</h2>
+    <p><code>/aidlc knowledge &lt;verb&gt;</code> (or the <code>/aidlc-knowledge</code> skill) indexes documents into a per-space catalog. You own <code>documents/</code>; the tool owns <code>documentkb/</code>. It never advances your workflow.</p>
+  </div>
+  <div class="chat reveal">
+    <div class="chat-header copilot">🤖 VS Code · Copilot Chat <span class="tag">billing-service</span></div>
+    <div class="chat-body">
+      <div class="msg user"><div class="who">Sarah (PO)</div><div class="bubble">/aidlc knowledge onboard docs/briefs/ADO-5234-bulk-export.docx</div></div>
+      <div class="msg ai"><div class="who">AIDLC</div><div class="bubble">Copied to <code>aidlc/spaces/default/knowledge/documents/ADO-5234-bulk-export.docx</code> and indexed as <code>doc-7f3a</code> (state: indexed). From now on the knowledge base reads that copy, so edit it there and run <code>sync</code>.</div></div>
+      <div class="msg user"><div class="who">Sarah (PO)</div><div class="bubble">summarise it and tag it export, enterprise</div></div>
+      <div class="msg ai"><div class="who">AIDLC</div><div class="bubble">Saved summary for <code>doc-7f3a</code>, bound to this revision, with tags <code>export, enterprise</code>. Agents can now cite its gist without re-reading the whole file.</div></div>
+      <div class="msg user"><div class="who">Sarah (PO)</div><div class="bubble">(edits the Word file: max export raised from 500 to 1000)<br>/aidlc knowledge sync</div></div>
+      <div class="msg ai"><div class="who">AIDLC</div><div class="bubble">1 document changed: <code>doc-7f3a</code> re-extracted. Its summary is now <strong>invalidated</strong> and withheld rather than served stale; tags kept. Ask me to summarise it again when you're ready.</div></div>
+    </div>
+  </div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Verb</th><th>Does</th></tr>
+    <tr><td><code>onboard [path]</code></td><td>Add one file or sweep a folder. Files outside <code>documents/</code> are copied in; gitignored files are skipped; oversize batches are refused before anything is copied.</td></tr>
+    <tr><td><code>sync</code></td><td>Reconcile after adds, edits, moves and deletes (rebuilds a lost <code>index.json</code> too).</td></tr>
+    <tr><td><code>list</code> / <code>show &lt;id&gt;</code></td><td>Every row and state / one citable record plus current text.</td></tr>
+    <tr><td><code>summarize &lt;id&gt;</code></td><td>Persist an agent-written summary and tags, bound to a revision.</td></tr>
+    <tr><td><code>associate</code> / <code>dissociate</code> / <code>rebind</code></td><td>Link documents to intents; repoint a moved source.</td></tr>
+  </table></div>
+  <div class="callout warn"><div class="icon">⚠️</div><p>Tags may be written by the model from customer content, so <code>list</code> and <code>show</code> present them as untrusted labels, never instructions. Never hand-edit <code>documentkb/</code>; the next <code>sync</code> reconciles it back.</p></div>
+  <div class="callout tip"><div class="icon">💡</div><p>New in 2.11: name a PDF or Word file in your <code>/aidlc</code> request and it's onboarded without asking you to move it, so Intent Capture and Requirements Analysis read it as input.</p></div>
+</section>
+
+<!-- 6 -->
+<section class="step-panel" data-section="Documents" data-title="CodeKB & Practices" data-sub="What brownfield runs produce">
+  <div class="step-header">
+    <div class="phase-tag teal">🧩 Code knowledge</div>
+    <h2>Two stages that write knowledge for you</h2>
+  </div>
+  <div class="cards">
+    <div class="card teal"><h4>2.1 Reverse Engineering → CodeKB</h4><p>A two-link pipeline: the developer agent scans the code, the architect synthesises 9 artefacts into <code>codekb/&lt;repo&gt;/</code> (architecture, component inventory, freshness marker). Later runs do focused rescans that merge new areas without replacing the rest. .NET <code>bin/</code> and <code>obj/</code> are skipped.</p></div>
+    <div class="card green"><h4>2.2 Practices Discovery → memory</h4><p>The pipeline-deploy agent drafts how your team really works from evidence in the repo; quality, developer and devsecops inspect it independently; you're interviewed on gaps; affirmed sections are <strong>promoted</strong> into <code>memory/team.md</code> or <code>project.md</code>.</p></div>
+  </div>
+  <div class="doc"><div class="doc-bar">memory/team.md (after Practices Discovery affirmation)<span class="state">deterministic section replace</span></div>
+<div class="doc-body"><span class="md-h">## Testing Posture</span>
+- Unit tests with xUnit; integration tests against a containerised SQL Server.
+- PR builds run in Jenkins: Build → UnitTest → SAST (Checkmarx) → Deploy-Dev.
+
+<span class="md-h">## Code Style</span>
+- New PDF work uses PdfSharp; iTextSharp is legacy (migrate on touch).
+
+<span class="md-h">## Guard Policy</span>
+Mode: strict</div></div>
+  <div class="callout info"><div class="icon">ℹ️</div><p><strong>CodeKB MCP (optional, external):</strong> unrelated to the <code>codekb/</code> folder. If you connect a CodeKB MCP server, the composer uses its call graphs to score structural uncertainty. Without one it uses the bounded workspace scan, which is the normal path.</p></div>
+</section>
+
+<!-- 7 -->
+<section class="step-panel" data-section="Rules" data-title="The rule chain" data-sub="org → team → project → phase">
+  <div class="step-header">
+    <div class="phase-tag coral">📏 Memory</div>
+    <h2>Five layers, strict-additive</h2>
+    <p><code>org → team → project → phase → stage</code> (the per-stage layer is reserved for a future release). Nothing overrides anything: every applicable rule is in the agent's context. Which files apply is compiled once; their <strong>text</strong> is re-read before each stage, so a kept learning reaches the very next stage.</p>
+  </div>
+  <div class="flow">
+    <span class="node done">org.md</span><span class="arrow">+</span>
+    <span class="node done">team.md</span><span class="arrow">+</span>
+    <span class="node done">project.md</span><span class="arrow">+</span>
+    <span class="node on">phases/inception.md</span><span class="arrow">+</span>
+    <span class="node">stage (future)</span>
+  </div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Harness</th><th>How the rules reach the model</th></tr>
+    <tr><td>Claude Code</td><td><code>.claude/CLAUDE.md</code> → <code>@.claude/rules/aidlc.md</code> → <code>@</code>-imports of the active space's memory files</td></tr>
+    <tr><td>GitHub Copilot</td><td><code>AGENTS.md</code> <code>@</code>-imports; subagent briefs get the exact stage rules from <code>deliver-stage-rules</code></td></tr>
+    <tr><td>Others</td><td>Kiro resources/steering, opencode instructions glob, Cursor rules; Codex gets rules per step from the engine</td></tr>
+  </table></div>
+  <div class="callout warn"><div class="icon">🔒</div><p><strong>Guard Policy lives here too.</strong> A <code>## Guard Policy</code> section with <code>Mode: strict</code> in any memory file holds strict for everyone on the repo and keeps plan approval on. <code>Mode: relaxed|off</code> sets the default for work whose value came from its scope; the narrowest file wins.</p></div>
+  <div class="callout tip"><div class="icon">🩺</div><p>When org policy changes after a team or project rule exists, <code>/aidlc --doctor</code> shows advisory <em>rule drift</em>: the file, the section and the conflicting org sentence.</p></div>
+</section>
+
+<!-- 8 -->
+<section class="step-panel" data-section="Rules" data-title="Learning loop" data-sub="Correction → durable rule">
+  <div class="step-header">
+    <div class="phase-tag purple">🔁 Simulator</div>
+    <h2>Run the learning gate yourself</h2>
+    <p>While a stage runs (learnings on), the agent keeps a diary in <code>&lt;record&gt;/inception/requirements-analysis/memory.md</code>. Before the approval gate a tool lists every diary line verbatim, and you pick what to keep.</p>
+  </div>
+  <div class="gate">
+    <div class="gate-title">Learning gate · Requirements Analysis · billing-service</div>
+    <div id="cands"></div>
+    <div class="cand"><div style="flex:1"><div class="h">Anything to add for next time?</div><input class="inp" id="free" placeholder="e.g. Always say 'finance user', not 'accountant'"></div></div>
+    <div class="ctl-row">
+      <label><input type="checkbox" id="promote"> promote to team (memory/team.md)</label>
+      <button class="btn btn-primary btn-small" id="keep">Keep selected</button>
+      <button class="btn btn-secondary btn-small" id="none">Keep none of these</button>
+    </div>
+  </div>
+  <div class="result" id="lres"></div>
+  <ul class="body">
+    <li>Interpretations, Deviations and Tradeoffs become practices in <code>memory/project.md</code> (or <code>team.md</code> if promoted). Open questions don't promote.</li>
+    <li>The learning loop never writes <code>org.md</code>.</li>
+    <li>Before writing, the orchestrator compares the entry with the matching <code>org.md</code> section and asks you to revise, skip or escalate if it conflicts.</li>
+    <li>A kept <strong>sensor binding</strong> installs a sensor manifest and wires it to the stage in one atomic step (<code>SENSOR_PROPOSED</code>).</li>
+    <li>Off for <code>bugfix</code> and <code>express</code> by default; turn it on with <code>/aidlc --learnings on</code>.</li>
+  </ul>
+</section>
+
+<!-- 9 -->
+<section class="step-panel" data-section="Rules" data-title="Spaces for teams" data-sub="Several teams, one repo">
+  <div class="step-header">
+    <div class="phase-tag">🏢 Spaces</div>
+    <h2>When two teams share a repo</h2>
+    <p>Most people only ever see <code>default</code>. A second team gets its own space: its own method, knowledge, CodeKB and intents. It starts from the framework baseline with empty <code>team.md</code>/<code>project.md</code>, so it earns its own practices.</p>
+  </div>
+  <div class="terminal">
+    <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">in chat</div></div>
+    <div class="terminal-body">
+<span class="l"><span class="t-prompt">&gt;</span> <span class="t-cmd">/aidlc space create payments-team</span></span>
+<span class="l"><span class="t-prompt">&gt;</span> <span class="t-cmd">/aidlc space switch payments-team</span></span>
+<span class="l"><span class="t-prompt">&gt;</span> <span class="t-cmd">/aidlc intent</span>                          <span class="t-comment"># list intents in this space</span></span>
+<span class="l"><span class="t-prompt">&gt;</span> <span class="t-cmd">/aidlc intent export-bug</span>               <span class="t-comment"># switch to one</span></span>
+<span class="l"><span class="t-prompt">&gt;</span> <span class="t-cmd">/aidlc intent archive old-spike</span>        <span class="t-comment"># retire without deleting</span></span>
+    </div>
+  </div>
+  <div class="callout info"><div class="icon">ℹ️</div><p>Switching writes the new space's memory into a git-ignored <code>aidlc/active-memory/</code> copy that every harness's include reads, so no tracked file churns. Two simultaneous sessions in <em>different</em> spaces can race on that ambient copy; concurrent intents within one space are fully supported.</p></div>
+  <div class="callout success"><div class="icon">✓</div><p>Next: <a href="AIDLC_Sim_Hooks.html">Hooks &amp; guards</a> · <a href="AIDLC_Sim_Brownfield.html">Brownfield walkthrough</a></p></div>
+</section>
+
+    </div>
+  </main>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script>
+(function(){
+  /* quiz */
+  const Q=[
+    ['"Never log PII. Use the [Sensitive] attribute."','rule','Prescriptive, one line, a reviewer would reject a violation → memory/team.md (## Forbidden).'],
+    ['Our REST API style guide: versioning, error envelope, pagination examples','know','Reference material → knowledge/aidlc-shared/api-standards.md (or aidlc-architect-agent/).'],
+    ['"All finance endpoints require Azure AD roles Admin or Finance."','rule','Non-negotiable → memory/project.md (## Mandated).'],
+    ['The 40-page enterprise customer contract (PDF)','doc','Your own document → /aidlc knowledge onboard → DocumentKB.'],
+    ['Jenkins stages and how our Checkmarx SAST gate works','know','Background for the pipeline-deploy agent → knowledge/aidlc-pipeline-deploy-agent/.'],
+    ['"The service has 6 projects and a partial CQRS migration"','code','What the repo is → written by Reverse Engineering into codekb/billing-service/.']
+  ];
+  const L={rule:'Rule (memory)',know:'Knowledge',doc:'DocumentKB',code:'CodeKB'};
+  const qz=document.getElementById('quiz');
+  Q.forEach(q=>{const d=document.createElement('div');d.className='qitem';
+    d.innerHTML='<div class="qt">'+q[0]+'</div><div class="seg">'+Object.keys(L).map(k=>'<button data-k="'+k+'">'+L[k]+'</button>').join('')+'</div><div class="ans"></div>';
+    d.querySelectorAll('button').forEach(b=>b.onclick=()=>{d.querySelectorAll('button').forEach(x=>x.className='');
+      const ok=b.dataset.k===q[1];b.className=ok?'ok':'no';if(!ok)d.querySelector('[data-k="'+q[1]+'"]').className='ok';
+      d.classList.add('answered');d.querySelector('.ans').innerHTML=(ok?'✅ ':'↪ ')+q[2];});
+    qz.appendChild(d);});
+
+  /* load order */
+  const S=[['Requirements Analysis (2.3)','aidlc-product-agent','inception'],['Domain Design (2.6)','aidlc-architect-agent','inception'],['Practices Discovery (2.2)','aidlc-pipeline-deploy-agent','inception'],['Code Generation (3.5)','aidlc-developer-agent','construction'],['Build and Test (3.6)','aidlc-quality-agent','construction'],['Infrastructure Design (3.4)','aidlc-aws-platform-agent','construction'],['Observability Setup (4.4)','aidlc-operations-agent','operation']];
+  const ks=document.getElementById('k-stage');S.forEach((s,i)=>{const o=document.createElement('option');o.value=i;o.textContent=s[0];ks.appendChild(o);});
+  const has={shared:true,agent:true};
+  function paint(){const s=S[ks.value];const a=s[1];
+    document.getElementById('k-lead').innerHTML='Lead agent: <code>'+a+'</code>';
+    const rows=[
+      [1,'aidlc/spaces/default/memory/ → org.md + team.md + project.md + phases/'+s[2]+'.md','Rules: resolved chain, every applicable rule',true],
+      [2,'&lt;engine&gt;/knowledge/aidlc-shared/','Shipped methodology principles',true],
+      [3,'&lt;engine&gt;/knowledge/'+a+'/','Shipped agent methodology',true],
+      [4,'aidlc/spaces/default/knowledge/aidlc-shared/','Your team-wide standards',has.shared],
+      [5,'aidlc/spaces/default/knowledge/'+a+'/','Your standards for this agent',has.agent],
+      [6,'Prior stage artefacts (consumes)','Handed over by the engine at runtime',true]];
+    document.getElementById('k-stack').innerHTML=rows.map(r=>'<div class="layer '+(r[3]?'on':'off')+'"><span class="n">'+r[0]+'</span><div><div class="p">'+r[1]+'</div><div class="w">'+r[2]+'</div></div><span class="tag">'+(r[3]?'loaded':'skipped: folder missing')+'</span></div>').join('');}
+  ks.onchange=paint;
+  document.querySelectorAll('#k-has button').forEach(b=>b.onclick=()=>{has[b.dataset.v]=!has[b.dataset.v];b.classList.toggle('on',has[b.dataset.v]);paint();});
+  paint();
+
+  /* learning gate */
+  const C=[['Interpretations','Stakeholder note said "export"; interpreted as file download. Sarah confirmed accounting-system CSV, not an API push.'],
+           ['Deviations','Split FR-03 into sync (≤50 invoices) and async job (>50) to reuse the existing job pattern.'],
+           ['Tradeoffs','Chose PdfSharp over iTextSharp: newer, already used by StatementPdfExporter.'],
+           ['Open questions','Does Finance need a per-tenant export audit report?']];
+  const cw=document.getElementById('cands');
+  C.forEach((c,i)=>{const d=document.createElement('label');d.className='cand';d.innerHTML='<input type="checkbox" data-i="'+i+'"><div><div class="h">'+c[0]+'</div>'+c[1]+'</div>';cw.appendChild(d);});
+  const res=document.getElementById('lres');
+  document.getElementById('keep').onclick=()=>{
+    const picked=[...cw.querySelectorAll('input:checked')].map(x=>C[x.dataset.i]);
+    const free=document.getElementById('free').value.trim();if(free)picked.push(['Interpretations',free]);
+    const file=document.getElementById('promote').checked?'memory/team.md':'memory/project.md';
+    if(!picked.length){res.className='result';res.innerHTML='Select at least one candidate, or choose "Keep none of these".';return;}
+    const lines=[];let rows=0,oq=0;
+    picked.forEach(p=>{if(p[0]==='Open questions'){oq++;return;}rows++;lines.push('- 2026-10-11 ('+p[0].toLowerCase()+') '+p[1]);});
+    res.className='result allow';
+    res.innerHTML='<div class="verdict">✅ Org-conflict check passed → written to '+file+'</div><div>'+rows+' practice(s) appended with provenance; '+rows+' RULE_LEARNED audit row(s).'+(oq?' '+oq+' open question(s) kept as research items, not rules.':'')+' They reach the agent from the next stage of this workflow, and every later workflow.</div><pre>'+(lines.join('\n')||'(nothing promoted)')+'</pre>';};
+  document.getElementById('none').onclick=()=>{cw.querySelectorAll('input').forEach(x=>x.checked=false);res.className='result';res.innerHTML='Nothing kept. That\'s healthy: most stage runs add nothing.';};
+})();
+</script>
+</body>
+</html>

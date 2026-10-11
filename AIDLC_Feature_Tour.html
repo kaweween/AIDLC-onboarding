@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIDLC 2.11 Feature Tour</title>
+<meta name="description" content="What's new in AI-DLC 2.x: lifecycle, scopes explorer, agents, commands and release highlights up to 2.11.0.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<style>
+.mx{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin:12px 0;}
+.st{border:1px solid var(--border2);border-radius:8px;padding:6px 9px;font-size:12px;background:var(--bg2);color:var(--dim);}
+.st b{font-family:var(--font-mono);margin-right:4px;}
+.st.on{color:var(--white);}
+.st.on.p0{border-color:var(--purple);background:var(--purple-dim);}
+.st.on.p1{border-color:var(--green);background:var(--green-dim);}
+.st.on.p2{border-color:var(--blue);background:var(--blue-dim);}
+.st.on.p3{border-color:var(--amber);background:var(--amber-dim);}
+.st.on.p4{border-color:var(--coral);background:var(--coral-dim);}
+.stat{font-size:28px;font-weight:800;}
+</style>
+</head>
+<body>
+
+<header class="sim-header">
+  <div class="icon">✨</div>
+  <div>
+    <h1>AIDLC 2.11 Feature Tour</h1>
+    <p>Everything that changed since our v1 guides, with an interactive scope explorer and a command cheat-sheet.</p>
+    <div class="stack-pills"><span class="pill">Released 2026-10-08</span><span class="pill">5 phases · 33 stages</span><span class="pill">14 agents</span><span class="pill">11 scopes</span><span class="pill">7 harnesses</span></div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+
+<div class="sim-body">
+  <nav class="sidebar" id="steps-nav" aria-label="Steps"></nav>
+  <main class="main-area">
+    <div class="progress-bar-container">
+      <div class="progress-bar-outer"><div class="progress-bar-inner" id="progress"></div></div>
+      <div class="progress-label" id="progress-label">Step 1</div>
+    </div>
+    <div class="step-content-area">
+
+<section class="step-panel" data-section="Tour" data-title="The big picture" data-sub="v1 vs v2 in one screen">
+  <div class="step-header"><div class="phase-tag purple">🔭 Overview</div><h2>From prompt rules to a deterministic engine</h2>
+  <p>AI-DLC still follows the AWS methodology (AI proposes, humans approve, everything recorded), but the implementation is now an engine with hooks, a shared workspace and a native installer.</p></div>
+  <div class="cards">
+    <div class="card purple"><div class="stat">5 / 33</div><p>Phases / stages: Initialization, Ideation, Inception, Construction, Operation.</p></div>
+    <div class="card blue"><div class="stat">14</div><p>Agents: 11 domain experts, 2 reviewers (product lead, architecture), 1 composer.</p></div>
+    <div class="card green"><div class="stat">11</div><p>Scopes, from <code>express</code> (≤10 stages) to <code>enterprise</code> (33), plus composed plans.</p></div>
+    <div class="card amber"><div class="stat">118</div><p>Audit event types, written by hooks into per-clone shards.</p></div>
+  </div>
+  <div class="flow"><span class="node done">0 Initialization</span><span class="arrow">→</span><span class="node done">1 Ideation</span><span class="arrow">→ gate →</span><span class="node done">2 Inception</span><span class="arrow">→ gate →</span><span class="node on">3 Construction</span><span class="arrow">→ gate →</span><span class="node">4 Operation</span><span class="arrow">↺</span></div>
+  <p class="body">Phase boundaries run verification gates (traceability, orphaned artefacts). Construction repeats per <strong>Unit of work</strong>; Operation's last stage can loop back to Ideation.</p>
+</section>
+
+<section class="step-panel" data-section="Tour" data-title="Scope explorer" data-sub="Which stages run">
+  <div class="step-header"><div class="phase-tag green">🧭 Simulator</div><h2>Pick a scope and see its stages</h2>
+  <p>Membership comes from the upstream stage-by-scope matrix. Conditional stages may still be skipped at runtime (e.g. Reverse Engineering on greenfield).</p></div>
+  <div class="seg" id="sc"></div>
+  <div class="result" id="scd"></div>
+  <div class="mx" id="mx"></div>
+</section>
+
+<section class="step-panel" data-section="Tour" data-title="Agents & topologies" data-sub="Small mob, broad agents">
+  <div class="step-header"><div class="phase-tag blue">👥 Agents</div><h2>11 broad agents instead of 30 narrow ones</h2></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Agent</th><th>Leads</th></tr>
+    <tr><td>product</td><td>intent capture, market research, scope, requirements, user stories</td></tr>
+    <tr><td>design</td><td>rough + refined mockups</td></tr>
+    <tr><td>delivery</td><td>team formation, approval handoff, delivery planning</td></tr>
+    <tr><td>architect</td><td>feasibility, domain design, units, contracts, functional design, NFR requirements + design</td></tr>
+    <tr><td>aws-platform</td><td>infrastructure design, environment provisioning</td></tr>
+    <tr><td>developer</td><td>reverse engineering (scan), code generation</td></tr>
+    <tr><td>quality</td><td>build and test, performance validation</td></tr>
+    <tr><td>pipeline-deploy</td><td>practices discovery, CI pipeline, deployment pipeline + execution</td></tr>
+    <tr><td>operations</td><td>observability, incident response, feedback &amp; optimisation</td></tr>
+    <tr><td>compliance, devsecops</td><td>support only</td></tr>
+    <tr><td>product-lead, architecture-reviewer</td><td>review only (advisory or adversarial)</td></tr>
+    <tr><td>composer</td><td>tailored plans from five entropy scores</td></tr>
+  </table></div>
+  <p class="body">Execution topologies: 29 stages <strong>inline</strong>, Practices Discovery and Code Generation as <strong>subagent</strong> hubs, Reverse Engineering as a 2-link <strong>pipeline</strong>, User Stories as a <strong>mob</strong>. Since 2.11, support agents join only with <code>/aidlc --collaborators on</code> (default on for enterprise only).</p>
+</section>
+
+<section class="step-panel" data-section="Tour" data-title="Release highlights" data-sub="2.7 → 2.11">
+  <div class="step-header"><div class="phase-tag amber">📰 Changelog</div><h2>What landed in each release</h2></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Release</th><th>Highlights</th></tr>
+    <tr><td><strong>2.11.0</strong><br>2026-10-08</td><td>Replies read in your own words at every question, from any chat · engine-asked Plan Approval with plan fingerprint and "go back to the approved plan" · finished Units stay finished across scope or ordering changes · leaner defaults: Guard Policy <code>off</code> and collaborators off except enterprise; express/poc build without plan approval · <code>--plan-approval</code>, <code>--collaborators</code>, <code>--project-type</code> · config runs beside open work and keeps your files · far fewer permission prompts · a named fix when hooks never ran · <code>aidlc engine now</code>, <code>log answers</code>, <code>audit history</code></td></tr>
+    <tr><td><strong>2.10.0</strong></td><td>Multiple harnesses in one project · Unit and batch checkpoints · Bolt worktrees scoped per intent · AIDA PR review workflow</td></tr>
+    <tr><td><strong>2.9.0</strong></td><td>Classic scope v1-style (18 stages, one approval per stage) · per-intent ceremony switches · <code>intent archive/unarchive</code> · commit provenance (<code>aidlc attest</code>) · on-demand Construction autonomy · preview channel</td></tr>
+    <tr><td><strong>2.8.x</strong></td><td>Native installer baseline; Copilot and Cursor hook fixes</td></tr>
+    <tr><td><strong>2.7.0</strong></td><td>33-stage lifecycle (Domain Design, Contract Design) · Classic and Express as first-class scopes · deterministic authority checks on gates · document ingestion for Intent Capture and Requirements</td></tr>
+  </table></div>
+  <div class="callout warn"><div class="icon">⚠️</div><p><strong>Changed defaults in 2.11</strong> matter if you upgrade with work in flight: an in-flight intent keeps its recorded Guard Policy and ceremony, but plan approval and collaborators follow the scope's new defaults. Outside enterprise it continues lead-agent-only unless you type <code>/aidlc --collaborators on</code>.</p></div>
+</section>
+
+<section class="step-panel" data-section="Tour" data-title="Command cheat-sheet" data-sub="Chat + terminal">
+  <div class="step-header"><div class="phase-tag teal">⌨️ Commands</div><h2>The commands you'll actually use</h2></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>In chat</th><th>Does</th></tr>
+    <tr><td><code>/aidlc &lt;describe work&gt;</code></td><td>Start (scope detected, or a compose offer for rich prose)</td></tr>
+    <tr><td><code>/aidlc</code></td><td>Carry on with the work in progress</td></tr>
+    <tr><td><code>/aidlc bugfix|express|feature|classic … </code></td><td>Start with a named scope (runners: <code>/aidlc-bugfix</code>, <code>-express</code>, <code>-feature</code>, <code>-mvp</code>, <code>-security-patch</code>)</td></tr>
+    <tr><td><code>/aidlc compose "…"</code></td><td>Tailored plan; also mid-workflow to reshape pending stages</td></tr>
+    <tr><td><code>/aidlc --status</code> · <code>--doctor</code> · <code>--help</code></td><td>Read-only status, health check, usage</td></tr>
+    <tr><td><code>/aidlc --stage &lt;slug&gt;</code> · <code>--phase &lt;name&gt;</code></td><td>Jump (skipped stages marked [S]; jumping back reopens)</td></tr>
+    <tr><td><code>/aidlc --stage &lt;slug&gt; --single</code></td><td>Run one stage in isolation (or <code>/aidlc-&lt;stage&gt;</code>)</td></tr>
+    <tr><td><code>/aidlc --skip &lt;stage&gt;</code> · <code>--add &lt;stage&gt;</code></td><td>Change the plan now; the reply names the way back</td></tr>
+    <tr><td><code>--depth</code> · <code>--test-strategy</code> · <code>--review</code></td><td>minimal/standard/comprehensive · adversarial/advisory/none</td></tr>
+    <tr><td><code>--guard-policy</code> · <code>--sensors</code> · <code>--learnings</code> · <code>--summary-confirmation</code> · <code>--plan-approval</code> · <code>--collaborators</code></td><td>Per-work ceremony and guard settings</td></tr>
+    <tr><td><code>/aidlc park</code> · <code>intent …</code> · <code>space …</code></td><td>Park; list/switch/archive intents; team spaces</td></tr>
+    <tr><td><code>/aidlc knowledge onboard|sync|list|show|summarize</code></td><td>DocumentKB</td></tr>
+    <tr><td><code>/aidlc-session-cost</code> · <code>/aidlc-replay</code> · <code>/aidlc-outcomes-pack</code></td><td>Read-only reports; outcomes-pack writes OUTCOMES.md</td></tr>
+  </table></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>In the terminal</th><th>Does</th></tr>
+    <tr><td><code>aidlc config [--harness X] [--dry-run]</code></td><td>Set up or refresh a project</td></tr>
+    <tr><td><code>aidlc doctor [--verbose]</code></td><td>Check machine + project, with fixes</td></tr>
+    <tr><td><code>aidlc update</code> · <code>use</code> · <code>version</code> · <code>uninstall</code></td><td>Manage the machine install</td></tr>
+    <tr><td><code>aidlc config models|providers|trust|flags --show</code></td><td>Inspect settings</td></tr>
+    <tr><td><code>aidlc attest resolve|anchor</code></td><td>Commit provenance</td></tr>
+  </table></div>
+</section>
+
+<section class="step-panel" data-section="Tour" data-title="Where to go next" data-sub="All simulators">
+  <div class="step-header"><div class="phase-tag green">🗺️ Next</div><h2>Pick a simulator</h2></div>
+  <div class="cards">
+    <a class="card blue" href="AIDLC_Sim_Setup.html" style="text-decoration:none;color:inherit"><h4>⚙️ Setup</h4><p>Install and configure Claude + Copilot</p></a>
+    <a class="card green" href="AIDLC_Sim_Greenfield.html" style="text-decoration:none;color:inherit"><h4>🌱 Greenfield</h4><p>New service end to end</p></a>
+    <a class="card amber" href="AIDLC_Sim_Brownfield.html" style="text-decoration:none;color:inherit"><h4>🏢 Brownfield</h4><p>Feature on existing code</p></a>
+    <a class="card purple" href="AIDLC_Sim_Knowledge.html" style="text-decoration:none;color:inherit"><h4>🧠 Knowledge</h4><p>Memory, knowledge, DocumentKB, learning loop</p></a>
+    <a class="card coral" href="AIDLC_Sim_Hooks.html" style="text-decoration:none;color:inherit"><h4>🪝 Hooks &amp; guards</h4><p>Try the fences yourself</p></a>
+    <a class="card teal" href="AIDLC_Sim_Upgrade.html" style="text-decoration:none;color:inherit"><h4>⬆️ Upgrade paths</h4><p>v1 → v2, and v2 refreshes</p></a>
+    <a class="card" href="AIDLC_Sim_VSCode.html" style="text-decoration:none;color:inherit"><h4>🖥️ VS Code &amp; CLI</h4><p>Editor chat, Agents window, CLI, Claude Code</p></a>
+  </div>
+</section>
+
+    </div>
+  </main>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script>
+(function(){
+  const ST=[['0.1–0.3','Initialization',0],['1.1','Intent Capture',1],['1.2','Market Research',1],['1.3','Feasibility',1],['1.4','Scope Definition',1],['1.5','Team Formation',1],['1.6','Rough Mockups',1],['1.7','Approval & Handoff',1],
+  ['2.1','Reverse Engineering',2],['2.2','Practices Discovery',2],['2.3','Requirements Analysis',2],['2.4','User Stories',2],['2.5','Refined Mockups',2],['2.6','Domain Design',2],['2.7','Units Generation',2],['2.8','Contract Design',2],['2.9','Delivery Planning',2],
+  ['3.1','Functional Design',3],['3.2','NFR Requirements',3],['3.3','NFR Design',3],['3.4','Infrastructure Design',3],['3.5','Code Generation',3],['3.6','Build and Test',3],['3.7','CI Pipeline',3],
+  ['4.1','Deployment Pipeline',4],['4.2','Environment Provisioning',4],['4.3','Deployment Execution',4],['4.4','Observability Setup',4],['4.5','Incident Response',4],['4.6','Performance Validation',4],['4.7','Feedback & Optimization',4]];
+  // membership strings per stage row (31 rows), order: enterprise feature mvp poc bugfix refactor infra security-patch classic workshop express
+  const SC=['enterprise','feature','mvp','poc','bugfix','refactor','infra','security-patch','classic','workshop','express'];
+  const R=['11111111111','11110000000','11000000000','11100000000','11100000000','11000000000','11100000000','11000000000',
+  '11111101111','11100010110','11111111111','11100000110','11100000110','11100000110','11100000110','11100000110','11100000110',
+  '11100100110','11100011110','11100010110','11100010110','11111101111','11111101111','11100010010',
+  '11001111011','11000010010','11001111011','11000010011','11000000010','11000000010','11000000010'];
+  const META={enterprise:['33','Comprehensive','strict','Regulated feature, full audit; collaborators on'],feature:['33','Standard','off','Full lifecycle for new features'],mvp:['23','Standard','off','Greenfield; skips late operations'],poc:['8','Minimal','off','Prove feasibility; plan approval off'],bugfix:['9','Minimal','off','Fix and deploy; no learnings ritual'],refactor:['10','Minimal','off','Restructure without behaviour change'],infra:['13','Standard','off','Infrastructure change'],'security-patch':['10','Minimal','off','CVE response'],classic:['18','Standard','off','v1-style Inception + Construction; implicit default'],workshop:['26','Standard (tests Minimal)','off','Facilitated labs and training'],express:['10','Minimal','off','Lightest path; no design, no reviewers, plan approval off']};
+  const seg=document.getElementById('sc'),mx=document.getElementById('mx'),d=document.getElementById('scd');
+  function show(i){const s=SC[i],m=META[s];
+    seg.querySelectorAll('button').forEach((b,j)=>b.classList.toggle('on',j===i));
+    d.className='result';d.innerHTML='<div class="verdict">'+s+': '+m[0]+' of 33 stages</div><div>Depth '+m[1]+' · Guard Policy '+m[2]+' · '+m[3]+'</div>';
+    mx.innerHTML=ST.map((t,k)=>'<div class="st p'+t[2]+(R[k][i]==='1'?' on':'')+'"><b>'+t[0]+'</b>'+t[1]+'</div>').join('');}
+  SC.forEach((s,i)=>{const b=document.createElement('button');b.textContent=s;b.onclick=()=>show(i);seg.appendChild(b);});
+  show(8);
+})();
+</script>
+</body>
+</html>

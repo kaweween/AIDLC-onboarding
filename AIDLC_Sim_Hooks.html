@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIDLC Hooks Simulator</title>
+<meta name="description" content="Interactive guide to the AI-DLC 2.11 hook spine, the five guard fences, Guard Policy and sensors, on Claude Code and GitHub Copilot.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<style>
+.timeline{display:grid;gap:8px;margin:14px 0;}
+.ev{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:start;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;opacity:.35;transition:opacity .25s,border-color .25s;}
+.ev.lit{opacity:1;border-color:var(--purple);}
+.ev .evname{font-family:var(--font-mono);font-size:12.5px;color:var(--purple);font-weight:700;}
+.ev .evwhen{font-size:11px;color:var(--dim);}
+.ev .evdo{font-size:13px;color:var(--muted);}
+.ev .evdo code{white-space:nowrap;}
+.fence-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:12px 0;}
+.fence{border:1px solid var(--border2);border-radius:10px;padding:12px;background:var(--bg2);}
+.fence h4{font-size:13.5px;margin-bottom:4px;}
+.fence .st{font-family:var(--font-mono);font-size:12px;font-weight:700;}
+.fence.up{border-color:var(--green);background:var(--green-dim);}
+.fence.up .st{color:var(--green);}
+.fence.down{border-color:var(--amber);background:var(--amber-dim);}
+.fence.down .st{color:var(--amber);}
+.fence p{font-size:12px;color:var(--muted);margin-top:4px;}
+@media (max-width:860px){.ev{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<header class="sim-header">
+  <div class="icon">🪝</div>
+  <div>
+    <h1>Simulation 5: Hooks, Guards &amp; Sensors</h1>
+    <p>How AIDLC 2.11 keeps the model honest: the deterministic hook spine, the five fences, Guard Policy and sensors. Try the guards yourself.</p>
+    <div class="stack-pills">
+      <span class="pill">AI-DLC 2.11.0</span>
+      <span class="pill">Claude Code: .claude/settings.json</span>
+      <span class="pill">Copilot: .github/hooks/aidlc.json</span>
+      <span class="pill">Interactive</span>
+    </div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+
+<div class="sim-body">
+  <nav class="sidebar" id="steps-nav" aria-label="Steps"></nav>
+  <main class="main-area">
+    <div class="progress-bar-container">
+      <div class="progress-bar-outer"><div class="progress-bar-inner" id="progress"></div></div>
+      <div class="progress-label" id="progress-label">Step 1</div>
+    </div>
+    <div class="step-content-area">
+
+<!-- 1 -->
+<section class="step-panel" data-section="Concepts" data-title="Why hooks" data-sub="Engine routes, hooks enforce">
+  <div class="step-header">
+    <div class="phase-tag purple">🧠 Mental model</div>
+    <h2>The engine routes. The conductor executes. Hooks keep both honest.</h2>
+    <p>In v1, AIDLC was prose the model was asked to follow. In v2 a <strong>deterministic engine</strong> (a plain program, not AI) decides what happens next, the <strong>conductor</strong> (your <code>/aidlc</code> chat) does the work, and <strong>hooks</strong> are small programs the AI tool itself runs at fixed moments: before a tool call, after a write, when you type, when the turn ends.</p>
+  </div>
+  <div class="cards">
+    <div class="card blue"><h4>Engine</h4><p>Which stage is next, which scope applies, when a gate must block, when a phase boundary is verified. Same state in, same move out.</p></div>
+    <div class="card amber"><h4>Conductor</h4><p>Adopts the agent persona, asks good questions, writes artefacts. Never decides routing: it asks the engine "what next?"</p></div>
+    <div class="card purple"><h4>Hooks</h4><p>Record your turns, write the audit trail, run sensors, refuse out-of-order actions, keep the loop going. The model can't skip them.</p></div>
+  </div>
+  <div class="callout info"><div class="icon">ℹ️</div><p><strong>Why it matters to you:</strong> the hooks are why "the AI approved its own plan" can't happen, why every decision is in the audit trail without anyone writing it, and why a stuck workflow is usually waiting on <em>you</em> at a gate.</p></div>
+  <h3 class="subsection">The 17 hook sources at a glance</h3>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Kind</th><th>Hooks</th></tr>
+    <tr><td><strong>Flow-altering (6)</strong></td><td><code>continue-workflow</code> (Stop), <code>deliver-stage-rules</code>, <code>plan-approval-guard</code>, <code>state-transition-guard</code>, <code>reviewer-scope</code>, <code>review-freeze</code></td></tr>
+    <tr><td><strong>Recording (non-blocking)</strong></td><td><code>record-human-turn</code>, <code>write-audit-log</code>, <code>sync-workflow-state</code>, <code>rebuild-stage-graph</code>, <code>log-subagent</code>, <code>fold-usage</code> (Claude only)</td></tr>
+    <tr><td><strong>Checks</strong></td><td><code>run-sensors</code>, <code>validate-state</code> (before compaction)</td></tr>
+    <tr><td><strong>Session</strong></td><td><code>session-start</code>, <code>session-end</code>, <code>statusline</code> (Claude only)</td></tr>
+  </table></div>
+</section>
+
+<!-- 2 -->
+<section class="step-panel" data-section="Concepts" data-title="Where hooks live" data-sub="Claude vs Copilot wiring">
+  <div class="step-header">
+    <div class="phase-tag teal">🔌 Wiring</div>
+    <h2>Same hooks, wired natively per tool</h2>
+    <p>Every hook routes through the native binary (<code>aidlc engine hook …</code> on Claude Code, <code>aidlc engine adapter copilot …</code> on Copilot). You never edit these files by hand; <code>aidlc config</code> regenerates them.</p>
+  </div>
+  <div data-tabs>
+    <div class="tabs">
+      <button class="tab-btn on" data-tab="c">Claude Code</button>
+      <button class="tab-btn" data-tab="g">GitHub Copilot</button>
+    </div>
+    <div class="tab-pane on" data-pane="c">
+      <div class="doc"><div class="doc-bar">.claude/settings.json → "hooks" (abridged)<span class="state">generated by aidlc config</span></div>
+<div class="doc-body"><span class="md-k">SessionStart</span>                       → session-start
+<span class="md-k">UserPromptSubmit</span>                   → record-human-turn
+<span class="md-k">PreToolUse</span>  Task|Agent              → deliver-stage-rules
+<span class="md-k">PreToolUse</span>  Read|Edit|Write|Glob|Grep|Bash… → state-transition-guard, reviewer-scope, review-freeze
+<span class="md-k">PreToolUse</span>  Edit|Write|Bash|Task|Agent → plan-approval-guard
+<span class="md-k">PostToolUse</span> Write|Edit             → write-audit-log, run-sensors
+<span class="md-k">PostToolUse</span> AskUserQuestion        → record-human-turn
+<span class="md-k">PostToolUse</span> TaskUpdate             → sync-workflow-state
+<span class="md-k">PostToolUse</span> Bash                   → rebuild-stage-graph
+<span class="md-k">PreCompact</span>                         → validate-state
+<span class="md-k">SubagentStop</span>                       → log-subagent
+<span class="md-k">Stop</span>                               → continue-workflow
+<span class="md-k">SessionEnd</span>                         → session-end
+<span class="md-k">statusLine</span>                         → aidlc engine statusline</div></div>
+    </div>
+    <div class="tab-pane" data-pane="g">
+      <div class="doc"><div class="doc-bar">.github/hooks/aidlc.json (abridged)<span class="state">one install serves Copilot CLI + VS Code</span></div>
+<div class="doc-body">{ "version": 1, "hooks": {
+  <span class="md-k">"SessionStart"</span>:     [ <span class="md-s">"adapter copilot session-start"</span> ],
+  <span class="md-k">"UserPromptSubmit"</span>: [ <span class="md-s">"adapter copilot record-human-turn"</span> ],
+  <span class="md-k">"PreToolUse"</span>:       [ <span class="md-s">"adapter copilot guard-tool-call"</span> ],   <span class="md-c">// blocks natively</span>
+  <span class="md-k">"PostToolUse"</span>:      [ <span class="md-s">"adapter copilot post-tool"</span> ],
+  <span class="md-k">"PreCompact"</span>:       [ <span class="md-s">"adapter copilot validate-state"</span> ],
+  <span class="md-k">"SubagentStart"</span>:    [ <span class="md-s">"adapter copilot subagent-start"</span> ],
+  <span class="md-k">"SubagentStop"</span>:     [ <span class="md-s">"adapter copilot log-subagent"</span> ],
+  <span class="md-k">"Stop"</span>:             [ … ]                                     <span class="md-c">// decision: block</span>
+} }</div></div>
+      <ul class="body">
+        <li>Each entry has both a <code>bash</code> and a <code>powershell</code> command, so Windows works.</li>
+        <li>Copilot shows gates as <strong>numbered prose options</strong>: its picker returns answers as tool results, which can't prove a human typed. Reply in chat.</li>
+        <li>Stage runners carry <code>disable-model-invocation: true</code>: the agent can't start one by itself.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout tip"><div class="icon">💡</div><p><strong>One process per tool call (2.11):</strong> on Claude Code the guard checks before a tool call run in one registration instead of one process each, which saves memory when a stage runs helpers in parallel.</p></div>
+</section>
+
+<!-- 3 -->
+<section class="step-panel" data-section="Play" data-title="Watch a turn" data-sub="Which hook fires when">
+  <div class="step-header">
+    <div class="phase-tag green">▶ Simulator</div>
+    <h2>Follow one turn through the hook spine</h2>
+    <p>Sarah answers a Requirements Analysis gate; the conductor then writes the next artefact. Press <strong>Next event</strong> to light up each hook as it fires.</p>
+  </div>
+  <div class="ctl-row">
+    <button class="btn btn-primary btn-small" id="tl-next">Next event ▸</button>
+    <button class="btn btn-secondary btn-small" id="tl-reset">Reset</button>
+    <span class="step-counter" id="tl-count">0 / 9</span>
+  </div>
+  <div class="timeline" id="timeline">
+    <div class="ev"><div><div class="evname">SessionStart</div><div class="evwhen">Sarah opens a chat</div></div><div class="evdo"><code>session-start</code> binds this chat to the open intent and injects "where the work is". A plain <code>/aidlc</code> then carries on, with no Resume/Redo menu.</div></div>
+    <div class="ev"><div><div class="evname">UserPromptSubmit</div><div class="evwhen">Sarah types "looks good but split story 7"</div></div><div class="evdo"><code>record-human-turn</code> writes a <code>HUMAN_TURN</code> row and keeps her exact words for the gate. Without this row, no approval can be recorded.</div></div>
+    <div class="ev"><div><div class="evname">PreToolUse</div><div class="evwhen">Conductor runs <code>aidlc engine orchestrate report …</code></div></div><div class="evdo">The guards check the call. <code>state-transition-guard</code> allows it because lifecycle changes go through <code>report</code>, the sanctioned route.</div></div>
+    <div class="ev"><div><div class="evname">PostToolUse (Bash)</div><div class="evwhen">Engine answers</div></div><div class="evdo"><code>rebuild-stage-graph</code> recompiles <code>runtime-graph.json</code>. The audit shows <code>GATE_APPROVED</code> with <code>Person Reply: looks good but split story 7</code>.</div></div>
+    <div class="ev"><div><div class="evname">PreToolUse (Edit)</div><div class="evwhen">Conductor edits <code>stories.md</code></div></div><div class="evdo"><code>review-freeze</code> checks there's no fresh review receipt over the file; <code>plan-approval-guard</code> ignores it (not code). Allowed.</div></div>
+    <div class="ev"><div><div class="evname">PostToolUse (Write|Edit)</div><div class="evwhen">File saved</div></div><div class="evdo"><code>write-audit-log</code> records the artefact write; <code>run-sensors</code> fires <code>required-sections</code> and <code>upstream-coverage</code> on it (advisory).</div></div>
+    <div class="ev"><div><div class="evname">SubagentStop</div><div class="evwhen">Product-lead reviewer finishes</div></div><div class="evdo"><code>log-subagent</code> logs the reviewer's completion; the engine keeps its findings list with stable IDs.</div></div>
+    <div class="ev"><div><div class="evname">PreCompact</div><div class="evwhen">The chat gets long</div></div><div class="evdo"><code>validate-state</code> checks <code>aidlc-state.md</code> and writes a recovery breadcrumb before the context is summarised.</div></div>
+    <div class="ev"><div><div class="evname">Stop</div><div class="evwhen">Model tries to end its turn</div></div><div class="evdo"><code>continue-workflow</code> asks the engine "what next?". Ordinary pending work: block and continue. A gate waiting on Sarah: let the turn end.</div></div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="step-panel" data-section="Play" data-title="Try the guards" data-sub="Allow, refuse or stand aside">
+  <div class="step-header">
+    <div class="phase-tag coral">🛡️ Simulator</div>
+    <h2>Pick an action and a Guard Policy, and see what the hooks do</h2>
+    <p>Fences refuse actions nothing asked for. Guard Policy decides how far the switchable ones stand aside for this piece of work. Results follow the 2.11 rules.</p>
+  </div>
+  <div class="ctl-row">
+    <div><label>Action</label><br>
+      <select class="sel" id="g-action">
+        <option value="code">Developer agent writes src/Export.cs before the plan is approved</option>
+        <option value="planoff">Same, but plan approval is OFF for this work (express / poc)</option>
+        <option value="audit">Agent edits a file in the intent's audit/ folder directly</option>
+        <option value="state">Conductor calls a state-file lifecycle verb directly instead of report</option>
+        <option value="reviewer">Reviewer for Unit "email" greps Unit "inapp"'s construction folder</option>
+        <option value="freeze">Conductor edits requirements.md right after the reviewer passed it</option>
+        <option value="selfapprove">Conductor records "Approve" with no message from a person since the gate</option>
+        <option value="report">Conductor runs aidlc engine orchestrate report (normal path)</option>
+      </select>
+    </div>
+    <div><label>Guard Policy</label><br>
+      <div class="seg" id="g-policy">
+        <button data-v="strict">strict</button><button data-v="relaxed">relaxed</button><button data-v="off" class="on">off</button>
+      </div>
+    </div>
+  </div>
+  <div class="result" id="g-result"></div>
+  <div class="callout info"><div class="icon">ℹ️</div><p>Defaults: <strong>enterprise</strong> ships <code>strict</code>; every other shipped scope ships <code>off</code>. A memory file with <code>## Guard Policy</code> / <code>Mode: strict</code> beats everything except a machine kill switch.</p></div>
+</section>
+
+<!-- 5 -->
+<section class="step-panel" data-section="Rules" data-title="Five fences" data-sub="And what Guard Policy lowers">
+  <div class="step-header">
+    <div class="phase-tag amber">🚧 Fences</div>
+    <h2>The five fences and Guard Policy</h2>
+    <p>Choose a policy to see which fences stay up. <strong>Human presence</strong> and claimed-Unit write ownership never go down with policy.</p>
+  </div>
+  <div class="seg" id="f-policy"><button data-v="strict">strict</button><button data-v="relaxed">relaxed</button><button data-v="off" class="on">off</button></div>
+  <div class="fence-grid" id="fences"></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Fence</th><th>Per-work switch</th><th>Machine-wide kill switch</th></tr>
+    <tr><td>Plan approval</td><td><code>/aidlc --plan-approval on|off</code> (only you turn it off)</td><td><code>AIDLC_DISABLE_PLAN_APPROVAL_GUARD</code></td></tr>
+    <tr><td>Review freeze</td><td><code>/aidlc config set guard.review-freeze off</code></td><td><code>AIDLC_DISABLE_REVIEW_FREEZE_HOOK</code></td></tr>
+    <tr><td>State transition</td><td><code>guard.state-transition</code></td><td>none</td></tr>
+    <tr><td>Reviewer read scope</td><td><code>guard.reviewer-scope</code></td><td><code>AIDLC_DISABLE_REVIEWER_SCOPE_HOOK</code></td></tr>
+    <tr><td>Human presence</td><td>none: the key holder</td><td><code>AIDLC_SKIP_HUMAN_PRESENCE_GUARD</code></td></tr>
+  </table></div>
+  <div class="callout tip"><div class="icon">💡</div><p>Just ask in plain words: "stop asking me to re-approve when files change" sets Guard Policy <code>relaxed</code>; "turn the guards off" sets <code>off</code>. The agent runs the setter and quotes its one-line result. It will never lower a check on its own or suggest it.</p></div>
+</section>
+
+<!-- 6 -->
+<section class="step-panel" data-section="Rules" data-title="Human presence" data-sub="Your reply is the key">
+  <div class="step-header">
+    <div class="phase-tag purple">🙋 Presence</div>
+    <h2>Only a real message from you opens a gate</h2>
+    <p>Typing a prompt (or answering a native question box) records a <code>HUMAN_TURN</code>. A stage gate's approval needs one sent <em>after</em> the gate was shown. In 2.11 your reply is read in your own words at every question:</p>
+  </div>
+  <div class="ctl-row" style="align-items:flex-end">
+    <div style="flex:1;min-width:240px"><label>Your reply at a stage gate</label><br><input class="inp" id="r-text" value="looks fine but rename the handler"></div>
+    <button class="btn btn-primary btn-small" id="r-go">Read it</button>
+  </div>
+  <div class="result" id="r-result"></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Reply</th><th>Engine records</th></tr>
+    <tr><td><code>1</code>, <code>approved</code>, <code>looks good</code>, <code>aprove</code></td><td>Approve</td></tr>
+    <tr><td><code>rename the handler</code></td><td>Request Changes, with your words as feedback</td></tr>
+    <tr><td><code>looks fine but rename the handler</code></td><td>Approve <em>and</em> do the instruction, reported in one line</td></tr>
+    <tr><td><code>Approve, but let's stop there for today</code></td><td>Approve and park; <code>/aidlc</code> later carries on</td></tr>
+    <tr><td><code>hmm</code>, <code>not sure</code></td><td>One short question back</td></tr>
+  </table></div>
+  <div class="callout warn"><div class="icon">🤖</div><p><strong>Automation:</strong> a driver that submits prompts with nobody present must set <code>AIDLC_UNATTENDED</code> to 1 in its own process. Then no <code>HUMAN_TURN</code> is minted and gates keep waiting for a person. That's by design.</p></div>
+</section>
+
+<!-- 7 -->
+<section class="step-panel" data-section="Rules" data-title="Sensors" data-sub="Deterministic second opinion">
+  <div class="step-header">
+    <div class="phase-tag teal">📡 Sensors</div>
+    <h2>Sensors check what the agent actually wrote</h2>
+    <p>Rules feed the agent forward; sensors feed back. They fire from <code>run-sensors</code> on matching writes, or once per deliverable at the gate. Findings are advisory in this release: an audit row plus a detail file, and the gate tells you which checks still report findings.</p>
+  </div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Sensor</th><th>Fires on</th><th>Checks</th></tr>
+    <tr><td><code>claim-sources</code></td><td>Intent Capture outputs (gate)</td><td>Every claim carries a source tag; kept assumptions match what you confirmed</td></tr>
+    <tr><td><code>required-sections</code></td><td>Record-dir Markdown (gate)</td><td>Required H2 headings are present</td></tr>
+    <tr><td><code>upstream-coverage</code></td><td>Record-dir Markdown (gate)</td><td>Deliverables reference each upstream artefact the stage consumes</td></tr>
+    <tr><td><code>traceability</code></td><td><code>traceability.json</code></td><td>Upstream IDs covered; downstream targets exist</td></tr>
+    <tr><td><code>linter</code></td><td><code>.ts</code>/<code>.js</code> writes</td><td>Your configured linter (ESLint by default)</td></tr>
+    <tr><td><code>type-check</code></td><td><code>.ts</code>/<code>.tsx</code></td><td><code>tsc</code>. Since 2.11 it runs at Build and Test, not after every generated file</td></tr>
+  </table></div>
+  <div class="doc"><div class="doc-bar">audit/ shard (excerpt)<span class="state">written by hooks, never by hand</span></div>
+<div class="doc-body"><span class="md-h">### Sensor Failed</span>
+- <span class="md-k">Stage</span>: requirements-analysis
+- <span class="md-k">Sensor</span>: required-sections
+- <span class="md-k">Detail</span>: &lt;record&gt;/.aidlc-engine/sensors/requirements-analysis/required-sections-20261011T0914Z.md
+  <span class="md-c">missing: "## Non-Functional Requirements"</span></div></div>
+  <div class="callout tip"><div class="icon">➕</div><p><strong>Add your own:</strong> write a sensor manifest (an <code>aidlc-&lt;id&gt;.md</code> in the harness's <code>sensors/</code> folder) and list its id in the stages that should run it, or confirm a sensor proposal at a learning gate and AIDLC installs it for you (<code>SENSOR_PROPOSED</code>). <code>/aidlc --sensors off</code> turns them off for one piece of work.</p></div>
+</section>
+
+<!-- 8 -->
+<section class="step-panel" data-section="Operate" data-title="Ceremony switches" data-sub="Per-work dials">
+  <div class="step-header">
+    <div class="phase-tag">🎚️ Ceremony</div>
+    <h2>Five ceremony switches, owned by the scope</h2>
+    <p>Each scope sets defaults; you override them per piece of work. None of them removes an approval gate except plan approval, which is the approval it names.</p>
+  </div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Switch</th><th>Per-work flag</th><th>What "off" removes</th><th>Defaults</th></tr>
+    <tr><td>sensors</td><td><code>/aidlc --sensors off</code></td><td>Sensor runs and gate checks</td><td>on (express: off)</td></tr>
+    <tr><td>learnings</td><td><code>/aidlc --learnings off</code></td><td>memory.md diary + "Anything to add for next time?"</td><td>on (bugfix, express: off)</td></tr>
+    <tr><td>summary confirmation</td><td><code>/aidlc --summary-confirmation on</code></td><td>The "Looks correct?" checkpoint before outputs</td><td>off on classic, bugfix, express</td></tr>
+    <tr><td>plan approval</td><td><code>/aidlc --plan-approval off</code></td><td>The stop before each code plan is built</td><td>on (express, poc: off)</td></tr>
+    <tr><td>collaborators</td><td><code>/aidlc --collaborators on</code></td><td>Support agents (spokes, mob round, pipeline link)</td><td>off everywhere except enterprise</td></tr>
+  </table></div>
+  <p class="body">Check what's in force with <code>/aidlc --status</code> or <code>/aidlc config list</code>. Each value shows where it came from, e.g. <code>Plan Approval: off (from scope poc)</code> or <code>Guard Policy: relaxed (set by you)</code>.</p>
+</section>
+
+<!-- 9 -->
+<section class="step-panel" data-section="Operate" data-title="When hooks don't run" data-sub="Troubleshooting">
+  <div class="step-header">
+    <div class="phase-tag coral">🔧 Troubleshoot</div>
+    <h2>"It's stuck" or "my approval wasn't recorded"</h2>
+    <p>Since 2.11, when a tool runs no AIDLC hooks, the first reply stops and names the one step for that tool, instead of letting approvals go unrecorded.</p>
+  </div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Tool</th><th>The fix it names</th></tr>
+    <tr><td>Claude Code</td><td>Approve project hooks via <code>/hooks</code>, then fully restart (not <code>/clear</code>). Remove a <code>disableAllHooks</code> setting; <code>allowManagedHooksOnly</code> needs an admin.</td></tr>
+    <tr><td>VS Code</td><td>Trust the workspace and turn on <strong>Chat: Use Hooks</strong> for the folder.</td></tr>
+    <tr><td>Copilot CLI</td><td>Trust the folder at the interactive prompt; headless runs need the repo-hooks env variable.</td></tr>
+    <tr><td>Codex CLI</td><td>Type <code>/hooks</code>, press <code>t</code> to trust all, then Esc.</td></tr>
+    <tr><td>Kiro CLI / IDE</td><td>CLI: <code>/agent</code> and pick aidlc. IDE: trust the folder and reload the window.</td></tr>
+  </table></div>
+  <div class="terminal">
+    <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">read-only diagnostics</div></div>
+    <div class="terminal-body">
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">aidlc doctor --verbose</span>                       <span class="t-comment"># every check, with fixes</span></span>
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">aidlc engine audit history</span>                   <span class="t-comment"># the audit timeline</span></span>
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">aidlc engine log answers --stage requirements-analysis</span></span>
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">aidlc engine now</span>                             <span class="t-comment"># engine's clock</span></span>
+    </div>
+  </div>
+  <div class="callout danger"><div class="icon">⛔</div><p><strong>Don't "fix" by hand.</strong> Never edit <code>aidlc-state.md</code>, the <code>audit/</code> shards, or the generated hook files. The state-transition guard refuses those writes and names the sanctioned route (<code>engine log decision|answer</code>, <code>engine orchestrate report</code>). Hooks are protected from being invoked by the model too, so the agent can't forge your turn.</p></div>
+  <div class="callout success"><div class="icon">✓</div><p>Next: <a href="AIDLC_Sim_Knowledge.html">Knowledge, memory &amp; the learning loop</a> · <a href="AIDLC_Feature_Tour.html">What's new tour</a></p></div>
+</section>
+
+    </div>
+  </main>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script>
+(function(){
+  /* timeline */
+  const evs=[...document.querySelectorAll('#timeline .ev')];let k=0;
+  const cnt=document.getElementById('tl-count');
+  const paint=()=>{evs.forEach((e,i)=>e.classList.toggle('lit',i<k));cnt.textContent=k+' / '+evs.length;};
+  document.getElementById('tl-next').onclick=()=>{k=k>=evs.length?1:k+1;paint();};
+  document.getElementById('tl-reset').onclick=()=>{k=0;paint();};
+  paint();
+
+  /* guard simulator */
+  const R={
+    code:{
+      strict:['deny','Refused: plan-approval guard','The developer dispatch / source write waits until the Code Generation plan has a current Testing Contract, a fingerprinted plan and your explicit "Approve Plan". Next: run next — it asks you about the plan.','PLAN_APPROVAL_BLOCKED'],
+      relaxed:['deny','Refused: plan-approval guard','Guard Policy relaxed lowers plan RE-approval (edits after you approved), not the first approval. With plan approval on, nothing is built until you answer.','PLAN_APPROVAL_BLOCKED'],
+      off:['deny','Refused: plan-approval guard','Guard Policy off still keeps the initial Plan Approval while the plan-approval setting is on. Only you can turn that setting off.','PLAN_APPROVAL_BLOCKED']},
+    planoff:{
+      strict:['allow','Built without asking','Plan approval is off for this piece of work (from scope express). The engine records that it builds without asking. Memory-held strict would keep plan approval on, but a scope-level Guard Policy does not.','PLAN_APPROVAL_SKIPPED (with the plan fingerprint)'],
+      relaxed:['allow','Built without asking','"Plan written: …/code-generation-plan.md. Plan approval … is off for this piece of work (from scope express). Starting code generation now. Do you want me to go over the plan with you?"','PLAN_APPROVAL_SKIPPED'],
+      off:['allow','Built without asking','Same: one line names the plan, the build starts, and you can still ask to review it.','PLAN_APPROVAL_SKIPPED']},
+    audit:{
+      strict:['deny','Refused: state-transition guard (unconditional)','The audit trail is tool-owned. Routes: engine log decision|answer, engine audit append-raw, engine orchestrate report. Reads stay open.','—'],
+      relaxed:['deny','Refused: unconditional','Audit protection does not depend on Guard Policy.','—'],
+      off:['deny','Refused: unconditional','Even under Guard Policy off, direct writes to audit shards are refused.','—']},
+    state:{
+      strict:['deny','Refused: state-transition guard','Direct lifecycle verbs bypass the engine. Use aidlc engine orchestrate report.','—'],
+      relaxed:['deny','Refused: state-transition guard','relaxed lowers only plan re-approval and review freeze.','—'],
+      off:['aside','Stood aside: state-transition fence is off','"Continuing past the state-transition check because it is off for this piece of work (guard policy off (from scope classic))." Audit protection still applies.','GUARD_STOOD_ASIDE']},
+    reviewer:{
+      strict:['deny','Refused: reviewer-scope guard','A dispatched reviewer may not read sibling Units\' construction/ paths while its dispatch record is fresh.','REVIEWER_SCOPE_BLOCKED'],
+      relaxed:['deny','Refused: reviewer-scope guard','relaxed keeps reviewer read scope up.','REVIEWER_SCOPE_BLOCKED'],
+      off:['aside','Stood aside: reviewer read scope is off','The read is allowed and recorded. Claimed-checkout Unit WRITE ownership stays mandatory regardless.','GUARD_STOOD_ASIDE']},
+    freeze:{
+      strict:['deny','Refused: review-freeze guard','A fresh terminal review receipt covers requirements.md. Next: run next — it asks you whether to request changes (which reopens the review) or turn the check off for this work.','REVIEW_FREEZE_BLOCKED'],
+      relaxed:['aside','Stood aside, change accepted','You hear one line that the file changed; the edit is recorded once and the run continues. Under strict it would be reviewed again before the gate.','GUARD_STOOD_ASIDE + CHANGE_ACCEPTED'],
+      off:['aside','Stood aside, change accepted','Same as relaxed: one line, one audit row, carry on.','GUARD_STOOD_ASIDE + CHANGE_ACCEPTED']},
+    selfapprove:{
+      strict:['deny','Refused: human presence','No reply from the person is on record since the gate was shown. The refusal never asks you to repeat yourself; it points at the hook steps if your message was lost.','—'],
+      relaxed:['deny','Refused: human presence','No Guard Policy lowers human presence.','—'],
+      off:['deny','Refused: human presence','Only the machine-wide AIDLC_SKIP_HUMAN_PRESENCE_GUARD switch lowers it, and AIDLC tells you while it is off.','—']},
+    report:{
+      strict:['allow','Allowed','The sanctioned route. The engine records the outcome (for example GATE_APPROVED with Person Reply) and routes to the next stage.','STAGE_COMPLETED / GATE_APPROVED'],
+      relaxed:['allow','Allowed','Normal path.','GATE_APPROVED'],
+      off:['allow','Allowed','Normal path.','GATE_APPROVED']}
+  };
+  let pol='off';
+  const sel=document.getElementById('g-action'),out=document.getElementById('g-result');
+  const icon={allow:'✅',deny:'⛔',aside:'⚠️'};
+  function render(){const r=R[sel.value][pol];out.className='result '+r[0];
+    out.innerHTML='<div class="verdict">'+icon[r[0]]+' '+r[1]+'</div><div>'+r[2]+'</div><pre>audit: '+r[3]+'</pre>';}
+  document.querySelectorAll('#g-policy button').forEach(b=>b.onclick=()=>{pol=b.dataset.v;document.querySelectorAll('#g-policy button').forEach(x=>x.classList.toggle('on',x===b));render();});
+  sel.onchange=render;render();
+
+  /* fences */
+  const F=[['Plan re-approval','plan edited after you approved',['relaxed','off']],['Review freeze','edits to freshly reviewed outputs',['relaxed','off']],['State transition','lifecycle calls that bypass report',['off']],['Reviewer read scope','reviewers reading sibling Units',['off']],['Human presence','approvals with no real human turn',[]]];
+  const fg=document.getElementById('fences');
+  function fences(p){fg.innerHTML=F.map(f=>{const down=f[2].includes(p);return '<div class="fence '+(down?'down':'up')+'"><h4>'+f[0]+'</h4><div class="st">'+(down?'LOWERED':'UP')+'</div><p>'+f[1]+'</p></div>';}).join('');}
+  document.querySelectorAll('#f-policy button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#f-policy button').forEach(x=>x.classList.toggle('on',x===b));fences(b.dataset.v);});
+  fences('off');
+
+  /* reply reader */
+  const rt=document.getElementById('r-text'),rr=document.getElementById('r-result');
+  function read(){const t=rt.value.trim().toLowerCase();let c,v,d;
+    const appr=/^(1|a|ok|okay|approve[d]?|aprove|lgtm|looks (good|fine|great)|yes|go ahead|ship it)\b/.test(t);
+    const but=/\b(but|and|also|then)\b/.test(t);
+    const park=/(stop|park|pause).*(today|now|there|for now)|let'?s stop/.test(t);
+    if(!t||/^(hmm+|not sure|maybe|\?)$/.test(t)){c='ask';v='❓ Unclear';d='One short question back: "Approve, or what should change?"';}
+    else if(appr&&park){c='allow';v='✅ Approve + park';d='Stage approved; workflow parked. /aidlc later carries on.';}
+    else if(appr&&but){c='allow';v='✅ Approve + instruction';d='Approved. The agent carries out the rest of your sentence and reports it in one line, then the work carries on.';}
+    else if(appr){c='allow';v='✅ Approve';d='GATE_APPROVED with Person Reply: "'+rt.value.trim()+'".';}
+    else if(/\?$/.test(t)){c='ask';v='💬 A question';d='Answered first; your next reply decides the gate.';}
+    else{c='aside';v='✏️ Request Changes';d='GATE_REJECTED with your words as the revision feedback: "'+rt.value.trim()+'".';}
+    rr.className='result '+c;rr.innerHTML='<div class="verdict">'+v+'</div><div>'+d+'</div>';}
+  document.getElementById('r-go').onclick=read;rt.addEventListener('keydown',e=>{if(e.key==='Enter')read();});read();
+})();
+</script>
+</body>
+</html>

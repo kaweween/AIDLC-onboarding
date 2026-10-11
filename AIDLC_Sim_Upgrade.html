@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIDLC Upgrade Simulator</title>
+<meta name="description" content="Upgrade paths for AI-DLC: migrating a repo from v1 rule files to the v2 engine, and refreshing v2 releases. What is preserved, what is updated, and where org-specific context lives.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<style>
+.act{display:inline-block;font-family:var(--font-mono);font-size:11.5px;font-weight:700;border-radius:4px;padding:1px 7px;border:1px solid;}
+.act.update{color:var(--blue);border-color:var(--blue);background:var(--blue-dim);}
+.act.merge{color:var(--teal);border-color:var(--teal);background:var(--teal-dim);}
+.act.preserve{color:var(--green);border-color:var(--green);background:var(--green-dim);}
+.act.remove{color:var(--muted);border-color:var(--border2);background:var(--bg3);}
+.act.conflict{color:var(--coral);border-color:var(--coral);background:var(--coral-dim);}
+.act.create{color:var(--amber);border-color:var(--amber);background:var(--amber-dim);}
+.act.delete{color:var(--coral);border-color:var(--coral);background:var(--coral-dim);}
+.picker{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;}
+.picker button{max-width:100%;white-space:normal;overflow-wrap:anywhere;text-align:left;background:var(--bg3);color:var(--muted);border:1px solid var(--border2);border-radius:7px;padding:6px 10px;font:12.5px var(--font-mono);cursor:pointer;}
+.picker button.on{border-color:var(--blue);color:var(--white);background:var(--blue-dim);}
+</style>
+</head>
+<body>
+
+<header class="sim-header">
+  <div class="icon">⬆️</div>
+  <div>
+    <h1>Simulation 6: Upgrade Paths</h1>
+    <p>Part A: moving a repo from AIDLC v1 rule files to the v2 engine. Part B: refreshing to newer v2 releases from <code>awslabs/aidlc-workflows</code>: what's preserved, what's updated, and where your org context must live.</p>
+    <div class="stack-pills">
+      <span class="pill">v1 → v2.11</span>
+      <span class="pill">v2.x → v2.y</span>
+      <span class="pill">Claude Code + Copilot</span>
+      <span class="pill">Interactive</span>
+    </div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+
+<div class="sim-body">
+  <nav class="sidebar" id="steps-nav" aria-label="Steps"></nav>
+  <main class="main-area">
+    <div class="progress-bar-container">
+      <div class="progress-bar-outer"><div class="progress-bar-inner" id="progress"></div></div>
+      <div class="progress-label" id="progress-label">Step 1</div>
+    </div>
+    <div class="step-content-area">
+
+<!-- A1 -->
+<section class="step-panel" data-section="Part A · v1 → v2" data-title="Where you are today" data-sub="A v1 repo, inventoried">
+  <div class="step-header">
+    <div class="phase-tag amber">📦 Starting point</div>
+    <h2>billing-service, set up the v1 way</h2>
+    <p>This repo followed our March 2026 guide. Over six months the team also edited the rule files with org-specific rules. That's the part we must not lose.</p>
+  </div>
+  <div class="filetree">
+    <div class="ft-header">v1 AIDLC files in the repo</div>
+<pre><span class="ft-folder">billing-service/</span>
+├── <span class="ft-file">CLAUDE.md</span>                         <span class="ft-note">core-workflow.md content (Claude users) + 12 lines the team added</span>
+├── <span class="ft-folder">.github/</span>
+│   └── <span class="ft-file">copilot-instructions.md</span>       <span class="ft-note">same core workflow (Copilot users) + team's Copilot tips</span>
+├── <span class="ft-folder">.aidlc-rule-details/</span>              <span class="ft-note">common/ inception/ construction/ operations/ extensions/</span>
+│   └── <span class="ft-file">construction/code-generation.md</span> <span class="ft-note">⚠ edited: "always use FluentValidation", "never raw SQL"</span>
+└── <span class="ft-folder">aidlc-docs/</span>
+    ├── <span class="ft-file">semantic-context.md</span>           <span class="ft-note">⚠ stack, patterns, security rules, Jenkins stages</span>
+    ├── <span class="ft-file">aidlc-state.md</span>                <span class="ft-note">⚠ one feature mid-Construction</span>
+    ├── <span class="ft-file">audit.md</span>
+    └── <span class="ft-folder">inception/ construction/</span>      <span class="ft-note">requirements, stories, designs from 4 features</span></pre>
+  </div>
+  <div class="callout danger"><div class="icon">⛔</div><p><strong>Don't just install v2 on top and leave v1 in place.</strong> v1's core workflow opens with "PRIORITY: This workflow OVERRIDES all other built-in workflows". Claude Code would load the root <code>CLAUDE.md</code> <em>and</em> v2's <code>.claude/CLAUDE.md</code>; Copilot would load <code>copilot-instructions.md</code> <em>and</em> <code>AGENTS.md</code>. Two workflows fighting in one context gives unpredictable runs.</p></div>
+  <div class="callout info"><div class="icon">ℹ️</div><p>Upstream ships no automatic v1 importer; the v2 engine doesn't read <code>aidlc-docs/</code>. The path below is our recommended migration, built on v2 features that are designed for it (DocumentKB ingestion, the memory layer, Reverse Engineering).</p></div>
+</section>
+
+<!-- A2 -->
+<section class="step-panel" data-section="Part A · v1 → v2" data-title="Find your org edits" data-sub="Diff against what you copied">
+  <div class="step-header">
+    <div class="phase-tag">🔍 Inventory</div>
+    <h2>Separate upstream text from your team's additions</h2>
+    <p>Only your additions need migrating; the upstream v1 prose is replaced by the engine. Compare your files with the v1 release you originally copied.</p>
+  </div>
+  <div class="terminal">
+    <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">PowerShell</div></div>
+    <div class="terminal-body">
+<span class="l t-comment"># the v1 copy you set up from (C:\tools\aidlc-workflows in our old guide), or check out the tag you used</span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">git -C C:\tools\aidlc-workflows log --oneline -1</span></span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">git diff --no-index C:\tools\aidlc-workflows\aidlc-rules\aws-aidlc-rule-details .aidlc-rule-details</span></span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">git diff --no-index C:\tools\aidlc-workflows\aidlc-rules\aws-aidlc-rules\core-workflow.md CLAUDE.md</span></span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">git log --oneline -- .aidlc-rule-details CLAUDE.md .github/copilot-instructions.md</span>  <span class="t-comment"># who changed what, and why</span></span>
+    </div>
+  </div>
+  <div class="doc"><div class="doc-bar">migration-inventory.md (make one; it becomes the PR description)</div>
+<div class="doc-body"><span class="md-h">## Org rules found (must / never)</span>
+- Always FluentValidation; never manual if/else validation   <span class="md-c">(rule-details/construction/code-generation.md)</span>
+- Never raw SQL; EF Core compiled queries                     <span class="md-c">(same)</span>
+- PII never logged; [Sensitive] attribute                     <span class="md-c">(semantic-context.md)</span>
+- All endpoints Azure AD unless [AllowAnonymous]              <span class="md-c">(semantic-context.md)</span>
+<span class="md-h">## Reference material</span>
+- Stack, CQRS/MediatR, repository pattern, Jenkins stages      <span class="md-c">(semantic-context.md)</span>
+<span class="md-h">## In-flight work</span>
+- invoice-export: mid-Construction (aidlc-docs/aidlc-state.md)
+<span class="md-h">## History</span>
+- 4 completed features in aidlc-docs/</div></div>
+</section>
+
+<!-- A3 -->
+<section class="step-panel" data-section="Part A · v1 → v2" data-title="Map to v2 homes" data-sub="Interactive mapper">
+  <div class="step-header">
+    <div class="phase-tag green">🧭 Simulator</div>
+    <h2>Where does each v1 piece go?</h2>
+    <p>Click an item from the inventory to see its v2 destination and why.</p>
+  </div>
+  <div class="picker" id="mp"></div>
+  <div class="result" id="mpr"></div>
+  <div class="callout tip"><div class="icon">💡</div><p>Rule of thumb: <strong>never put org context in a file AIDLC ships.</strong> Anything under <code>.claude/</code>, <code>.aidlc/</code> or the generated <code>.github/</code> files is refreshed on upgrade. Everything under <code>aidlc/spaces/…/memory</code> and <code>knowledge</code> is yours and survives every upgrade.</p></div>
+</section>
+
+<!-- A4 -->
+<section class="step-panel" data-section="Part A · v1 → v2" data-title="Install v2 alongside" data-sub="Branch, install, configure">
+  <div class="step-header">
+    <div class="phase-tag purple">⚙️ Install</div>
+    <h2>Install v2 on a migration branch</h2>
+    <p>Same steps as <a href="AIDLC_Sim_Setup.html">Simulation 1</a>. v2 adds new folders and never touches <code>.aidlc-rule-details/</code> or <code>aidlc-docs/</code>, so nothing of v1 is lost yet.</p>
+  </div>
+  <div class="terminal typer">
+    <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">PowerShell: billing-service</div><button class="run-btn">▶ Run</button></div>
+    <div class="terminal-body">
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">git switch -c chore/aidlc-v1-to-v2</span></span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">irm https://github.com/awslabs/aidlc-workflows/releases/latest/download/install.ps1 | iex</span></span>
+<span class="l t-success" data-wait="500">Installed AI-DLC 2.11.0</span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">aidlc config --harness claude --dry-run</span>       <span class="t-comment"># preview first</span></span>
+<span class="l t-output" data-wait="400">  create  .claude/ (engine)          create  aidlc/spaces/default/memory/*</span>
+<span class="l t-output">  merge   .gitignore (AI-DLC block appended after your rules)</span>
+<span class="l t-output">  preserve CLAUDE.md (root, yours)   preserve .aidlc-rule-details/   preserve aidlc-docs/</span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">aidlc config --harness claude</span></span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">aidlc config --harness copilot</span></span>
+<span class="l t-success">configured … for GitHub Copilot 2.11.0</span>
+    </div>
+  </div>
+  <p class="body">(Dry-run lines above are abridged for illustration; your output lists every planned path with one action: <span class="act create">create</span> <span class="act update">update</span> <span class="act merge">merge</span> <span class="act preserve">preserve</span> <span class="act remove">remove</span> <span class="act conflict">conflict</span>.)</p>
+</section>
+
+<!-- A5 -->
+<section class="step-panel" data-section="Part A · v1 → v2" data-title="Move org context" data-sub="Rules, knowledge, documents">
+  <div class="step-header">
+    <div class="phase-tag coral">✍️ Migrate</div>
+    <h2>Move the team's additions into the v2 memory and knowledge layers</h2>
+  </div>
+  <div data-tabs>
+    <div class="tabs">
+      <button class="tab-btn on" data-tab="r">Rules → memory</button>
+      <button class="tab-btn" data-tab="k">Reference → knowledge</button>
+      <button class="tab-btn" data-tab="d">Docs → DocumentKB</button>
+    </div>
+    <div class="tab-pane on" data-pane="r">
+      <div class="doc"><div class="doc-bar">aidlc/spaces/default/memory/team.md (append under existing headings)</div>
+<div class="doc-body"><span class="md-h">## Forbidden</span>
+- Raw SQL. Use EF Core (compiled queries on hot paths).
+- Logging PII. Mark sensitive fields with [Sensitive].
+
+<span class="md-h">## Mandated</span>
+- Input validation with FluentValidation.
+- Azure AD auth on every endpoint unless explicitly [AllowAnonymous].
+- Never remove or bypass the Checkmarx SAST stage in a Jenkinsfile.</div></div>
+      <p class="body">Org-wide rules (shared across many repos) belong in <code>memory/org.md</code>. It's a project-owned seed, so a refresh never overwrites it. Keep each rule to one imperative line.</p>
+    </div>
+    <div class="tab-pane" data-pane="k">
+      <div class="terminal"><div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">PowerShell</div></div>
+      <div class="terminal-body">
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">mkdir aidlc\spaces\default\knowledge\aidlc-shared, aidlc\spaces\default\knowledge\aidlc-pipeline-deploy-agent</span></span>
+<span class="l t-comment"># split semantic-context.md by topic, one file per topic</span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">code aidlc\spaces\default\knowledge\aidlc-shared\stack-and-patterns.md</span></span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">code aidlc\spaces\default\knowledge\aidlc-pipeline-deploy-agent\jenkins-stages.md</span></span>
+      </div></div>
+    </div>
+    <div class="tab-pane" data-pane="d">
+      <div class="terminal"><div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">PowerShell, then chat</div></div>
+      <div class="terminal-body">
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">git mv aidlc-docs docs/aidlc-v1-history</span></span>
+<span class="l"><span class="t-prompt">&gt;</span> <span class="t-cmd">/aidlc knowledge onboard docs/aidlc-v1-history</span></span>
+<span class="l t-success">Copied 23 documents into knowledge/documents/aidlc-v1-history/ and indexed them.</span>
+      </div></div>
+      <p class="body">The old requirements, stories and designs become citable inputs for new work. The original folder stays as history in git.</p>
+    </div>
+  </div>
+  <div class="callout info"><div class="icon">✔️</div><p>Ask at any gate "What team knowledge are you using for this stage?" to confirm the move worked. <code>/aidlc --doctor</code> also flags team or project rules that drift from <code>org.md</code>.</p></div>
+</section>
+
+<!-- A6 -->
+<section class="step-panel" data-section="Part A · v1 → v2" data-title="In-flight v1 work" data-sub="Finish or re-seed">
+  <div class="step-header">
+    <div class="phase-tag amber">⏸️ Open work</div>
+    <h2>v2 can't resume a v1 <code>aidlc-state.md</code>, so choose one</h2>
+  </div>
+  <div class="cards">
+    <div class="card green"><h4>Option 1: finish on v1 first</h4><p>Best if the feature is nearly done. Finish it on the old setup, merge it, then do the migration PR.</p></div>
+    <div class="card blue"><h4>Option 2: re-seed in v2</h4><p>Start a v2 intent that reads the v1 artefacts as input. Approved requirements are re-confirmed quickly; Reverse Engineering sees the code already written.</p></div>
+  </div>
+  <div class="chat reveal">
+    <div class="chat-header">🟣 Claude Code <span class="tag">option 2</span></div>
+    <div class="chat-body">
+      <div class="msg user"><div class="who">Jamie</div><div class="bubble">/aidlc Continue the bulk invoice export. The approved requirements and stories are in docs/aidlc-v1-history/inception/requirements.md and stories.md; Units 1–2 are already built.</div></div>
+      <div class="msg ai"><div class="who">AIDLC</div><div class="bubble">Those documents are in the knowledge base, so Requirements Analysis will start from them. This is existing code, so Reverse Engineering runs first and records what Units 1–2 already built. Which plan: <strong>classic</strong>, a tailored plan, or another?</div></div>
+      <div class="msg user"><div class="who">Jamie</div><div class="bubble">tailor one, skip anything already approved in v1</div></div>
+      <div class="msg ai"><div class="who">AIDLC · composer</div><div class="bubble">Proposed plan "invoice-export-resume": Reverse Engineering, Requirements Analysis (confirm from v1), Units Generation, Delivery Planning, then Construction for the remaining Unit and Build and Test. SKIP User Stories (covered by the v1 stories.md), Domain Design (unchanged). Approve, edit or reject?</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- A7 -->
+<section class="step-panel" data-section="Part A · v1 → v2" data-title="Retire v1 & verify" data-sub="One clean PR">
+  <div class="step-header">
+    <div class="phase-tag green">🧹 Cleanup</div>
+    <h2>Remove the v1 workflow text and prove v2 works</h2>
+  </div>
+  <div class="terminal">
+    <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">PowerShell</div></div>
+    <div class="terminal-body">
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">git rm -r .aidlc-rule-details</span></span>
+<span class="l t-comment"># CLAUDE.md (root) and .github/copilot-instructions.md:</span>
+<span class="l t-comment">#   delete the v1 core-workflow text; keep any non-AIDLC instructions, or delete the file if nothing is left</span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">aidlc doctor</span></span>
+<span class="l t-success">0 problems</span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">git add -A ; git commit -m "chore: migrate AI-DLC v1 rule files to the v2 engine"</span></span>
+    </div>
+  </div>
+  <ul class="check-list">
+    <li class="ok"><span class="ci">✓</span><div>No file in the repo still contains "Using AI-DLC" or "PRIORITY: This workflow OVERRIDES".</div></li>
+    <li class="ok"><span class="ci">✓</span><div>Every org rule from the inventory is in <code>memory/</code>; every reference doc is in <code>knowledge/</code> or DocumentKB.</div></li>
+    <li class="ok"><span class="ci">✓</span><div>An <code>express</code> smoke run in Claude Code and in VS Code shows the agent applying a migrated rule (e.g. it uses FluentValidation unprompted).</div></li>
+    <li class="ok"><span class="ci">✓</span><div>The team's habit changes: <code>/aidlc …</code> replaces "Using AI-DLC, …".</div></li>
+  </ul>
+</section>
+
+<!-- B1 -->
+<section class="step-panel" data-section="Part B · v2 refresh" data-title="Two layers to update" data-sub="Machine, then each project">
+  <div class="step-header">
+    <div class="phase-tag blue">🔄 Lifecycle</div>
+    <h2>Upgrading from awslabs/aidlc-workflows is two separate steps</h2>
+    <p>The AIDLC files committed in your repo are a <em>projection</em> of a release. Updating the machine doesn't change any repo; refreshing a repo is what rewrites its framework files.</p>
+  </div>
+  <div class="cards">
+    <div class="card blue"><h4>1 · Machine</h4><p><code>aidlc update</code> installs the newest stable binary + runtimes. It never installs something older than what's running.</p></div>
+    <div class="card teal"><h4>2 · Each project</h4><p><code>aidlc config --harness claude --yes</code>, then <code>--harness copilot --yes</code>. Transactional, with an ownership baseline. Done even while work is open.</p></div>
+    <div class="card amber"><h4>3 · Teammates</h4><p>Commit the refreshed files. Others pull; their next chat uses the new release. Plugins: <code>/aidlc plugin sync</code>.</p></div>
+  </div>
+  <div class="terminal typer">
+    <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">PowerShell: upgrade drill (illustrative)</div><button class="run-btn">▶ Run</button></div>
+    <div class="terminal-body">
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">aidlc update</span></span>
+<span class="l t-success" data-wait="500">Updated aidlc from 2.11.0 to 2.12.0.</span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">aidlc doctor</span></span>
+<span class="l t-warn">  warn  Harness trees on different releases: .claude 2.11.0, .aidlc 2.11.0 (engine 2.12.0)</span>
+<span class="l t-output">        fix: aidlc config --harness claude ; aidlc config --harness copilot</span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">aidlc config --harness claude --dry-run</span></span>
+<span class="l t-output">  update   .claude/agents/*.md, .claude/hooks/*, .claude/knowledge/**, .claude/scopes/*</span>
+<span class="l t-output">  merge    .claude/settings.json (AI-DLC hooks restored; your hook groups appended)</span>
+<span class="l t-output">  preserve aidlc/spaces/default/memory/**, knowledge/**, codekb/**, intents/**</span>
+<span class="l t-output">  remove   .claude/skills/aidlc-old-runner/ (no longer shipped)</span>
+<span class="l t-error">  conflict .claude/agents/aidlc-developer-agent.md (locally modified)</span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">aidlc config --harness claude --yes</span></span>
+<span class="l t-success">  Updated. Your open work (default/invoice-export-resume) carries on.</span>
+<span class="l t-output">  To go back: `aidlc config --pin 2.11.0 --yes` (this pins the version for everyone on the project; `aidlc config --unpin` removes the pin).</span>
+<span class="l t-output">  Removed 1 file that is no longer part of AI-DLC 2.12.0: .claude/skills/aidlc-old-runner/  (git restore &lt;path&gt; brings it back)</span>
+    </div>
+  </div>
+  <div class="callout warn"><div class="icon">⚠️</div><p>That <span class="act conflict">conflict</span> is someone editing a shipped agent file. The refresh refuses it until you decide (next steps). Version numbers after 2.11.0 above are hypothetical.</p></div>
+</section>
+
+<!-- B2 -->
+<section class="step-panel" data-section="Part B · v2 refresh" data-title="Preserved vs updated" data-sub="Click any file">
+  <div class="step-header">
+    <div class="phase-tag green">🗂️ Simulator</div>
+    <h2>What a refresh does to each file</h2>
+    <p>Pick a path. Rules come from the upstream <em>Refresh Safety</em> and <em>Root Integrations and Ownership</em> docs for 2.11.</p>
+  </div>
+  <div class="picker" id="fp"></div>
+  <div class="result" id="fpr"></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Action</th><th>Meaning</th></tr>
+    <tr><td><span class="act update">update</span></td><td>Refresh framework-owned bytes</td></tr>
+    <tr><td><span class="act merge">merge</span></td><td>Reconcile a managed block, JSON map or array; your entries kept</td></tr>
+    <tr><td><span class="act preserve">preserve</span></td><td>Keep current or project-owned bytes</td></tr>
+    <tr><td><span class="act remove">remove</span></td><td>Remove an unchanged framework file the release no longer ships</td></tr>
+    <tr><td><span class="act conflict">conflict</span></td><td>Refuse: you modified a framework-owned file, or ownership can't be proved</td></tr>
+  </table></div>
+</section>
+
+<!-- B3 -->
+<section class="step-panel" data-section="Part B · v2 refresh" data-title="Your org context" data-sub="Where it survives forever">
+  <div class="step-header">
+    <div class="phase-tag coral">🏛️ Org context</div>
+    <h2>Org-specific context survives upgrades only if it lives in the right place</h2>
+  </div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>You want to customise…</th><th>Put it in (survives)</th><th>Not in (gets refreshed / conflicts)</th></tr>
+    <tr><td>Org-wide must/never rules, Guard Policy</td><td><code>aidlc/spaces/&lt;space&gt;/memory/org.md</code></td><td><code>.claude/rules/aidlc.md</code></td></tr>
+    <tr><td>Team practices, project facts, project name</td><td><code>memory/team.md</code>, <code>memory/project.md</code></td><td><code>.claude/CLAUDE.md</code>, the AIDLC block of <code>AGENTS.md</code></td></tr>
+    <tr><td>Standards an agent should consult</td><td><code>knowledge/aidlc-shared/</code>, <code>knowledge/&lt;agent&gt;/</code></td><td><code>.claude/knowledge/</code>, <code>.claude/agents/*.md</code></td></tr>
+    <tr><td>Output formats</td><td><code>memory/templates/</code></td><td>shipped templates in the engine tree</td></tr>
+    <tr><td>Agent model / effort</td><td><code>aidlc config models … --project</code></td><td>editing agent frontmatter</td></tr>
+    <tr><td>A reusable workflow</td><td>Saved scope: <code>aidlc/scopes/&lt;name&gt;.md</code></td><td>editing <code>.claude/scopes/aidlc-*.md</code></td></tr>
+    <tr><td>Your own hooks, permissions, status line</td><td><code>.claude/settings.json</code> (merged: yours kept)</td><td>n/a: the file is project-owned</td></tr>
+    <tr><td>A new agent or org-wide stage pack</td><td>A new non-<code>aidlc-</code> agent file, or an <strong>AIDLC plugin</strong> in its own repo</td><td>editing shipped stage files</td></tr>
+  </table></div>
+  <div class="callout warn"><div class="icon">⚠️</div><p><strong>The catch with seeds:</strong> <code>org.md</code>, <code>team.md</code> and <code>project.md</code> are copied once and then <em>never</em> overwritten. That protects your edits, but it also means new framework defaults a release adds to its shipped <code>org.md</code> don't reach you automatically. Read the release's CHANGELOG and copy any new defaults you want. <code>/aidlc --doctor</code>'s rule-drift check helps.</p></div>
+</section>
+
+<!-- B4 -->
+<section class="step-panel" data-section="Part B · v2 refresh" data-title="Resolve a conflict" data-sub="Someone edited a shipped file">
+  <div class="step-header">
+    <div class="phase-tag coral">⚔️ Conflict</div>
+    <h2>Someone edited <code>aidlc-developer-agent.md</code>. Now what?</h2>
+  </div>
+  <div class="ctl-row"><div class="seg" id="cf"><button data-v="a" class="on">Move it to knowledge (recommended)</button><button data-v="b">--force</button><button data-v="c">Pin and postpone</button></div></div>
+  <div class="result" id="cfr"></div>
+</section>
+
+<!-- B5 -->
+<section class="step-panel" data-section="Part B · v2 refresh" data-title="Open work & rollback" data-sub="Pins, copy channel">
+  <div class="step-header">
+    <div class="phase-tag">🛟 Safety</div>
+    <h2>Refreshing with work in flight, and going back</h2>
+  </div>
+  <ul class="check-list">
+    <li class="ok"><span class="ci">✓</span><div><strong>Open work carries on.</strong> Since 2.11, any <code>aidlc config</code> run beside open work is done, not refused, and prints what changed and its undo. Existing intents keep their recorded Guard Policy, sensors, learnings and summary confirmation; new 2.11 settings (plan approval, collaborators) follow the scope's new defaults.</div></li>
+    <li class="ok"><span class="ci">✓</span><div><strong>Rollback</strong> = pin: <code>aidlc config --pin 2.11.0 --yes</code> (for everyone), <code>aidlc config --unpin</code> to release it. <code>aidlc use 2.11.0</code> switches your machine.</div></li>
+    <li class="ok"><span class="ci">✓</span><div><strong>Harnesses stay level.</strong> Refresh every harness tree in the repo; doctor warns when <code>.claude</code> and <code>.aidlc</code> are on different releases.</div></li>
+    <li class="ok"><span class="ci">✓</span><div><strong>Copy channel</strong> (no native binary): replace the whole <code>runtime/&lt;harness&gt;/</code> tree from <code>aidlc-copy-runtime-X.Y.Z.tar.gz</code> (needs Bun ≥ 1.3.8). The archive deliberately leaves out <code>.gitignore</code>, <code>AGENTS.md</code>, <code>.mcp.json</code>, <code>.vscode/settings.json</code>, your memory files and <code>aidlc/active-space</code>, so copying a newer release over keeps them.</div></li>
+    <li class="ok"><span class="ci">✓</span><div><strong>Plugins</strong>: run <code>/aidlc plugin sync</code> after an engine refresh.</div></li>
+  </ul>
+  <h3 class="subsection">Upgrade checklist (per repo)</h3>
+  <ol class="body">
+    <li>Read the release notes in <code>CHANGELOG.md</code>: <strong>Upgrade</strong>, <strong>Breaking</strong>, <strong>Changed default</strong> lines.</li>
+    <li><code>aidlc update</code> on your machine.</li>
+    <li>Branch; <code>aidlc config --harness &lt;each&gt; --dry-run</code>; resolve conflicts.</li>
+    <li><code>aidlc config --harness &lt;each&gt; --yes</code>; <code>aidlc doctor</code>.</li>
+    <li>Merge new org defaults you want into <code>memory/org.md</code>.</li>
+    <li>Smoke run (<code>/aidlc express …</code>) in each tool; commit; PR.</li>
+  </ol>
+  <div class="callout success"><div class="icon">✓</div><p>Related: <a href="AIDLC_Sim_Setup.html">Setup</a> · <a href="AIDLC_Sim_Knowledge.html">Knowledge &amp; memory</a> · <a href="AIDLC_Sim_Hooks.html">Hooks &amp; guards</a></p></div>
+</section>
+
+    </div>
+  </main>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script>
+(function(){
+  const M=[
+    ['CLAUDE.md (v1 core workflow)','delete','Remove the v1 workflow text. v2 Claude Code reads .claude/CLAUDE.md, which @-imports the method. Keep only non-AIDLC instructions you still want; the team\'s 12 added lines go to memory/team.md or project.md.'],
+    ['copilot-instructions.md','delete','Remove the AIDLC core workflow. Copilot now reads AGENTS.md (managed AIDLC block) plus .github/skills, agents and hooks. Keep non-AIDLC Copilot tips if any.'],
+    ['.aidlc-rule-details/ (upstream text)','delete','Superseded: stage definitions ship inside the engine tree and are delivered per stage by hooks. Delete the folder.'],
+    ['rule-details edits (org rules)','create','Rewrite as one-line rules in memory/team.md (## Forbidden / ## Mandated) or org.md if they apply across repos. These files are never overwritten by refreshes.'],
+    ['semantic-context.md: rules','create','"PII never logged", "Azure AD on every endpoint" → memory/team.md or project.md.'],
+    ['semantic-context.md: reference','create','Stack, CQRS, repository pattern → knowledge/aidlc-shared/stack-and-patterns.md; Jenkins stages → knowledge/aidlc-pipeline-deploy-agent/jenkins-stages.md.'],
+    ['aidlc-docs/ artefacts','preserve','Keep as history (git mv to docs/aidlc-v1-history) and onboard into DocumentKB so new intents can cite old requirements and designs.'],
+    ['aidlc-docs/aidlc-state.md','delete','v2 cannot resume it. Finish the work on v1 first, or re-seed a v2 intent from the v1 artefacts (step 6).'],
+    ['aidlc-docs/audit.md','preserve','Keep for compliance history. New audit lives in each intent\'s audit/ shards, written by hooks.']
+  ];
+  const mp=document.getElementById('mp'),mpr=document.getElementById('mpr');
+  M.forEach((m,i)=>{const b=document.createElement('button');b.textContent=m[0];b.onclick=()=>{mp.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+    mpr.className='result';mpr.innerHTML='<div class="verdict"><span class="act '+m[1]+'">'+({delete:'retire',create:'move',preserve:'keep'})[m[1]]+'</span> '+m[0]+'</div><div>'+m[2]+'</div>';};mp.appendChild(b);if(!i)b.click();});
+
+  const F=[
+    ['.claude/agents/aidlc-*.md','update','Framework-owned. Refreshed to the new release. If someone edited one, the refresh reports a conflict; --force replaces it with the shipped version.'],
+    ['.claude/hooks/, tools/, scopes/aidlc-*, sensors/aidlc-*','update','Framework-owned and refreshed. Shipped files a release retires are removed when unchanged, and listed with a git restore hint.'],
+    ['.claude/settings.json','merge','Project-owned; AIDLC contributes entries. Its hook registrations are restored to shipped events/matchers, then YOUR hook groups are appended. Shipped permissions.allow first, your allow/deny/ask kept. Your custom statusLine and companyAnnouncements kept. env and other keys stay yours.'],
+    ['.claude/CLAUDE.md','update','Framework-owned, except a line you wrote in place of the title, which is kept. Put project notes in memory/project.md instead.'],
+    ['AGENTS.md','merge','One marked AIDLC block is refreshed; every line outside the block is yours and kept. Copilot\'s block is exclusive to that harness.'],
+    ['.gitignore','merge','One "# AI-DLC: local working files" block is managed; every byte outside it is preserved. Older generic lines are moved into your part, above AI-DLC\'s.'],
+    ['.vscode/settings.json','merge','Adds chat.agent.maxRequests only if you don\'t set it; never changes a value someone else set. (The useHooks entry seen in this repo was added on config.)'],
+    ['.mcp.json','merge','Only consented, baseline-owned entries are added or removed; your servers and overrides stay.'],
+    ['memory/org.md · team.md · project.md','preserve','Project-owned seeds: copied on first install, never overwritten. Your org context is safe here, but new framework defaults won\'t flow in automatically.'],
+    ['knowledge/** · codekb/**','preserve','Workspace records and knowledge are never touched by a refresh.'],
+    ['intents/** (state, audit, artefacts)','preserve','Never touched. Open work carries on through the refresh.'],
+    ['aidlc/scopes/<saved>.md','preserve','Your saved scopes are records; the next graph compile re-projects them into the harness tree, so an engine reinstall can\'t lose them.'],
+    ['Plugin-composed files','preserve','Kept, and graph/runner/scope tables are regenerated from the preserved composition. Run /aidlc plugin sync afterwards.'],
+    ['Edited shipped stage or agent file','conflict','Locally modified framework-owned files conflict against the prior baseline. Move the customisation to memory/ or knowledge/, or use --force to take the shipped version.']
+  ];
+  const fp=document.getElementById('fp'),fpr=document.getElementById('fpr');
+  F.forEach((f,i)=>{const b=document.createElement('button');b.textContent=f[0];b.onclick=()=>{fp.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+    fpr.className='result '+(f[1]==='conflict'?'deny':f[1]==='preserve'?'allow':f[1]==='merge'?'aside':'');fpr.innerHTML='<div class="verdict"><span class="act '+f[1]+'">'+f[1]+'</span> '+f[0]+'</div><div>'+f[2]+'</div>';};fp.appendChild(b);if(!i)b.click();});
+
+  const C={a:['allow','Move the edit to knowledge/ (recommended)','1. Copy the team\'s lines out of .claude/agents/aidlc-developer-agent.md into knowledge/aidlc-developer-agent/team-conventions.md (reference) or memory/team.md (must/never).\n2. git restore the agent file (or run config with --force) so it matches the shipped baseline.\n3. aidlc config --harness claude --yes → refresh applies cleanly, and the customisation now survives every future upgrade.'],
+    b:['aside','aidlc config --harness claude --force --yes','Replaces the modified framework file with the refreshed candidate. The team\'s edits in that file are lost (git still has them). --force never claims unrelated project content and cannot overwrite your own JSON values.'],
+    c:['ask','Pin and postpone','aidlc config --pin 2.11.0 --yes keeps everyone on the current release while you schedule the clean-up. doctor keeps reporting the file in its "AI-DLC files" row.']};
+  const cfr=document.getElementById('cfr');
+  function cf(v){const c=C[v];cfr.className='result '+c[0];cfr.innerHTML='<div class="verdict">'+c[1]+'</div><pre>'+c[2]+'</pre>';}
+  document.querySelectorAll('#cf button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#cf button').forEach(x=>x.classList.toggle('on',x===b));cf(b.dataset.v);});cf('a');
+})();
+</script>
+</body>
+</html>

@@ -119,6 +119,7 @@
 <!-- TABS -->
 <div class="tab-bar">
   <div style="color:white;font-size:13px;opacity:0.7;padding:16px 0;margin-right:12px;">AIDLC Onboarding Kits:</div>
+  <a href="index.html" class="tab" style="text-decoration:none">⌂ Hub</a>
   <button class="tab active" onclick="switchTab('dev', this)">🛠️ Developer / Engineer Starter Guide</button>
   <button class="tab" onclick="switchTab('po', this)">📋 Product Owner Starter Guide</button>
 </div>
@@ -127,11 +128,11 @@
 <div id="dev" class="panel active">
   <div class="cover-dev cover-common">
     <h1>Developer Onboarding Kit — AIDLC</h1>
-    <div class="sub">Your practical guide to working in an AI-Driven Development Lifecycle · Stack: Azure DevOps · Jenkins · Visual Studio / XCode / CLI</div>
+    <div class="sub">Your practical guide to working in an AI-Driven Development Lifecycle · Stack: Azure DevOps · Jenkins · VS Code / Copilot CLI / Claude Code</div>
     <div class="badges">
       <span class="badge">Software Engineers</span>
       <span class="badge">Estimated read: 20 min</span>
-      <span class="badge">Version 1.0 · March 2026</span>
+      <span class="badge">Version 2.0 · October 2026 (AI-DLC 2.11)</span>
     </div>
   </div>
   <div class="main">
@@ -143,65 +144,59 @@
       <li>Provide clear problem statements that give AI enough context to work from</li>
       <li>Participate in Mob Construction sessions — real-time collaborative review of AI-generated code</li>
       <li>Review and approve every line of AI-generated code before it merges</li>
-      <li>Maintain and improve AIDLC steering rules as you learn what works</li>
+      <li>Keep useful corrections at the learning gate so they become team rules (<code>memory/</code>)</li>
     </ul>
 
     <h2 class="section">Your First Week Checklist</h2>
     <ul class="checklist">
-      <li><span class="check"></span><div><strong>Set up AIDLC rules in your primary repo</strong><p>Follow the 5-step setup below. Takes ~20 minutes. Do this before your first Mob session.</p></div></li>
-      <li><span class="check"></span><div><strong>Read the core-workflow.md file</strong><p>Located in <code>.github/copilot-instructions.md</code> after setup. Understand what the AI is being told to do before you interact with it.</p></div></li>
-      <li><span class="check"></span><div><strong>Run your first AIDLC trigger on a sandbox task</strong><p>Pick a non-critical bug or small improvement. Type "Using AI-DLC, ..." and follow the workflow through at least the Inception phase.</p></div></li>
+      <li><span class="check"></span><div><strong>Set up AIDLC 2.11 in your primary repo</strong><p>Follow the 5-step setup below. Takes ~20 minutes. Do this before your first Mob session.</p></div></li>
+      <li><span class="check"></span><div><strong>Do the six simulators</strong><p>Start with the <a href="AIDLC_Feature_Tour.html">Feature Tour</a>, then Setup, Greenfield and <a href="AIDLC_Sim_Hooks.html">Hooks</a>, so you know why the workflow stops where it does.</p></div></li>
+      <li><span class="check"></span><div><strong>Run your first AIDLC trigger on a sandbox task</strong><p>Pick a non-critical bug or small improvement. Type <code>/aidlc express …</code> or <code>/aidlc bugfix …</code> and follow it to the end.</p></div></li>
       <li><span class="check"></span><div><strong>Attend your first Mob Construction session</strong><p>Even as an observer. Understand how the team interacts with AI in real-time before leading one yourself.</p></div></li>
-      <li><span class="check"></span><div><strong>Review the semantic context document for your team</strong><p>This is the document your architect maintains that tells AI about your codebase's patterns and conventions. You need to know it to validate AI proposals.</p></div></li>
-      <li><span class="check"></span><div><strong>Set up GitHub Copilot in Visual Studio (if not already)</strong><p>Ensure you have at least the Business tier — required for AIDLC project rules support.</p></div></li>
+      <li><span class="check"></span><div><strong>Read your team's memory and knowledge</strong><p><code>aidlc/spaces/default/memory/team.md</code> and <code>project.md</code> (rules) and <code>knowledge/</code> (standards). You need to know them to validate AI proposals.</p></div></li>
+      <li><span class="check"></span><div><strong>Set up your AIDLC tool</strong><p>Claude Code, or GitHub Copilot in <strong>VS Code ≥ 1.130</strong> / Copilot CLI ≥ 1.0.74. Visual Studio 2022 isn't a supported AIDLC surface.</p></div></li>
     </ul>
 
-    <h2 class="section">Step-by-Step: Setting Up AIDLC in Your Repo</h2>
+    <h2 class="section">Step-by-Step: Setting Up AIDLC in Your Repo (v2.11)</h2>
     <ol class="steps">
       <li><div class="step-content">
-        <strong>Download the AIDLC workflow rules</strong>
-        Go to <code>github.com/awslabs/aidlc-workflows</code>. Download the latest release zip to your Downloads folder. Extract it — you'll have an <code>aidlc-rules/</code> folder with two subfolders.
+        <strong>Install the native <code>aidlc</code> command (once per machine)</strong>
+        No Bun or Node.js needed. Use a normal (non-admin) terminal.
+        <pre><span class="comment"># Windows PowerShell</span>
+irm https://github.com/awslabs/aidlc-workflows/releases/latest/download/install.ps1 | iex
+<span class="comment"># macOS / Linux / WSL</span>
+curl -fsSL https://github.com/awslabs/aidlc-workflows/releases/latest/download/install.sh | sh
+aidlc version</pre>
       </div></li>
       <li><div class="step-content">
-        <strong>Set up the GitHub Copilot instruction file</strong>
-        In your repo root, create a <code>.github/</code> directory if it doesn't exist. Copy the core workflow file:
-        <pre><span class="comment"># On Mac/Linux</span>
-mkdir -p .github
-cp ~/Downloads/aidlc-rules/aws-aidlc-rules/core-workflow.md \
-   .github/copilot-instructions.md
-
-<span class="comment"># On Windows</span>
-mkdir .github
-copy %USERPROFILE%\Downloads\aidlc-rules\aws-aidlc-rules\core-workflow.md .github\copilot-instructions.md</pre>
+        <strong>Configure the repo for your tools</strong>
+        Both harnesses can live in one repo and share the same <code>aidlc/</code> workspace.
+        <pre>cd C:\dev\billing-service
+git switch -c chore/aidlc-v2-setup
+aidlc config --harness claude      <span class="comment"># Claude Code → .claude/</span>
+aidlc config --harness copilot     <span class="comment"># Copilot CLI + VS Code → .aidlc/ .github/ AGENTS.md</span></pre>
       </div></li>
       <li><div class="step-content">
-        <strong>Copy the rule details folder</strong>
-        <pre><span class="comment"># On Mac/Linux</span>
-mkdir -p .aidlc-rule-details
-cp -R ~/Downloads/aidlc-rules/aws-aidlc-rule-details/* .aidlc-rule-details/
-
-<span class="comment"># On Windows</span>
-mkdir .aidlc-rule-details
-xcopy %USERPROFILE%\Downloads\aidlc-rules\aws-aidlc-rule-details .aidlc-rule-details\ /E /I</pre>
+        <strong>Let the tools run the hooks</strong>
+        Claude Code: approve the project hooks (<code>/hooks</code>) and restart. VS Code: trust the workspace (<em>Chat: Use Hooks</em> is already on in <code>.vscode/settings.json</code>). Copilot CLI: run <code>copilot</code> once and accept "remember this folder".
       </div></li>
       <li><div class="step-content">
-        <strong>Add an <code>aidlc-docs/</code> folder placeholder and commit</strong>
-        <pre>mkdir -p aidlc-docs
-touch aidlc-docs/.gitkeep <span class="comment"># Keeps the folder in git</span>
-git add .github/ .aidlc-rule-details/ aidlc-docs/
-git commit -m "chore: add AIDLC workflow steering rules and docs folder"
-git push</pre>
+        <strong>Check, commit, PR</strong>
+        <pre>aidlc doctor                       <span class="comment"># 0 problems</span>
+git add .aidlc .claude .github .vscode AGENTS.md aidlc .gitignore
+git commit -m "chore: set up AI-DLC 2.11 for Claude Code and GitHub Copilot"
+git push -u origin chore/aidlc-v2-setup</pre>
       </div></li>
       <li><div class="step-content">
-        <strong>Verify in Visual Studio</strong>
-        Open the repo in VS. Open GitHub Copilot Chat. Confirm the rules are active by typing: "Using AI-DLC, what phase are we in?" — the AI should respond that it's ready to begin the Inception phase.
+        <strong>Verify in your tool</strong>
+        In Claude Code, the Copilot CLI, or VS Code Chat (Agent mode), type <code>/aidlc --doctor</code>, then try <code>/aidlc express add a health endpoint</code> on a scratch branch. Full walkthrough: <a href="AIDLC_Sim_Setup.html">Setup simulator</a>. Already on v1? See <a href="AIDLC_Sim_Upgrade.html">Upgrade paths</a>.
       </div></li>
     </ol>
 
     <h2 class="section">Your AIDLC Daily Workflow</h2>
     <div class="workflow">
       <div class="wf-step"><div class="wf-icon">📋</div><strong>Pick a work item</strong>from Azure DevOps backlog</div>
-      <div class="wf-step active-step"><div class="wf-icon">🤖</div><strong>Trigger AIDLC</strong>"Using AI-DLC, ..."</div>
+      <div class="wf-step active-step"><div class="wf-icon">🤖</div><strong>Start AIDLC</strong><code>/aidlc …</code></div>
       <div class="wf-step"><div class="wf-icon">❓</div><strong>Answer AI questions</strong>Inception phase</div>
       <div class="wf-step"><div class="wf-icon">✅</div><strong>Approve requirements</strong>Human checkpoint</div>
       <div class="wf-step"><div class="wf-icon">🏗️</div><strong>Mob Construction</strong>AI generates code</div>
@@ -209,28 +204,32 @@ git push</pre>
       <div class="wf-step"><div class="wf-icon">🚀</div><strong>Merge &amp; deploy</strong>Jenkins pipeline</div>
     </div>
 
-    <h2 class="section">Triggering AIDLC: Prompt Examples</h2>
+    <h2 class="section">Starting AIDLC: Prompt Examples</h2>
     <div class="card">
-      <h3>🟢 Good triggers — give AI clear scope and context</h3>
-      <pre><span class="string">"Using AI-DLC, I need to add email notifications when a Jenkins build fails.
-The notification should include the build name, error summary, and a link
-to the build log. Our notification system uses SendGrid."</span>
+      <h3>🟢 Good starts: clear scope and context</h3>
+      <pre><span class="string">/aidlc bugfix email notifications aren't sent when a Jenkins build fails;
+they should include the build name, error summary and a link to the log</span>
 
-<span class="string">"Using AI-DLC, the customer list endpoint in the billing service is slow
-when there are more than 1000 records. I want to add server-side pagination
-following our REST API standards."</span>
+<span class="string">/aidlc the customer list endpoint in billing-service is slow above 1000
+records; add server-side pagination following our REST API standards</span>
 
-<span class="string">"Using AI-DLC, we have a new requirement: users must be able to export
-their transaction history as a CSV. This is a brownfield addition to
-the reporting module."</span></pre>
+<span class="string">/aidlc classic users must be able to export their transaction history as CSV
+(brownfield addition to the reporting module; brief in docs/briefs/ADO-5301.docx)</span></pre>
     </div>
     <div class="card">
-      <h3>🔴 Weak triggers — too vague, AI will ask many basic questions</h3>
-      <pre><span class="comment"># Too vague — what feature? Which module? What's the expected behaviour?</span>
-<span class="string">"Using AI-DLC, fix the search feature"</span>
+      <h3>🔴 Weak starts: too vague, AI will ask many basic questions</h3>
+      <pre><span class="comment"># Too vague: what feature? Which module? Expected behaviour?</span>
+<span class="string">/aidlc fix the search feature</span>
 
-<span class="comment"># Too broad — AI will ask to narrow scope first</span>
-<span class="string">"Using AI-DLC, rebuild the user dashboard"</span></pre>
+<span class="comment"># Too broad: you'll get a compose offer to narrow it</span>
+<span class="string">/aidlc rebuild the user dashboard</span></pre>
+    </div>
+    <div class="card">
+      <h3>⌨️ Handy follow-ups</h3>
+      <pre><span class="string">/aidlc</span>                         <span class="comment"># carry on where the work stopped</span>
+<span class="string">/aidlc --status</span>                <span class="comment"># where are we, what's on/off</span>
+<span class="string">looks fine but rename the handler</span>  <span class="comment"># approve + instruction, at any gate</span>
+<span class="string">Approve, but let's stop there for today</span>  <span class="comment"># approve + park</span></pre>
     </div>
 
     <h2 class="section">Code Review Standards for AI-Generated Code</h2>
@@ -250,17 +249,17 @@ the reporting module."</span></pre>
       <li>Review AI-generated Jenkinsfile changes with the same rigour as application code</li>
       <li>Ensure AI-proposed pipeline stages match your existing standards (build → test → SAST → deploy)</li>
       <li>Do not let AI modify security scanning stages without architect review</li>
-      <li>AIDLC's <code>aidlc-docs/operations/</code> folder will contain infrastructure decisions — review these before applying to Jenkins</li>
+      <li>The intent's Construction (CI Pipeline) and Operation stage folders will contain pipeline and infrastructure decisions — review these before applying to Jenkins</li>
     </ul>
 
     <h2 class="section">What to Do When AIDLC Gets It Wrong</h2>
     <table class="info">
       <thead><tr><th>Problem</th><th>What to Do</th></tr></thead>
       <tbody>
-        <tr><td>AI generates code that doesn't match our patterns</td><td>Reject the PR. Flag it to your architect. Update the steering rule file to include the standard explicitly. Do not just fix it manually each time.</td></tr>
+        <tr><td>AI generates code that doesn't match our patterns</td><td>Reject the PR. Flag it to your architect. Add the standard to <code>memory/team.md</code> (or keep it at the learning gate). Do not just fix it manually each time.</td></tr>
         <tr><td>AI asks questions you can't answer</td><td>Good — that's a knowledge gap in the team. Escalate to architect or PO before proceeding. Don't guess your way through an approval.</td></tr>
         <tr><td>AI seems to "hallucinate" a library or API that doesn't exist</td><td>Reject it immediately. AI can confidently suggest non-existent APIs. Always verify imports compile against your actual dependency tree.</td></tr>
-        <tr><td>AIDLC workflow gets stuck or loses context</td><td>Check <code>aidlc-docs/aidlc-state.md</code>. Start a new Copilot chat session with "Using AI-DLC, continue from the last saved state in aidlc-state.md."</td></tr>
+        <tr><td>AIDLC workflow gets stuck or loses context</td><td>Type <code>/aidlc --status</code>: usually it's waiting on a gate. Start a new chat and type <code>/aidlc</code> to carry on. If hooks never ran, the agent names the one fix for your tool; run <code>aidlc doctor</code>.</td></tr>
         <tr><td>Team disagrees on AI's proposed architecture</td><td>Do not proceed. Raise it in Mob Construction. AI should be given the consensus direction. Never approve a contested architecture decision to move things along.</td></tr>
       </tbody>
     </table>
@@ -274,13 +273,14 @@ the reporting module."</span></pre>
     <table class="info">
       <thead><tr><th>File / Folder</th><th>Purpose</th><th>Who Owns It</th></tr></thead>
       <tbody>
-        <tr><td><code>.github/copilot-instructions.md</code></td><td>Core AIDLC workflow rules. Activates AIDLC in GitHub Copilot.</td><td>Team (under branch protection)</td></tr>
-        <tr><td><code>.aidlc-rule-details/</code></td><td>Detailed phase-specific rules referenced dynamically by the workflow.</td><td>Team (under branch protection)</td></tr>
-        <tr><td><code>aidlc-docs/</code></td><td>All AI-generated artefacts: requirements, design, audit log. Version-controlled.</td><td>AIDLC auto-generates; team reviews</td></tr>
-        <tr><td><code>aidlc-docs/aidlc-state.md</code></td><td>Tracks current phase and stage. Enables resuming sessions.</td><td>AIDLC auto-generates</td></tr>
-        <tr><td><code>aidlc-docs/audit.md</code></td><td>Full timestamped log of all AI actions and human approvals.</td><td>AIDLC auto-generates; do not edit</td></tr>
-        <tr><td><code>aidlc-docs/inception/requirements.md</code></td><td>AI-generated requirements and user stories (Inception phase output).</td><td>PO approves; dev reviews</td></tr>
-        <tr><td><code>aidlc-docs/construction/design.md</code></td><td>AI-generated architecture and functional design (Construction phase output).</td><td>Architect approves; dev reviews</td></tr>
+        <tr><td><code>.claude/</code> · <code>.aidlc/</code> · <code>.github/{hooks,agents,skills}/aidlc*</code> · <code>AGENTS.md</code> block</td><td>The AIDLC engine per tool: hooks, agents, skills, scopes, sensors. Refreshed by <code>aidlc config</code>.</td><td>Framework (don't hand-edit)</td></tr>
+        <tr><td><code>aidlc/spaces/default/memory/</code></td><td>Rules: <code>org.md</code> → <code>team.md</code> → <code>project.md</code> → <code>phases/</code>. Includes Guard Policy. Never overwritten by upgrades.</td><td>Architect / team (branch protection)</td></tr>
+        <tr><td><code>aidlc/spaces/default/knowledge/</code></td><td>Team reference standards (<code>aidlc-shared/</code>, per-agent folders) and DocumentKB.</td><td>Team</td></tr>
+        <tr><td><code>aidlc/spaces/default/codekb/&lt;repo&gt;/</code></td><td>What the code is; written by Reverse Engineering.</td><td>AIDLC generates; architect reviews</td></tr>
+        <tr><td><code>…/intents/&lt;YYMMDD-label&gt;/aidlc-state.md</code></td><td>Where this piece of work is, plus its settings and where each came from.</td><td>AIDLC (don't edit)</td></tr>
+        <tr><td><code>…/intents/&lt;YYMMDD-label&gt;/audit/</code></td><td>Decision trail: every gate with the person's own words. Written by hooks.</td><td>AIDLC (agents can't write it)</td></tr>
+        <tr><td><code>…/inception/requirements-analysis/requirements.md</code></td><td>Requirements (Inception output).</td><td>PO approves; dev reviews</td></tr>
+        <tr><td><code>…/inception/domain-design/</code> · <code>…/construction/&lt;unit&gt;/</code></td><td>Design, ADRs, code plans, per-Unit artefacts.</td><td>Architect / lead dev approve</td></tr>
       </tbody>
     </table>
 
@@ -295,7 +295,7 @@ the reporting module."</span></pre>
     <div class="badges">
       <span class="badge">Product Owners</span>
       <span class="badge">Estimated read: 20 min</span>
-      <span class="badge">Version 1.0 · March 2026</span>
+      <span class="badge">Version 2.0 · October 2026 (AI-DLC 2.11)</span>
     </div>
   </div>
   <div class="main">
@@ -313,7 +313,7 @@ the reporting module."</span></pre>
 
     <h2 class="section">Your First Week Checklist</h2>
     <ul class="checklist">
-      <li><span class="check"></span><div><strong>Understand the three AIDLC phases</strong><p>Inception, Construction, Operations. Your primary domain is Inception, but you approve phase transitions for all three.</p></div></li>
+      <li><span class="check"></span><div><strong>Understand the AIDLC phases</strong><p>Ideation, Inception, Construction, Operation (plus automatic Initialization). Your primary domain is Inception, but you approve phase transitions for all three.</p></div></li>
       <li><span class="check"></span><div><strong>Prepare your product context document</strong><p>Write a 1-page summary of your product: its users, core problems it solves, key constraints, and business goals. This becomes part of the AI's context in every Inception session.</p></div></li>
       <li><span class="check"></span><div><strong>Observe a Mob Elaboration session</strong><p>If your pilot team is running one, attend as an observer before leading your first one.</p></div></li>
       <li><span class="check"></span><div><strong>Review your Azure DevOps backlog with AIDLC in mind</strong><p>Identify which items are large enough to benefit from a full AIDLC Inception phase vs items that are small enough for direct Construction.</p></div></li>
@@ -328,9 +328,9 @@ the reporting module."</span></pre>
       <ol class="steps" style="margin-top:12px;">
         <li><div class="step-content"><strong>You present the business intent (5 min)</strong>Describe the problem or opportunity in plain language. Example: "We need users to be able to download their invoice history as a PDF. This is blocking enterprise sales."</div></li>
         <li><div class="step-content"><strong>AI analyses and asks clarifying questions (15 min)</strong>AI asks about users, edge cases, constraints, integrations. You answer. So does the team. Capture decisions.</div></li>
-        <li><div class="step-content"><strong>AI generates a requirements draft (10 min)</strong>Requirements, user stories, and acceptance criteria appear in <code>aidlc-docs/inception/requirements.md</code>. Everyone reviews.</div></li>
+        <li><div class="step-content"><strong>AI generates a requirements draft (10 min)</strong>Requirements, user stories, and acceptance criteria appear in the intent's <code>inception/requirements-analysis/requirements.md</code>. Everyone reviews. Answers you give are kept in the questions file with <code>[Answer]:</code> lines.</div></li>
         <li><div class="step-content"><strong>Team reviews and corrects (30 min)</strong>You lead the review. What did AI miss? What's wrong? What's in scope vs out? Correct the AI through the chat interface — it updates the artefacts in real-time.</div></li>
-        <li><div class="step-content"><strong>You approve the Inception checkpoint (5 min)</strong>When you are satisfied with the requirements, explicitly approve them. Example: "AI-DLC, I approve the requirements in requirements.md. Please proceed to Construction." This is your formal sign-off.</div></li>
+        <li><div class="step-content"><strong>You approve the Inception checkpoint (5 min)</strong>When you are satisfied with the requirements, explicitly approve them. Just reply in your own words at the gate, e.g. "approved" or "approve, but add an unsubscribe requirement". Your exact words are recorded in the audit trail as your sign-off. You can answer from your own VS Code chat.</div></li>
       </ol>
     </div>
 
@@ -408,7 +408,8 @@ the reporting module."</span></pre>
     <ul>
       <li><strong>AIDLC Methodology:</strong> prod.d13rzhkk8cj2z0.amplifyapp.com</li>
       <li><strong>AWS Blog — AIDLC Introduction:</strong> aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/</li>
-      <li><strong>Your team's AIDLC rules:</strong> Check your Azure DevOps repo under <code>.github/copilot-instructions.md</code></li>
+      <li><strong>Your team's AIDLC rules:</strong> <code>aidlc/spaces/default/memory/</code> in your Azure DevOps repo; documents in DocumentKB (<code>/aidlc knowledge list</code>)</li>
+      <li><strong>Upstream docs:</strong> awslabs.github.io/aidlc-workflows · github.com/awslabs/aidlc-workflows</li>
       <li><strong>Questions?</strong> See the AIDLC FAQ document (companion to this guide)</li>
     </ul>
 

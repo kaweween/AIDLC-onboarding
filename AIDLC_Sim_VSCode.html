@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIDLC in VS Code</title>
+<meta name="description" content="Simulator: running AI-DLC 2.11 from the VS Code editor chat, the Agents window, the Copilot CLI and Claude Code.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<style>
+.vsc{border:1px solid #3c3c3c;border-radius:10px;overflow:hidden;margin:14px 0;background:#1e1e1e;font-size:12.5px;color:#ccc;}
+.vsc-title{background:#323233;color:#ccc;font-size:12px;padding:6px 12px;display:flex;gap:10px;align-items:center;}
+.vsc-title .dots{display:flex;gap:6px;}
+.vsc-title .ttl{flex:1;text-align:center;color:#aaa;}
+.vsc-main{display:grid;grid-template-columns:42px 190px minmax(0,1fr) 340px;min-height:360px;}
+.vsc-act{background:#333;display:flex;flex-direction:column;align-items:center;gap:14px;padding-top:12px;font-size:16px;color:#888;}
+.vsc-act .on{color:#fff;}
+.vsc-side{background:#252526;padding:8px 0;font-family:var(--font-mono);font-size:11.5px;overflow:hidden;}
+.vsc-side .h{font-family:var(--font-ui);font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:#999;padding:2px 12px 6px;}
+.vsc-side .f{padding:2px 12px;white-space:nowrap;color:#c5c5c5;}
+.vsc-side .f.sel{background:#37373d;}
+.vsc-side .f.dim{color:#7a7a7a;}
+.vsc-ed{background:#1e1e1e;display:flex;flex-direction:column;min-width:0;}
+.vsc-tabs{display:flex;background:#252526;font-size:11.5px;}
+.vsc-tabs span{padding:6px 12px;border-right:1px solid #1e1e1e;color:#999;white-space:nowrap;}
+.vsc-tabs span.on{background:#1e1e1e;color:#fff;}
+.vsc-code{padding:10px 14px;font-family:var(--font-mono);font-size:12px;line-height:1.7;white-space:pre-wrap;flex:1;overflow:auto;}
+.vsc-chat{background:#252526;border-left:1px solid #3c3c3c;display:flex;flex-direction:column;min-width:0;}
+.vsc-chat .ch{padding:7px 12px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#bbb;border-bottom:1px solid #3c3c3c;display:flex;gap:8px;}
+.vsc-chat .msgs{flex:1;padding:10px 12px;overflow:auto;}
+.vsc-chat .m{margin-bottom:10px;font-size:12.5px;line-height:1.55;}
+.vsc-chat .m .w{font-size:10.5px;font-weight:700;color:#9cdcfe;margin-bottom:2px;}
+.vsc-chat .m.u .w{color:#e3b341;}
+.vsc-chat .m .b{background:#2d2d30;border-radius:6px;padding:7px 9px;}
+.vsc-chat .m.u .b{background:#3a3016;}
+.vsc-chat .tool{font-family:var(--font-mono);font-size:11px;color:#8b949e;border-left:2px solid #555;padding-left:8px;margin:4px 0;}
+.vsc-chat .in{border-top:1px solid #3c3c3c;padding:8px;}
+.vsc-chat .in .box{background:#3c3c3c;border-radius:6px;padding:6px 8px;display:flex;gap:6px;align-items:center;}
+.vsc-chat .in input{flex:1;background:transparent;border:0;color:#fff;font:12.5px var(--font-ui);outline:none;min-width:0;}
+.vsc-chat .in .meta{display:flex;gap:6px;margin-top:6px;}
+.chip{font-size:10.5px;background:#2d2d30;border:1px solid #555;border-radius:10px;padding:1px 8px;color:#ccc;}
+.vsc-status{background:#007acc;color:#fff;font-size:11px;padding:3px 12px;display:flex;gap:16px;}
+.vsc-status.purple{background:#68217a;}
+.sess{display:grid;gap:8px;padding:12px;}
+.sess .s{background:#2d2d30;border:1px solid #3c3c3c;border-radius:8px;padding:9px 11px;cursor:pointer;}
+.sess .s.on{border-color:#007acc;}
+.sess .s .t{font-weight:600;color:#fff;font-size:12.5px;}
+.sess .s .d{font-size:11px;color:#999;}
+.dlg{background:#252526;border:1px solid #454545;border-radius:8px;padding:16px;max-width:520px;margin:14px auto;box-shadow:0 8px 24px rgba(0,0,0,.5);}
+.dlg h4{color:#fff;margin-bottom:6px;}
+.dlg p{font-size:13px;color:#bbb;}
+.dlg .btns{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;}
+.dlg .btns span{padding:5px 12px;border-radius:3px;font-size:12.5px;background:#3a3d41;color:#fff;}
+.dlg .btns span.p{background:#0e639c;}
+@media (max-width:980px){.vsc-main{grid-template-columns:42px minmax(0,1fr);}.vsc-side,.vsc-ed{display:none;}.vsc-chat{border-left:0;}}
+</style>
+</head>
+<body>
+
+<header class="sim-header">
+  <div class="icon">🖥️</div>
+  <div>
+    <h1>Simulation 7: AIDLC in VS Code, the Agents Window &amp; the CLI</h1>
+    <p>The same AIDLC 2.11 workflow from every surface your team uses: the editor's chat panel, the agent sessions window, the Copilot CLI, and Claude Code.</p>
+    <div class="stack-pills"><span class="pill">VS Code ≥ 1.130 agent mode</span><span class="pill">Copilot CLI ≥ 1.0.74</span><span class="pill">Claude Code (terminal + VS Code)</span><span class="pill">Interactive</span></div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+
+<div class="sim-body">
+  <nav class="sidebar" id="steps-nav" aria-label="Steps"></nav>
+  <main class="main-area">
+    <div class="progress-bar-container">
+      <div class="progress-bar-outer"><div class="progress-bar-inner" id="progress"></div></div>
+      <div class="progress-label" id="progress-label">Step 1</div>
+    </div>
+    <div class="step-content-area">
+
+<!-- 1 -->
+<section class="step-panel" data-section="Surfaces" data-title="Pick your surface" data-sub="One install, many windows">
+  <div class="step-header"><div class="phase-tag purple">🧭 Surfaces</div><h2>Four ways in, one shared record</h2>
+  <p>The Copilot harness is <strong>one install for two surfaces</strong>: VS Code agent mode and the Copilot CLI read the same <code>.github/{skills,agents,hooks}</code> and <code>AGENTS.md</code>. Claude Code reads <code>.claude/</code>. All of them write the same <code>aidlc/</code> record, so you can switch surfaces mid-feature.</p></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Surface</th><th>Best for</th><th>Hooks run when…</th><th>Gates render as</th></tr>
+    <tr><td><strong>VS Code: editor + Chat (Agent)</strong></td><td>Reading artefacts beside the chat, editing question files, reviewing diffs</td><td>Workspace trusted + <code>chat.useHooks</code> on</td><td>Numbered prose options; reply in chat</td></tr>
+    <tr><td><strong>VS Code: agent sessions (Agents window)</strong></td><td>Several chats at once, e.g. one per intent; watching subagents</td><td>Same as above, per session</td><td>Numbered prose, per session</td></tr>
+    <tr><td><strong>Copilot CLI</strong></td><td>Terminal-first devs, scripted/headless runs</td><td>Folder in <code>trustedFolders</code>; headless also needs the repo-hooks env var</td><td>Numbered prose</td></tr>
+    <tr><td><strong>Claude Code</strong> (terminal or its VS Code panel)</td><td>Native question picker, status line</td><td>Project hooks approved; restart after config</td><td>Native question picker</td></tr>
+  </table></div>
+  <div class="callout info"><div class="icon">ℹ️</div><p>VS Code's chat and agent-session UI changes often between releases; labels in these mock-ups follow VS Code 1.130-era naming and may differ slightly in your build. The AIDLC behaviour shown is from the upstream 2.11 Copilot harness guide.</p></div>
+</section>
+
+<!-- 2 -->
+<section class="step-panel" data-section="VS Code editor" data-title="Open & trust" data-sub="Workspace Trust, hooks setting">
+  <div class="step-header"><div class="phase-tag amber">🔐 First open</div><h2>Open the folder and trust it</h2>
+  <p>VS Code runs repo hooks only in a trusted workspace with <strong>Chat: Use Hooks</strong> on. <code>aidlc config --harness copilot</code> already put <code>"chat.useHooks": true</code> and <code>"chat.agent.maxRequests": 200</code> into <code>.vscode/settings.json</code>.</p></div>
+  <div class="dlg">
+    <h4>Do you trust the authors of the files in this folder?</h4>
+    <p>billing-service contains repository hooks (.github/hooks/aidlc.json) that agent mode will run as commands on your machine.</p>
+    <div class="btns"><span>No, I don't trust the authors</span><span class="p">Yes, I trust the authors</span></div>
+  </div>
+  <div class="doc"><div class="doc-bar">.vscode/settings.json<span class="state">written by aidlc config (only keys you didn't set)</span></div>
+<div class="doc-body">{
+  <span class="md-k">"chat.agent.maxRequests"</span>: 200,
+  <span class="md-k">"chat.useHooks"</span>: true
+}</div></div>
+  <div class="callout warn"><div class="icon">⚠️</div><p><strong>Why 200?</strong> Agent mode stops after <code>chat.agent.maxRequests</code> requests in one turn (default 50) and waits silently on "Continue to iterate?". A Construction stage easily passes 50 tool calls. The project value wins over your user setting; <code>/aidlc --doctor</code> warns if it's below 100.</p></div>
+</section>
+
+<!-- 3 -->
+<section class="step-panel" data-section="VS Code editor" data-title="Editor + Chat" data-sub="Start a workflow">
+  <div class="step-header"><div class="phase-tag blue">💬 Agent mode</div><h2>Start AIDLC from the chat panel</h2>
+  <p>Open Chat, switch to <strong>Agent</strong>, pick your model (AIDLC pins none; every agent uses your chat's model), and type <code>/aidlc</code>. Type a reply below to play the gate.</p></div>
+  <div class="vsc">
+    <div class="vsc-title"><div class="dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div><div class="ttl">requirements.md — billing-service — Visual Studio Code</div></div>
+    <div class="vsc-main">
+      <div class="vsc-act"><span class="on">📄</span><span>🔍</span><span>⑂</span><span>🧩</span><span>💬</span></div>
+      <div class="vsc-side">
+        <div class="h">Explorer</div>
+        <div class="f">▾ billing-service</div>
+        <div class="f dim">  › .aidlc</div>
+        <div class="f dim">  › .github</div>
+        <div class="f">  ▾ aidlc/spaces/default</div>
+        <div class="f">    › memory</div>
+        <div class="f">    ▾ intents/261011-bulk-…</div>
+        <div class="f">      aidlc-state.md</div>
+        <div class="f">      ▾ inception/requirements-…</div>
+        <div class="f sel">        requirements.md</div>
+        <div class="f">        requirements-analysis-q…</div>
+        <div class="f">  › src</div>
+        <div class="f">  AGENTS.md</div>
+      </div>
+      <div class="vsc-ed">
+        <div class="vsc-tabs"><span class="on">requirements.md</span><span>aidlc-state.md</span></div>
+<div class="vsc-code"><span class="md-h"># Requirements: Bulk invoice export</span>
+
+<span class="md-h">## Functional Requirements</span>
+- <span class="md-k">FR-01</span> Filter by date range and status
+- <span class="md-k">FR-02</span> CSV: header only + totals row
+- <span class="md-k">FR-03</span> &lt; 50 invoices: synchronous
+- <span class="md-k">FR-04</span> ≥ 50: async via /api/v2/jobs
+- <span class="md-k">FR-05</span> Max 500 per export
+<span class="md-h">## Non-Functional Requirements</span>
+- <span class="md-k">NFR-01</span> Finance and Admin roles only
+- <span class="md-k">NFR-02</span> No slowdown of invoice views <span class="md-c">← F-1</span></div>
+      </div>
+      <div class="vsc-chat">
+        <div class="ch">Chat <span class="chip">Agent</span></div>
+        <div class="msgs" id="vmsgs">
+          <div class="m u"><div class="w">You</div><div class="b">/aidlc classic add bulk invoice export, see ADO #5234</div></div>
+          <div class="tool">⚙ Ran aidlc engine orchestrate next …</div>
+          <div class="m"><div class="w">GitHub Copilot</div><div class="b"><strong>Requirements Analysis complete.</strong> 8 FRs, 4 NFRs. Product-lead review: READY, finding F-1 (NFR-02 has no number).<br><br>1. Approve: continue to User Stories<br>2. Request Changes<br><br>Reply in chat (a number, or your own words).</div></div>
+        </div>
+        <div class="in"><div class="box"><input id="vin" placeholder="Reply… e.g. approve but set NFR-02 to p95 under 300 ms" aria-label="chat reply"><button class="btn btn-primary btn-small" id="vsend">➤</button></div>
+          <div class="meta"><span class="chip">Agent ▾</span><span class="chip">Model: your choice ▾</span><span class="chip">🔧 Tools</span></div></div>
+      </div>
+    </div>
+    <div class="vsc-status"><span>⑂ feat/5234-export</span><span>AIDLC hooks: ran</span><span>Ln 12, Col 1</span></div>
+  </div>
+  <div class="callout tip"><div class="icon">💡</div><p>Why numbered prose and not a picker? Picker answers return as tool results, which don't fire the trusted <code>UserPromptSubmit</code> hook. While a workflow is running, AIDLC denies the picker and asks in prose, so <em>your typed message</em> is what approves.</p></div>
+</section>
+
+<!-- 4 -->
+<section class="step-panel" data-section="VS Code editor" data-title="Answer in the editor" data-sub="Edit File mode">
+  <div class="step-header"><div class="phase-tag green">✍️ Edit File mode</div><h2>Answer questions in the editor, then say "done"</h2>
+  <p>Choose <strong>I'll edit the file</strong> and the questions file opens beside the chat. Fill the <code>[Answer]:</code> lines at your own pace. The file is the source of truth for every mode.</p></div>
+  <div class="vsc">
+    <div class="vsc-title"><div class="dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div><div class="ttl">user-stories-questions.md — billing-service</div></div>
+    <div class="vsc-main" style="grid-template-columns:42px minmax(0,1fr) 340px">
+      <div class="vsc-act"><span class="on">📄</span><span>🔍</span><span>⑂</span><span>💬</span></div>
+      <div class="vsc-ed">
+        <div class="vsc-tabs"><span class="on">user-stories-questions.md ●</span></div>
+<div class="vsc-code"><span class="md-h">## Q1</span> Should Finance users see exports created by Admins?
+<span class="md-k">[Answer]:</span> <span class="md-s">Yes, within the same tenant</span>
+
+<span class="md-h">## Q2</span> Notify the user when an async export is ready?
+<span class="md-k">[Answer]:</span> <span class="md-s">In-app badge only, no email</span>
+
+<span class="md-h">## Q3</span> Story size limit?
+<span class="md-k">[Answer]:</span> <span class="md-s">Split anything over 3 days</span></div>
+      </div>
+      <div class="vsc-chat">
+        <div class="ch">Chat <span class="chip">Agent</span></div>
+        <div class="msgs">
+          <div class="m"><div class="w">GitHub Copilot</div><div class="b">Opened <code>user-stories-questions.md</code>. Fill in the [Answer]: lines and tell me when you're done.</div></div>
+          <div class="m u"><div class="w">You</div><div class="b">done</div></div>
+          <div class="m"><div class="w">GitHub Copilot</div><div class="b">Read 3 answers from the file. Writing stories.md…</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="body">Same trick works for a code plan waiting for approval: choose <strong>I'll edit the files</strong>, change <code>code-generation-plan.md</code> in the editor, say "done", and your edited plan is what gets approved.</p>
+</section>
+
+<!-- 5 -->
+<section class="step-panel" data-section="VS Code editor" data-title="Prompts & permissions" data-sub="What asks, what doesn't">
+  <div class="step-header"><div class="phase-tag teal">✅ Approvals in VS Code</div><h2>Fewer "Allow?" clicks in 2.11</h2></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Action</th><th>VS Code behaviour</th></tr>
+    <tr><td>AIDLC's own workflow commands (<code>aidlc engine …</code>)</td><td>Run without an Allow click</td></tr>
+    <tr><td>Commands that change the machine's AIDLC install</td><td>Ask first</td></tr>
+    <tr><td>Your build/test commands (<code>dotnet test</code>)</td><td>Normal VS Code terminal approval</td></tr>
+    <tr><td>Agent turning on <code>chat.useHooks</code> after hooks didn't run</td><td>VS Code asks you to allow that settings edit</td></tr>
+    <tr><td>Long steps</td><td>Each step fits VS Code's 20,000-character terminal result</td></tr>
+  </table></div>
+  <div class="vsc"><div class="vsc-chat" style="border-left:0">
+    <div class="msgs">
+      <div class="m"><div class="w">GitHub Copilot</div><div class="b">Run <code>dotnet test BillingService.sln --filter Category!=Slow</code>?<div class="meta" style="display:flex;gap:6px;margin-top:6px"><span class="chip">Allow</span><span class="chip">Always allow in this workspace</span><span class="chip">Skip</span></div></div></div>
+    </div></div></div>
+</section>
+
+<!-- 6 -->
+<section class="step-panel" data-section="Agents window" data-title="Agent sessions" data-sub="One chat per intent">
+  <div class="step-header"><div class="phase-tag purple">🗂️ Agents window</div><h2>Run several AIDLC chats side by side</h2>
+  <p>VS Code's agent sessions view lists your chats. AIDLC binds <strong>each chat to one piece of work</strong> (a session binding), so a switch in one window never moves another window's workflow. Click a session:</p></div>
+  <div class="vsc">
+    <div class="vsc-title"><div class="dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div><div class="ttl">Agents — billing-service</div></div>
+    <div class="vsc-main" style="grid-template-columns:260px minmax(0,1fr)">
+      <div class="vsc-side" style="padding:0"><div class="h" style="padding-top:10px">Sessions</div><div class="sess" id="sess"></div></div>
+      <div class="vsc-chat" style="border-left:1px solid #3c3c3c"><div class="ch" id="sh">Chat</div><div class="msgs" id="sbody"></div></div>
+    </div>
+    <div class="vsc-status purple"><span id="sstat">space · intent</span></div>
+  </div>
+  <ul class="body">
+    <li>New chat + <code>/aidlc</code> with no words carries on with the work this machine has chosen. In a fresh clone with committed work, it names that work and picks it up in one answer.</li>
+    <li><code>/aidlc intent export-bug</code> in a chat switches <em>that chat</em>; other chats stay on their intent.</li>
+    <li>Two concurrent intents in one space are fully supported. Two chats in <em>different spaces</em> can race on the shared ambient memory copy.</li>
+  </ul>
+</section>
+
+<!-- 7 -->
+<section class="step-panel" data-section="Agents window" data-title="Subagents" data-sub="Reviewers & builders">
+  <div class="step-header"><div class="phase-tag blue">🤝 Subagents</div><h2>Watching AIDLC's agents work</h2>
+  <p>For delegated stages (Reverse Engineering, Practices Discovery, User Stories, Code Generation) and reviews, the conductor hands work to the native custom agents in <code>.github/agents/aidlc-*-agent.md</code> via VS Code's <code>runSubagent</code> tool.</p></div>
+  <div class="vsc"><div class="vsc-chat" style="border-left:0"><div class="msgs">
+    <div class="tool">⚙ runSubagent aidlc-architecture-reviewer-agent: "Review construction/export-query/code-generation…"</div>
+    <div class="tool">⇢ SubagentStart hook: stage rules delivered · identity recorded</div>
+    <div class="tool">⇠ SubagentStop hook: log-subagent · verdict NOT-READY, F-4</div>
+    <div class="m"><div class="w">GitHub Copilot</div><div class="b">Reviewer found F-4 (eager line-item load). Builder re-running…</div></div>
+  </div></div></div>
+  <div class="callout warn"><div class="icon">⚠️</div><p><strong>Only what you type counts.</strong> VS Code delivers a subagent's written brief to the hooks the same way as your messages; AIDLC recognises the brief and never counts it as your approval. A message you send in the first few seconds after a subagent starts may be mistaken for the brief; if so, you're asked to reply again.</p></div>
+  <div class="callout info"><div class="icon">🛑</div><p>During Code Generation the developer subagent isn't started until you've approved the plan: the same refusal on VS Code and the CLI.</p></div>
+</section>
+
+<!-- 8 -->
+<section class="step-panel" data-section="Agents window" data-title="Hooks didn't run?" data-sub="Agent Debug Logs">
+  <div class="step-header"><div class="phase-tag coral">🔧 Troubleshoot</div><h2>When VS Code skips the hooks</h2>
+  <p>A skipped hook leaves no message in the chat (the <strong>Agent Debug Logs</strong> panel shows it). Since 2.11 AIDLC watches for this and fixes what it can:</p></div>
+  <div class="vsc"><div class="vsc-chat" style="border-left:0"><div class="msgs">
+    <div class="m u"><div class="w">You</div><div class="b">/aidlc carry on</div></div>
+    <div class="m"><div class="w">GitHub Copilot</div><div class="b">AI-DLC's hooks did not run for your message, so approvals can't be recorded. I'm turning on <strong>Chat: Use Hooks</strong> in this folder's <code>.vscode/settings.json</code> (VS Code will ask you to allow the edit).</div></div>
+    <div class="tool">✎ Edit .vscode/settings.json: "chat.useHooks": true  [Allow] [Skip]</div>
+    <div class="m"><div class="w">GitHub Copilot</div><div class="b">Fixed. Send your next message here to carry on.</div></div>
+  </div></div></div>
+  <ul class="body"><li>If the setting was already on, AIDLC says your <strong>organisation has switched it off</strong>: ask your admin.</li><li>Untrusted workspace: hooks never run. Use <em>Manage Workspace Trust</em>.</li><li><code>/aidlc --doctor</code> can't see VS Code's switches, but it checks everything else.</li></ul>
+</section>
+
+<!-- 9 -->
+<section class="step-panel" data-section="CLI" data-title="Copilot CLI" data-sub="Interactive & headless">
+  <div class="step-header"><div class="phase-tag">⌨️ CLI</div><h2>The same workflow in the Copilot CLI</h2></div>
+  <div class="terminal typer">
+    <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">copilot (interactive)</div><button class="run-btn">▶ Run</button></div>
+    <div class="terminal-body">
+<span class="l"><span class="t-prompt">PS C:\dev\billing-service&gt;</span> <span class="t-cmd">copilot</span></span>
+<span class="l t-warn">? Do you trust the files in this folder?  › Yes, and remember this folder for future sessions</span>
+<span class="l"><span class="t-prompt">&gt;</span> <span class="t-cmd">/aidlc --status</span></span>
+<span class="l t-output" data-wait="400">Work: bulk-invoice-export (classic) · Stage: User Stories · Guard Policy: strict (from team.md)</span>
+<span class="l t-output">Plan Approval: on (from scope classic) · Collaborators: off (from scope classic)</span>
+<span class="l"><span class="t-prompt">&gt;</span> <span class="t-cmd">approve</span></span>
+<span class="l t-success">Approved User Stories. Next: Domain Design</span>
+    </div>
+  </div>
+  <div class="terminal">
+    <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">headless (CI / scripts)</div></div>
+    <div class="terminal-body">
+<span class="l t-comment"># repo hooks run headless only with GITHUB_COPILOT_PROMPT_MODE_REPO_HOOKS set to 1 in the environment</span>
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">copilot -p "/aidlc --doctor" -s --allow-all-tools</span></span>
+<span class="l t-comment"># unattended drivers also declare AIDLC_UNATTENDED (set to 1): gates then wait for a person</span>
+    </div>
+  </div>
+  <div class="callout tip"><div class="icon">💡</div><p>VS Code puts a stand-in <code>copilot</code> on its terminals' PATH that offers to install the CLI. AIDLC's doctor looks past it and reports the CLI as optional when it isn't really installed.</p></div>
+</section>
+
+<!-- 10 -->
+<section class="step-panel" data-section="CLI" data-title="Claude Code" data-sub="Terminal or VS Code panel">
+  <div class="step-header"><div class="phase-tag purple">🟣 Claude Code</div><h2>Claude Code: native picker, status line</h2>
+  <p>Run <code>claude</code> in VS Code's terminal or use the Claude Code panel in VS Code; both read <code>.claude/</code>. Gates use Claude's native question box, and picks from it are recorded as your answer (one box can answer several questions).</p></div>
+  <div class="terminal">
+    <div class="terminal-header"><div class="terminal-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><div class="terminal-title">claude</div></div>
+    <div class="terminal-body">
+<span class="l"><span class="t-prompt">&gt;</span> <span class="t-cmd">/aidlc</span></span>
+<span class="l t-output">Carrying on with bulk-invoice-export at Domain Design.</span>
+<span class="l t-hl">┌ Approval gate · Domain Design ─────────────────────┐</span>
+<span class="l t-hl">│ ❯ Approve: continue to Units Generation            │</span>
+<span class="l t-hl">│   Request Changes                                  │</span>
+<span class="l t-hl">└────────────────────────────────────────────────────┘</span>
+<span class="l t-purple">AIDLC · default · bulk-invoice-export · Domain Design · 9/18</span>   <span class="t-comment"># status line</span>
+    </div>
+  </div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th></th><th>VS Code + Copilot</th><th>Copilot CLI</th><th>Claude Code</th></tr>
+    <tr><td>Engine dir</td><td colspan="2"><code>.aidlc/</code> + <code>.github/</code> + <code>AGENTS.md</code></td><td><code>.claude/</code></td></tr>
+    <tr><td>Questions</td><td colspan="2">Numbered prose; reply in chat</td><td>Native picker</td></tr>
+    <tr><td>Status line</td><td colspan="2">no (use <code>/aidlc --status</code>)</td><td>yes</td></tr>
+    <tr><td>Models</td><td colspan="2">Session model for every agent</td><td>Session model; reviewers may cap effort; set per agent with <code>aidlc config models</code></td></tr>
+    <tr><td>Trust step</td><td>Workspace Trust + Use Hooks</td><td>trustedFolders prompt</td><td><code>/hooks</code> + restart</td></tr>
+  </table></div>
+  <div class="callout success"><div class="icon">✓</div><p>Next: <a href="AIDLC_Sim_Hooks.html">Hooks &amp; guards</a> · <a href="AIDLC_Sim_Setup.html">Setup</a></p></div>
+</section>
+
+    </div>
+  </main>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script>
+(function(){
+  /* editor chat gate */
+  const box=document.getElementById('vmsgs'),inp=document.getElementById('vin');
+  function add(cls,who,html){const d=document.createElement('div');d.className='m '+cls;d.innerHTML='<div class="w">'+who+'</div><div class="b">'+html+'</div>';box.appendChild(d);box.scrollTop=box.scrollHeight;}
+  function esc(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+  function send(){const t=inp.value.trim();if(!t)return;inp.value='';add('u','You',esc(t));
+    const l=t.toLowerCase();let r;
+    if(/^(1|approve[d]?|aprove|looks (good|fine)|lgtm|yes)\b/.test(l)&&/\b(but|and)\b/.test(l))r='Approved, and applied: "'+esc(t.replace(/^.*?\b(but|and)\b\s*/i,''))+'" (one line, done). Recorded GATE_APPROVED with your words.<br><code>Next: User Stories</code>';
+    else if(/^(1|approve[d]?|aprove|looks (good|fine)|lgtm|yes)\b/.test(l))r='Approved. Recorded GATE_APPROVED with Person Reply: "'+esc(t)+'".<br><code>Next: User Stories</code>';
+    else if(/^(hmm+|not sure|maybe)$/.test(l))r='Approve, or what should change?';
+    else if(/\?$/.test(l))r='Good question. (Answered first.) Your next reply decides the gate.';
+    else r='Request Changes recorded with your words as feedback. Revising requirements.md, then I\'ll show the gate again.';
+    setTimeout(()=>{const tl=document.createElement('div');tl.className='tool';tl.textContent='⚙ UserPromptSubmit → record-human-turn · HUMAN_TURN';box.appendChild(tl);add('','GitHub Copilot',r);},350);}
+  document.getElementById('vsend').onclick=send;inp.addEventListener('keydown',e=>{if(e.key==='Enter')send();});
+
+  /* sessions */
+  const S=[['Bulk invoice export','default · bulk-invoice-export · Domain Design','<div class="m"><div class="w">GitHub Copilot</div><div class="b">Domain Design complete: ADR-011 reuse /api/v2/jobs, ADR-012 PdfSharp.<br>1. Approve<br>2. Request Changes</div></div>'],
+    ['Export timeout bug','default · export-timeout · Code Generation','<div class="m"><div class="w">GitHub Copilot</div><div class="b">Plan Approval · export-timeout<br>Plan: construction/code-generation/code-generation-plan.md<br>1. Approve Plan 2. Request Changes 3. I\'ll edit the files</div></div>'],
+    ['Payments team: refunds','payments-team · refunds-api · Requirements','<div class="m"><div class="w">GitHub Copilot</div><div class="b">Answering the way you chose earlier: Chat. What happens to a refund on a voided invoice?</div></div>'],
+    ['Reviewer (subagent)','spawned by "Bulk invoice export"','<div class="tool">aidlc-architecture-reviewer-agent · read-only on sibling Units (reviewer-scope)</div><div class="m"><div class="w">Subagent</div><div class="b">Verdict: READY. 0 new findings.</div></div>']];
+  const ss=document.getElementById('sess');
+  function pick(i){ss.querySelectorAll('.s').forEach((x,j)=>x.classList.toggle('on',i===j));document.getElementById('sh').textContent='Chat · '+S[i][0];document.getElementById('sbody').innerHTML=S[i][2];document.getElementById('sstat').textContent=S[i][1];}
+  S.forEach((s,i)=>{const d=document.createElement('div');d.className='s';d.innerHTML='<div class="t">'+s[0]+'</div><div class="d">'+s[1]+'</div>';d.onclick=()=>pick(i);ss.appendChild(d);});
+  pick(0);
+})();
+</script>
+</body>
+</html>

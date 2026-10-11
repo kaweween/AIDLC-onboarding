@@ -1,9 +1,64 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>AIDLC Onboarding</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIDLC Onboarding Hub</title>
+<meta name="description" content="Onboarding guides and interactive simulators for AI-DLC 2.11 on Claude Code and GitHub Copilot.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<style>
+.wrap{max-width:1100px;margin:0 auto;padding:28px 40px 60px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin:14px 0 28px;}
+a.tile{display:block;text-decoration:none;color:inherit;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;transition:border-color .15s,transform .15s;}
+a.tile:hover{border-color:var(--blue);transform:translateY(-2px);}
+a.tile .em{font-size:24px;}
+a.tile h3{font-size:16px;margin:6px 0 4px;}
+a.tile p{font-size:13px;color:var(--muted);}
+a.tile .tag{display:inline-block;margin-top:8px;font-size:11px;border:1px solid var(--border2);border-radius:10px;padding:1px 8px;color:var(--muted);}
+a.tile .tag.new{border-color:var(--amber);color:var(--amber);}
+h2.sec{font-size:13px;text-transform:uppercase;letter-spacing:1.4px;color:var(--teal);margin-top:10px;}
+@media (max-width:860px){.wrap{padding:18px 16px 40px;}}
+</style>
 </head>
 <body>
-  <h1>Hello! Your GitHub Pages site is working.</h1>
+<header class="sim-header">
+  <div class="icon">🧭</div>
+  <div>
+    <h1>AIDLC Onboarding Hub</h1>
+    <p>Guides and hands-on simulators for the AI-Driven Development Life Cycle, updated for AI-DLC 2.11.0 on Claude Code and GitHub Copilot.</p>
+    <div class="stack-pills"><span class="pill">Updated October 2026</span><span class="pill">AI-DLC 2.11.0</span><span class="pill">Azure DevOps · Jenkins</span></div>
+  </div>
+</header>
+<div class="wrap">
+  <div class="callout info"><div class="icon">ℹ️</div><p><strong>New here?</strong> Read the <a href="AIDLC_Feature_Tour.html">Feature Tour</a>, then do <a href="AIDLC_Sim_Setup.html">Setup</a> and the <a href="AIDLC_Sim_Greenfield.html">Greenfield</a> run. <strong>Already on the v1 rule files?</strong> Start with <a href="AIDLC_Sim_Upgrade.html">Upgrade paths</a>.</p></div>
+
+  <h2 class="sec">Interactive simulators</h2>
+  <div class="grid">
+    <a class="tile" href="AIDLC_Feature_Tour.html"><div class="em">✨</div><h3>Feature Tour</h3><p>What's new in 2.x, a scope explorer and a command cheat-sheet.</p><span class="tag new">new</span></a>
+    <a class="tile" href="AIDLC_Sim_Setup.html"><div class="em">⚙️</div><h3>1 · Setup</h3><p>Native install, Claude Code + Copilot harnesses, trust, doctor, commit.</p><span class="tag new">rewritten for v2.11</span></a>
+    <a class="tile" href="AIDLC_Sim_Greenfield.html"><div class="em">🌱</div><h3>2 · Greenfield</h3><p>Notification service from a PO brief to verified Units and a Jenkinsfile.</p><span class="tag new">rewritten for v2.11</span></a>
+    <a class="tile" href="AIDLC_Sim_Brownfield.html"><div class="em">🏢</div><h3>3 · Brownfield</h3><p>Bulk invoice export on a 38k-line service: Reverse Engineering, CodeKB, strict guards.</p><span class="tag new">rewritten for v2.11</span></a>
+    <a class="tile" href="AIDLC_Sim_Knowledge.html"><div class="em">🧠</div><h3>4 · Knowledge &amp; learning loop</h3><p>Memory rules, team knowledge, DocumentKB, load order and the learning gate.</p><span class="tag new">new</span></a>
+    <a class="tile" href="AIDLC_Sim_Hooks.html"><div class="em">🪝</div><h3>5 · Hooks, guards &amp; sensors</h3><p>Watch the hook spine and try every fence under each Guard Policy.</p><span class="tag new">new</span></a>
+    <a class="tile" href="AIDLC_Sim_Upgrade.html"><div class="em">⬆️</div><h3>6 · Upgrade paths</h3><p>v1 rule files → v2 engine, and v2 refreshes: what's preserved, updated, or conflicts.</p><span class="tag new">new</span></a>
+    <a class="tile" href="AIDLC_Sim_VSCode.html"><div class="em">🖥️</div><h3>7 · VS Code, Agents window &amp; CLI</h3><p>The same workflow from the editor chat, agent sessions, Copilot CLI and Claude Code.</p><span class="tag new">new</span></a>
+  </div>
+
+  <h2 class="sec">Reference</h2>
+  <div class="grid">
+    <a class="tile" href="AIDLC_FAQ.html"><div class="em">❓</div><h3>FAQ</h3><p>Role-specific answers for engineers, architects, POs, SMs and managers.</p><span class="tag">updated v2.0</span></a>
+    <a class="tile" href="AIDLC_Onboarding_Kits.html"><div class="em">🧰</div><h3>Onboarding Kits</h3><p>Developer and Product Owner starter guides.</p><span class="tag">updated v2.0</span></a>
+    <a class="tile" href="AIDLC_SDLC_Comparison.html"><div class="em">⚖️</div><h3>SDLC vs AIDLC</h3><p>Concept-by-concept comparison with benefits and risks.</p><span class="tag">updated</span></a>
+  </div>
+
+  <h2 class="sec">Case study: Poseidon Dragons</h2>
+  <div class="grid">
+    <a class="tile" href="poseidon_dragons_journey_v3.html"><div class="em">🐉</div><h3>Built with AI (v3)</h3><p>The journey deck, latest version.</p></a>
+    <a class="tile" href="poseidon_dragons_journey_v2.html"><div class="em">🐉</div><h3>Built with AI (v2)</h3><p>Earlier version of the journey deck.</p></a>
+    <a class="tile" href="poseidon_dragons_mvp_journey.html"><div class="em">🚣</div><h3>MVP journey</h3><p>How the MVP came together.</p></a>
+    <a class="tile" href="poseidon_dragons_tech_stack.svg"><div class="em">🧱</div><h3>Tech stack</h3><p>Architecture diagram.</p></a>
+  </div>
+  <p class="body">Upstream: <a href="https://github.com/awslabs/aidlc-workflows">github.com/awslabs/aidlc-workflows</a> · docs: <a href="https://awslabs.github.io/aidlc-workflows/">awslabs.github.io/aidlc-workflows</a></p>
+</div>
 </body>
+</html>
