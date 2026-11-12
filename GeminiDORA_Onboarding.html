@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gemini + DORA Onboarding</title>
+<meta name="description" content="Onboarding path for Google's AI developer tools (Gemini CLI, Gemini Code Assist, Jules) measured and guided with DORA: the five delivery metrics and the DORA AI Capabilities Model.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<link rel="stylesheet" href="assets/platform-kit.css?v=1">
+</head>
+<body>
+<header class="sim-header gemini">
+  <div class="icon">✦</div>
+  <div>
+    <h1>Google Gemini + DORA: Onboarding</h1>
+    <p>Gemini tools do the work: CLI, IDE, GitHub review and the Jules async agent. DORA measures whether it helps: five delivery metrics, plus seven capabilities that decide whether AI improves your team or amplifies its problems.</p>
+    <div class="stack-pills"><span class="pill">Gemini CLI</span><span class="pill">Gemini Code Assist</span><span class="pill">Jules</span><span class="pill">DORA metrics</span><span class="pill">DORA AI Capabilities Model</span></div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+<div class="sim-body">
+  <nav class="sidebar" id="steps-nav" aria-label="Steps"></nav>
+  <main class="main-area">
+    <div class="progress-bar-container"><div class="progress-bar-outer"><div class="progress-bar-inner" id="progress"></div></div><div class="progress-label" id="progress-label">Step 1</div></div>
+    <div class="step-content-area">
+
+<section class="step-panel" data-section="Orientation" data-title="The Gemini tools" data-sub="CLI · IDE · GitHub · Jules">
+  <div class="step-header"><div class="phase-tag">✦ Orientation</div><h2>Four ways to work with Gemini on code</h2></div>
+  <div class="cards">
+    <div class="card blue"><h4>Gemini CLI</h4><p>Open-source terminal agent (<code>gemini</code>). <code>GEMINI.md</code> context, MCP, custom commands, extensions, sandboxing, checkpoints, headless <code>-p</code>.</p></div>
+    <div class="card purple"><h4>Gemini Code Assist</h4><p>IDE plugin for VS Code and JetBrains with chat, completion and agent mode. Standard/Enterprise editions add admin controls. Enterprise adds code customisation from your private repos.</p></div>
+    <div class="card green"><h4>Code Assist on GitHub</h4><p>A GitHub app that reviews PRs and summarises them. Ask with <code>/gemini review</code>. Style rules go in <code>.gemini/styleguide.md</code>.</p></div>
+    <div class="card amber"><h4>Jules</h4><p>An asynchronous coding agent. It clones your repo into a cloud VM, shows you a plan to approve, makes the change and publishes a branch or PR.</p></div>
+    <div class="card teal"><h4>Automation</h4><p><code>google-github-actions/run-gemini-cli</code> for triage, review and scheduled jobs in GitHub Actions.</p></div>
+    <div class="card coral"><h4>More</h4><p>Google also has an agent-first IDE (Antigravity) and Firebase Studio for app prototyping. Check what your org licenses.</p></div>
+  </div>
+  <div class="callout warn"><div class="icon">⚠️</div><p><strong>AI-DLC note:</strong> AI-DLC 2.11 ships harnesses for Claude Code, Copilot, Codex, Kiro, Cursor and opencode, but <strong>not Gemini</strong>. You can still follow the method: run Inception in a supported harness (the record in <code>aidlc/</code> is plain Markdown), and point Gemini CLI at <code>AGENTS.md</code> so it follows the same rules during Construction. Approval gates are then on your team, not enforced by hooks.</p></div>
+</section>
+
+<section class="step-panel" data-section="Orientation" data-title="Why DORA" data-sub="AI is an amplifier">
+  <div class="step-header"><div class="phase-tag purple">📊 DORA</div><h2>Measure delivery, not keystrokes</h2>
+  <p>DORA (DevOps Research and Assessment, now part of Google Cloud) has studied software delivery for over a decade. Its 2025 <em>State of AI-assisted Software Development</em> report describes AI as an <strong>amplifier</strong>: it magnifies a team's existing strengths, and its dysfunctions too. Almost every respondent used AI, yet about 30% reported little or no trust in AI-generated code.</p></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Group</th><th>Metric</th><th>Question it answers</th></tr>
+    <tr><td rowspan="3"><strong>Throughput</strong></td><td>Change lead time</td><td>How long from commit to running in production?</td></tr>
+    <tr><td>Deployment frequency</td><td>How often do we deploy to production?</td></tr>
+    <tr><td>Failed deployment recovery time</td><td>When a deploy breaks production, how fast do we recover?</td></tr>
+    <tr><td rowspan="2"><strong>Instability</strong></td><td>Change failure rate</td><td>What share of deployments need immediate intervention?</td></tr>
+    <tr><td>Rework rate</td><td>What share of deployments are unplanned, done to fix a user-facing problem?</td></tr>
+  </table></div>
+  <div class="callout info"><div class="icon">ℹ️</div><p>These metrics apply to <strong>every</strong> platform in this hub. Use them to compare before and after a Microsoft, Claude, Codex or Gemini rollout. Tool usage stats (suggestions accepted, lines generated) don't tell you whether delivery improved.</p></div>
+</section>
+
+<section class="step-panel" data-section="Orientation" data-title="AI Capabilities Model" data-sub="Seven capabilities">
+  <div class="step-header"><div class="phase-tag teal">🧩 Capabilities</div><h2>The DORA AI Capabilities Model</h2>
+  <p>DORA's 2025 research names seven capabilities that strengthen AI's positive effect on outcomes. Use them as your rollout checklist.</p></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>#</th><th>Capability</th><th>What it looks like in practice</th></tr>
+    <tr><td>1</td><td><strong>Clear and communicated AI stance</strong></td><td>People know which tools are allowed, for what, with what data, and that experimenting is expected.</td></tr>
+    <tr><td>2</td><td><strong>Healthy data ecosystems</strong></td><td>Internal data is high quality, accessible and unified, not scattered and stale.</td></tr>
+    <tr><td>3</td><td><strong>AI-accessible internal data</strong></td><td>Agents can reach your docs, code and tickets (context files, MCP, code customisation), not just public knowledge.</td></tr>
+    <tr><td>4</td><td><strong>Strong version control practices</strong></td><td>Frequent commits, and easy rollback when AI-generated changes go wrong.</td></tr>
+    <tr><td>5</td><td><strong>Working in small batches</strong></td><td>Small PRs and small deploys, even when AI makes big changes easy to produce.</td></tr>
+    <tr><td>6</td><td><strong>User-centric focus</strong></td><td>Teams aim AI at user outcomes, not at output volume.</td></tr>
+    <tr><td>7</td><td><strong>Quality internal platforms</strong></td><td>Golden paths, CI/CD and self-service that let AI-produced changes flow safely.</td></tr>
+  </table></div>
+  <div class="callout tip"><div class="icon">💡</div><p>Rate your team on these in the interactive assessment in <a href="GeminiDORA_Sim_Brownfield.html">Sim 3</a>.</p></div>
+</section>
+
+<section class="step-panel" data-section="Map" data-title="Map to the lifecycle" data-sub="Tools + measures">
+  <div class="step-header"><div class="phase-tag teal">🗺️ Lifecycle map</div><h2>Gemini tools and DORA across the four phases</h2></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Phase</th><th>Gemini tools</th><th>DORA lens</th></tr>
+    <tr><td><strong>Ideation</strong></td><td>Gemini (app / Deep Research) for discovery. Gemini CLI to read the code for feasibility.</td><td>User-centric focus: what user outcome will move?</td></tr>
+    <tr><td><strong>Inception</strong></td><td>Gemini CLI or Code Assist agent mode to draft specs. AI-DLC record if you run it in another harness.</td><td>Small batches: slice into Units that can deploy on their own.</td></tr>
+    <tr><td><strong>Construction</strong></td><td>Code Assist in the IDE. Gemini CLI for hands-on work. Jules for queued tasks. Code Assist reviews PRs.</td><td>Lead time and batch size. Version control discipline.</td></tr>
+    <tr><td><strong>Operation</strong></td><td>Gemini in Google Cloud for ops and logs. Gemini CLI headless in pipelines.</td><td>Change failure rate, rework rate, recovery time.</td></tr>
+  </table></div>
+</section>
+
+<section class="step-panel" data-section="Get access" data-title="Accounts & policy" data-sub="Admin checklist">
+  <div class="step-header"><div class="phase-tag amber">🔑 Access</div><h2>What an admin sets up first</h2></div>
+  <ul class="track" data-key="gemini-admin" data-meter="gemini-admin-m">
+    <li><div><strong>Gemini Code Assist Standard or Enterprise</strong> licences in a Google Cloud project, assigned to the team. Gemini CLI can sign in with the same Google identity.</div></li>
+    <li><div><strong>Data governance</strong>: confirm the enterprise data terms, and turn on code customisation (Enterprise) only for approved repos.</div></li>
+    <li><div><strong>Gemini Code Assist GitHub app</strong> installed on chosen repos, with a team <code>.gemini/styleguide.md</code>.</div></li>
+    <li><div><strong>Jules</strong>: who may connect which GitHub repos, and the environment setup script.</div></li>
+    <li><div><strong>Gemini CLI policy</strong>: default approval mode, sandbox, and an approved MCP server list in a shared <code>.gemini/settings.json</code>.</div></li>
+    <li><div><strong>DORA data</strong>: a way to collect deployments, incidents and PR merges (CI/CD events, incident tool, Git host) into a dashboard.</div></li>
+    <li><div><strong>Baseline</strong>: four weeks of the five DORA metrics <em>before</em> the rollout.</div></li>
+  </ul>
+  <p class="track-meter" id="gemini-admin-m"></p>
+</section>
+
+<section class="step-panel" data-section="Your role" data-title="Role quick-starts" data-sub="Dev · PO · Architect · SRE · Lead">
+  <div class="step-header"><div class="phase-tag green">👥 Roles</div><h2>Your first week, by role</h2></div>
+  <div data-tabs>
+    <div class="tabs"><button class="tab-btn on" data-tab="dev">Developer</button><button class="tab-btn" data-tab="po">Product Owner</button><button class="tab-btn" data-tab="arch">Architect</button><button class="tab-btn" data-tab="sre">SRE / Ops</button><button class="tab-btn" data-tab="lead">Eng. lead</button></div>
+    <div class="tab-pane on" data-pane="dev"><ol class="check-list">
+      <li class="ok"><span class="ci">1</span><div>Do <a href="GeminiDORA_Sim_Setup.html">Setup</a>. Run <code>/init</code> in Gemini CLI to draft <code>GEMINI.md</code>, or point it at <code>AGENTS.md</code>.</div></li>
+      <li class="ok"><span class="ci">2</span><div>Turn on checkpointing so <code>/restore</code> can undo a bad turn.</div></li>
+      <li class="ok"><span class="ci">3</span><div>Give Jules one small task. Approve its plan before it codes.</div></li>
+      <li class="ok"><span class="ci">4</span><div>Keep PRs small. Check your own PR size against the team's target.</div></li>
+    </ol></div>
+    <div class="tab-pane" data-pane="po"><ol class="check-list">
+      <li class="ok"><span class="ci">1</span><div>Write every item with the user outcome it should move (user-centric focus).</div></li>
+      <li class="ok"><span class="ci">2</span><div>Ask for slices that can ship independently (small batches).</div></li>
+      <li class="ok"><span class="ci">3</span><div>Watch the rework rate. Rising rework usually means unclear requirements, not slow developers.</div></li>
+    </ol></div>
+    <div class="tab-pane" data-pane="arch"><ol class="check-list">
+      <li class="ok"><span class="ci">1</span><div>Own the context files (<code>GEMINI.md</code>/<code>AGENTS.md</code>, <code>.gemini/styleguide.md</code>).</div></li>
+      <li class="ok"><span class="ci">2</span><div>Make internal docs and APIs AI-accessible through MCP or code customisation (capability 3).</div></li>
+      <li class="ok"><span class="ci">3</span><div>Invest in the platform's golden paths (capability 7).</div></li>
+    </ol></div>
+    <div class="tab-pane" data-pane="sre"><ol class="check-list">
+      <li class="ok"><span class="ci">1</span><div>Instrument deployments and incidents, so change failure rate and recovery time are automatic, not survey answers.</div></li>
+      <li class="ok"><span class="ci">2</span><div>Add a headless <code>gemini -p</code> triage step to failed pipelines (read-only).</div></li>
+    </ol></div>
+    <div class="tab-pane" data-pane="lead"><ol class="check-list">
+      <li class="ok"><span class="ci">1</span><div>Publish the team's AI stance: allowed tools, data rules, expectations (capability 1).</div></li>
+      <li class="ok"><span class="ci">2</span><div>Review DORA metrics monthly. If throughput rises while instability rises too, slow down and fix foundations.</div></li>
+      <li class="ok"><span class="ci">3</span><div>Do the capability self-assessment with the team each quarter.</div></li>
+    </ol></div>
+  </div>
+</section>
+
+<section class="step-panel" data-section="Your role" data-title="30-60-90 plan" data-sub="Measured rollout">
+  <div class="step-header"><div class="phase-tag amber">📅 Rollout</div><h2>A measured 30-60-90 day rollout</h2></div>
+  <div class="cards">
+    <div class="card green"><h4>Days 1–30 · Baseline + stance</h4><p>DORA baseline. Published AI stance. Code Assist in the IDE. Gemini on GitHub reviews on request. Capability self-assessment #1.</p></div>
+    <div class="card blue"><h4>Days 31–60 · Context + small batches</h4><p>Context files, an approved MCP list, Gemini CLI with checkpoints. Jules on small tasks. PR size target agreed and visible.</p></div>
+    <div class="card purple"><h4>Days 61–90 · Compare</h4><p>Gemini CLI in CI for triage. Compare all five metrics against the baseline. Assessment #2. Fix the weakest capability next.</p></div>
+  </div>
+  <div class="callout danger"><div class="icon">⛔</div><p><strong>Rules from day one:</strong> no <code>--yolo</code> outside a sandbox. Jules plans are read before approval. A person merges every PR. Don't turn DORA metrics into individual performance targets; they describe teams and systems.</p></div>
+</section>
+
+<section class="step-panel" data-section="Reference" data-title="FAQ" data-sub="Common questions">
+  <div class="step-header"><div class="phase-tag">❓ FAQ</div><h2>Questions teams ask in week one</h2></div>
+  <div class="faq">
+    <details><summary>Gemini CLI, Code Assist or Jules?</summary><div><p><strong>Code Assist</strong> in the IDE for everyday coding. <strong>Gemini CLI</strong> for terminal-centric agent work, scripting and CI. <strong>Jules</strong> for a well-scoped task you want done asynchronously while you do something else.</p></div></details>
+    <details><summary>Can Gemini CLI read our AGENTS.md?</summary><div><p>Yes. By default it reads <code>GEMINI.md</code>, and you can configure the context file name in <code>settings.json</code> to include <code>AGENTS.md</code>. Check the settings reference for your version.</p></div></details>
+    <details><summary>Our deployment frequency went up but so did change failure rate. Is AI working?</summary><div><p>That's the "amplifier" pattern DORA warns about. Look at batch size, test coverage and review depth. Faster output on weak foundations creates more failures. Shrink PRs and strengthen the platform before you push more volume.</p></div></details>
+    <details><summary>Should we rank developers by DORA metrics?</summary><div><p>No. DORA metrics describe the delivery system of a team or service. Using them as individual targets invites gaming and hides the real constraints.</p></div></details>
+    <details><summary>Do we need Google Cloud to use DORA?</summary><div><p>No. The metrics and the capabilities model are tool-neutral. Collect them from any CI/CD and incident tooling.</p></div></details>
+  </div>
+</section>
+
+<section class="step-panel" data-section="Reference" data-title="Next steps" data-sub="Sims, training, docs">
+  <div class="step-header"><div class="phase-tag green">➡️ Next</div><h2>Keep going</h2></div>
+  <div class="grid">
+    <a class="tile" href="GeminiDORA_Sim_Setup.html"><div class="em">⚙️</div><h3>Sim 1 · Setup</h3><p>Gemini CLI, context, MCP, GitHub review, Jules, DORA baseline.</p></a>
+    <a class="tile" href="GeminiDORA_Sim_Greenfield.html"><div class="em">🌱</div><h3>Sim 2 · Greenfield</h3><p>Small batches with Jules and Gemini CLI, lead time tracked.</p></a>
+    <a class="tile" href="GeminiDORA_Sim_Brownfield.html"><div class="em">📊</div><h3>Sim 3 · Brownfield + DORA lab</h3><p>Checkpoints, metrics calculator, capability assessment.</p></a>
+    <a class="tile" href="GeminiDORA_Training.html"><div class="em">🎓</div><h3>Training</h3><p>Modules, labs and knowledge checks.</p></a>
+    <a class="tile" href="Platforms_Comparison.html"><div class="em">⚖️</div><h3>Compare platforms</h3><p>Microsoft vs Claude vs Codex vs Gemini.</p></a>
+  </div>
+  <div class="callout info"><div class="icon">ℹ️</div><p><strong>Official sources:</strong> <a href="https://dora.dev">dora.dev</a> (metrics, capabilities, quick check) · <a href="https://github.com/google-gemini/gemini-cli">google-gemini/gemini-cli</a> · <a href="https://developers.google.com/gemini-code-assist/docs/overview">Gemini Code Assist docs</a> · <a href="https://jules.google">jules.google</a>. Content checked November 2026. A newer DORA report may have changed details, so check dora.dev.</p></div>
+</section>
+
+    </div>
+  </main>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script src="assets/platform-kit.js?v=1"></script>
+</body>
+</html>

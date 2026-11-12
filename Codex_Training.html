@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenAI Codex Training Path</title>
+<meta name="description" content="Training curriculum for OpenAI Codex: six modules with labs, a role matrix and a knowledge check.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<link rel="stylesheet" href="assets/platform-kit.css?v=1">
+</head>
+<body>
+<header class="sim-header codex">
+  <div class="icon">🎓</div>
+  <div>
+    <h1>OpenAI Codex: Training Path</h1>
+    <p>Six modules from the local CLI to cloud fan-out and CI. About 8.5 hours in total, with a lab in each module and a knowledge check at the end.</p>
+    <div class="stack-pills"><span class="pill">L100 → L300</span><span class="pill">~8.5 h</span><span class="pill">6 labs</span><span class="pill">12-question check</span></div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+<div class="wrap">
+  <div class="callout info"><div class="icon">ℹ️</div><p><strong>Before you start:</strong> read the <a href="Codex_Onboarding.html">Onboarding</a> guide. Labs need the Codex CLI signed in, a sandbox repo with tests, and a workspace with Codex cloud enabled and a GitHub connection.</p></div>
+
+  <h2 class="sec">Modules</h2>
+  <div class="module"><div class="mhead"><span class="lvl l100">L100</span><h4>M1 · Codex surfaces and when to use each</h4><span class="dur">45 min</span></div>
+    <ul><li>CLI, IDE extension, cloud tasks, GitHub review, <code>codex exec</code>, SDK.</li><li>Local (steer) vs cloud (delegate, parallel, attempts).</li><li>What stays human: scope, design, merge, production.</li></ul>
+    <div class="lab"><strong>Lab 1:</strong> Do the "pick a surface" exercise in <a href="Codex_Sim_Brownfield.html#step-5">Sim 3</a>, then classify your team's last 10 tickets.</div></div>
+  <div class="module"><div class="mhead"><span class="lvl l100">L100</span><h4>M2 · Sandbox, approvals and config</h4><span class="dur">90 min</span></div>
+    <ul><li>Sandbox modes (read-only, workspace-write, full access) and network access.</li><li>Approval policies and the in-session permissions menu.</li><li><code>config.toml</code> (user vs project), profiles, trusted projects.</li></ul>
+    <div class="lab"><strong>Lab 2:</strong> Create <code>explore</code> and <code>build</code> profiles. Prove that <code>explore</code> can't edit and <code>build</code> asks before network access.</div></div>
+  <div class="module"><div class="mhead"><span class="lvl l200">L200</span><h4>M3 · AGENTS.md, skills and MCP</h4><span class="dur">90 min</span></div>
+    <ul><li>AGENTS.md discovery from global to nested; overrides; keeping it short.</li><li>Skills in <code>.agents/skills/</code>, invoked with <code>$name</code> or chosen automatically.</li><li>MCP servers in config or via <code>codex mcp add</code>; least privilege.</li></ul>
+    <div class="lab"><strong>Lab 3:</strong> Write a root and a nested AGENTS.md plus one skill. Show that the nested rule wins inside its folder.</div></div>
+  <div class="module"><div class="mhead"><span class="lvl l200">L200</span><h4>M4 · Codex cloud: environments, tasks, attempts</h4><span class="dur">2 h</span></div>
+    <ul><li>Environment setup scripts, variables, setup-only secrets, agent internet access.</li><li>Writing delegable tasks; multiple attempts; follow-ups; creating PRs.</li><li>Reviewing many diffs without becoming the bottleneck.</li></ul>
+    <div class="lab"><strong>Lab 4:</strong> Build an environment whose setup fails fast. Run one task with 3 attempts and write down why you picked the one you did.</div></div>
+  <div class="module"><div class="mhead"><span class="lvl l300">L300</span><h4>M5 · Review and automation</h4><span class="dur">90 min</span></div>
+    <ul><li><code>/review</code> locally; <code>@codex review</code> and automatic reviews; review guidelines in AGENTS.md.</li><li><code>codex exec</code> and the GitHub Action: read-only triage, structured output.</li><li>Treat logs and issue text as untrusted input.</li></ul>
+    <div class="lab"><strong>Lab 5:</strong> Add a read-only failure-explainer step to a pipeline and break a test to trigger it.</div></div>
+  <div class="module"><div class="mhead"><span class="lvl l300">L300</span><h4>M6 · AI-DLC on Codex</h4><span class="dur">90 min</span></div>
+    <ul><li><code>aidlc config --harness codex</code>, <code>$aidlc</code>, the record in <code>aidlc/</code>.</li><li>Units → cloud tasks; pushing the record so containers can read it.</li><li>When the method is worth it and when a single task is enough.</li></ul>
+    <div class="lab"><strong>Lab 6:</strong> <code>$aidlc … --scope express</code> on a toy feature; send one Unit to the cloud.</div></div>
+
+  <h2 class="sec">Role matrix</h2>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Role</th><th>Required</th><th>Recommended</th><th>Outcome</th></tr>
+    <tr><td><strong>Developer</strong></td><td>M1–M4</td><td>M5, M6</td><td>Delegates well, reviews fast.</td></tr>
+    <tr><td><strong>Architect</strong></td><td>M1, M3, M4, M6</td><td>M5</td><td>Owns AGENTS.md, environments, design gates.</td></tr>
+    <tr><td><strong>Product Owner</strong></td><td>M1, M6 (gates)</td><td>M4 (writing tasks)</td><td>Writes delegable tasks; answers gates.</td></tr>
+    <tr><td><strong>SRE / Ops</strong></td><td>M1, M2, M5</td><td>—</td><td>Safe triage automation.</td></tr>
+    <tr><td><strong>Eng. lead</strong></td><td>M1, M2 (policy)</td><td>All</td><td>Sets sandbox policy; tracks outcomes.</td></tr>
+  </table></div>
+
+  <h2 class="sec">Your progress</h2>
+  <ul class="track" data-key="codex-train" data-meter="codex-train-m">
+    <li><div>M1 · Surfaces + Lab 1</div></li><li><div>M2 · Sandbox &amp; config + Lab 2</div></li><li><div>M3 · AGENTS.md &amp; skills + Lab 3</div></li><li><div>M4 · Cloud + Lab 4</div></li><li><div>M5 · Review &amp; automation + Lab 5</div></li><li><div>M6 · AI-DLC + Lab 6</div></li><li><div>Knowledge check passed (10/12 or better)</div></li>
+  </ul>
+  <p class="track-meter" id="codex-train-m"></p>
+
+  <h2 class="sec">Knowledge check</h2>
+  <div class="quiz">
+    <div class="q" data-why="The sandbox limits capability; the approval policy decides when to ask."><p>1. What's the difference between the sandbox and the approval policy?</p><button class="qo" data-ok>Sandbox = what Codex can technically do; approvals = when it must ask you</button><button class="qo">They're two names for the same setting</button><button class="qo">Sandbox is for cloud, approvals for local</button></div>
+    <div class="q" data-why="workspace-write + on-request lets it work in the repo and ask to go beyond."><p>2. A sensible team default for local work?</p><button class="qo">danger-full-access + never</button><button class="qo" data-ok>workspace-write + on-request</button><button class="qo">read-only + never</button></div>
+    <div class="q" data-why="Codex reads AGENTS.md files, merging from global and root down to the working folder."><p>3. Which file does Codex read for repo instructions?</p><button class="qo">CLAUDE.md</button><button class="qo" data-ok>AGENTS.md (root and nested)</button><button class="qo">.github/copilot-instructions.md</button></div>
+    <div class="q" data-why="In Codex, skills are invoked with $name; AI-DLC's entry is $aidlc."><p>4. How do you start AI-DLC in Codex?</p><button class="qo">/aidlc</button><button class="qo" data-ok>$aidlc</button><button class="qo">codex aidlc</button></div>
+    <div class="q" data-why="Agent internet is off by default; setup can install dependencies."><p>5. In a cloud environment, when is internet available by default?</p><button class="qo">Always</button><button class="qo" data-ok>During the setup script; off for the agent unless you allow it</button><button class="qo">Never, not even for setup</button></div>
+    <div class="q" data-why="Multiple attempts give independent solutions to compare."><p>6. When are multiple attempts worth it?</p><button class="qo">Always, more is better</button><button class="qo" data-ok>When the design is open and comparing real diffs helps</button><button class="qo">Only for documentation</button></div>
+    <div class="q" data-why="Cloud tasks clone the branch from GitHub; unpushed files don't exist there."><p>7. A cloud task can't find your AI-DLC functional design. Most likely cause?</p><button class="qo">Cloud tasks can't read Markdown</button><button class="qo" data-ok>The <code>aidlc/</code> record wasn't pushed to the branch the task used</button><button class="qo">AGENTS.md is too long</button></div>
+    <div class="q" data-why="@codex review on a PR uses the Review guidelines in AGENTS.md."><p>8. Where do you put rules that <code>@codex review</code> should check?</p><button class="qo" data-ok>A "Review guidelines" section in AGENTS.md</button><button class="qo">In the PR title</button><button class="qo">In config.toml</button></div>
+    <div class="q" data-why="codex exec runs non-interactively; keep it read-only for triage."><p>9. Safe way to have Codex explain CI failures?</p><button class="qo">codex exec with full access and prod secrets</button><button class="qo" data-ok>codex exec / GitHub Action in a read-only sandbox, posting a summary</button><button class="qo">Let it push a fix to main directly</button></div>
+    <div class="q" data-why="Logs and issue text can contain prompt injection; limit what the agent can do with them."><p>10. Why treat CI logs as untrusted input?</p><button class="qo">They're too long</button><button class="qo" data-ok>Text in them could try to instruct the agent (prompt injection)</button><button class="qo">They're encrypted</button></div>
+    <div class="q" data-why="Profiles bundle settings under a name; use --profile to select."><p>11. How do you switch quickly to a read-only setup?</p><button class="qo" data-ok>A <code>[profiles.explore]</code> in config.toml and <code>codex --profile explore</code></button><button class="qo">Uninstall and reinstall</button><button class="qo">Delete AGENTS.md</button></div>
+    <div class="q" data-why="Review capacity is the bottleneck when agents produce many diffs."><p>12. The team runs 30 cloud tasks a day and PRs pile up. Best fix?</p><button class="qo">Auto-merge Codex PRs</button><button class="qo" data-ok>Fewer attempts, smaller tasks, and a cap on open PRs per reviewer</button><button class="qo">Turn off code review</button></div>
+  </div>
+
+  <h2 class="sec">Official learning</h2>
+  <p class="body">OpenAI's Codex docs have quickstarts for the CLI, IDE, cloud and GitHub review, plus a config reference. OpenAI Academy has courses on working with Codex. Check <code>codex --help</code> for your installed version.</p>
+  <p class="body"><a href="Codex_Onboarding.html">← Onboarding</a> · <a href="Platforms_Comparison.html">Compare platforms →</a></p>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script src="assets/platform-kit.js?v=1"></script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenAI Codex Onboarding</title>
+<meta name="description" content="Onboarding path for OpenAI Codex: the Codex CLI, IDE extension, Codex cloud tasks, GitHub code review and codex exec, mapped onto the AI-DLC lifecycle and its Codex harness.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<link rel="stylesheet" href="assets/platform-kit.css?v=1">
+</head>
+<body>
+<header class="sim-header codex">
+  <div class="icon">◎</div>
+  <div>
+    <h1>OpenAI Codex: Onboarding</h1>
+    <p>Codex works locally in your terminal and IDE, and in the cloud on many tasks in parallel. It reviews PRs on GitHub and runs headless in CI. AI-DLC ships a Codex harness.</p>
+    <div class="stack-pills"><span class="pill">Codex CLI</span><span class="pill">IDE extension</span><span class="pill">Codex cloud</span><span class="pill">GitHub code review</span><span class="pill">codex exec · SDK</span><span class="pill">AI-DLC Codex harness</span></div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+<div class="sim-body">
+  <nav class="sidebar" id="steps-nav" aria-label="Steps"></nav>
+  <main class="main-area">
+    <div class="progress-bar-container"><div class="progress-bar-outer"><div class="progress-bar-inner" id="progress"></div></div><div class="progress-label" id="progress-label">Step 1</div></div>
+    <div class="step-content-area">
+
+<section class="step-panel" data-section="Orientation" data-title="What it is" data-sub="Local + cloud agent">
+  <div class="step-header"><div class="phase-tag">◎ Orientation</div><h2>One agent, two places to run it</h2>
+  <p>Codex is OpenAI's software engineering agent. Locally, it edits your checkout inside a sandbox with approval rules you choose. In the cloud, each task gets its own container with your repo, so several tasks can run at once and each ends in a diff or PR.</p></div>
+  <div class="cards">
+    <div class="card green"><h4>Codex CLI</h4><p>Open-source terminal agent (<code>codex</code>). Sandbox + approval modes, <code>AGENTS.md</code>, MCP, skills, <code>/review</code>.</p></div>
+    <div class="card blue"><h4>IDE extension</h4><p>VS Code and compatible editors. Chat, edits and the option to send a task to the cloud and pull the result back.</p></div>
+    <div class="card purple"><h4>Codex cloud</h4><p>Delegated tasks in isolated containers, set up per <em>environment</em>. Run several attempts and pick the best diff. Open a PR from the result.</p></div>
+    <div class="card amber"><h4>Code review</h4><p>Comment <code>@codex review</code> on a GitHub PR, or turn on automatic reviews. It follows review guidance in <code>AGENTS.md</code>.</p></div>
+    <div class="card teal"><h4>Automation</h4><p><code>codex exec</code> for scripts and CI, the Codex GitHub Action, and the Codex SDK for your own tools.</p></div>
+    <div class="card coral"><h4>Integrations</h4><p>Slack and issue trackers can hand tasks to Codex cloud, depending on your plan and admin settings.</p></div>
+  </div>
+  <div class="callout info"><div class="icon">ℹ️</div><p><strong>AI-DLC on Codex:</strong> <code>aidlc config --harness codex</code> writes <code>.codex/</code> (with onboarding injected through <code>developer_instructions</code> in <code>.codex/config.toml</code>) and skills under <code>.agents/skills/</code>. You start the method with <code>$aidlc &lt;what you want&gt;</code>, not <code>/aidlc</code>.</p></div>
+</section>
+
+<section class="step-panel" data-section="Orientation" data-title="Map to the lifecycle" data-sub="Which surface, which phase">
+  <div class="step-header"><div class="phase-tag teal">🗺️ Lifecycle map</div><h2>Codex across the four AI-DLC phases</h2></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Phase</th><th>Codex surfaces</th><th>Human decision</th></tr>
+    <tr><td><strong>Ideation</strong></td><td>ChatGPT for research. Codex in a <strong>read-only</strong> sandbox to answer "how hard would this be?" from the real code.</td><td>Approve intent and scope.</td></tr>
+    <tr><td><strong>Inception</strong></td><td><code>$aidlc</code> on the Codex harness for requirements, design and Units. Or ask Codex for a plan file before any edit.</td><td>Approve requirements, design, Units.</td></tr>
+    <tr><td><strong>Construction</strong></td><td>CLI/IDE for hands-on work. <strong>Cloud tasks</strong> for independent Units in parallel (several attempts each). <code>/review</code> locally, <code>@codex review</code> on PRs.</td><td>Pick the attempt, review the PR, merge.</td></tr>
+    <tr><td><strong>Operation</strong></td><td><code>codex exec</code> / the GitHub Action to explain or propose fixes for CI and deploy failures. MCP to read logs.</td><td>Approve every production change.</td></tr>
+  </table></div>
+</section>
+
+<section class="step-panel" data-section="Get access" data-title="Accounts & policy" data-sub="Admin checklist">
+  <div class="step-header"><div class="phase-tag amber">🔑 Access</div><h2>What an admin sets up first</h2></div>
+  <ul class="track" data-key="codex-admin" data-meter="codex-admin-m">
+    <li><div><strong>Sign-in route</strong>: ChatGPT Business/Enterprise/Edu workspace seats (Codex included), or an OpenAI API key for usage-based billing.</div></li>
+    <li><div><strong>Workspace settings</strong>: turn Codex local and cloud on or off, and choose who may use cloud tasks and code review.</div></li>
+    <li><div><strong>GitHub connector</strong>: connect the GitHub org and pick which repos Codex cloud may access.</div></li>
+    <li><div><strong>Cloud environments</strong>: setup script, env vars, secrets (available during setup only) and <strong>agent internet access</strong>, off by default, or an allowlist.</div></li>
+    <li><div><strong>Default local policy</strong>: a team <code>config.toml</code> that starts in workspace-write sandbox with on-request approvals.</div></li>
+    <li><div><strong>Code review</strong>: turn on automatic reviews for chosen repos, or only on request.</div></li>
+    <li><div><strong>Branch protection</strong>: Codex PRs need the same reviews and checks as anyone's.</div></li>
+  </ul>
+  <p class="track-meter" id="codex-admin-m"></p>
+</section>
+
+<section class="step-panel" data-section="Get access" data-title="Repo files" data-sub="What Codex reads">
+  <div class="step-header"><div class="phase-tag purple">📁 Repo</div><h2>The files that steer Codex</h2></div>
+  <div class="filetree"><div class="ft-header">billing-platform/</div>
+<pre><span class="ft-file">AGENTS.md</span>                         <span class="ft-note">root instructions: commands, conventions, review guidelines</span>
+<span class="ft-folder">src/Billing.Api/</span><span class="ft-file">AGENTS.md</span>          <span class="ft-note">nested: closer files add to / override broader ones</span>
+<span class="ft-folder">.agents/skills/</span><span class="ft-file">new-endpoint/SKILL.md</span>  <span class="ft-note">repo skill, invoked as $new-endpoint or picked automatically</span>
+<span class="ft-folder">.codex/</span><span class="ft-file">config.toml</span>                <span class="ft-note">project config (used once you trust the project)</span>
+<span class="ft-folder">~/.codex/</span>
+├── <span class="ft-file">config.toml</span>                   <span class="ft-note">personal: model, sandbox, approvals, MCP servers, profiles</span>
+└── <span class="ft-file">AGENTS.md</span>                     <span class="ft-note">personal instructions for every repo</span></pre></div>
+  <div class="callout tip"><div class="icon">💡</div><p><code>AGENTS.md</code> is an open format that several tools read (Codex, Copilot, Cursor, Gemini CLI with a setting, and others). Writing it well pays off on every platform in this hub.</p></div>
+</section>
+
+<section class="step-panel" data-section="Your role" data-title="Role quick-starts" data-sub="Dev · PO · Architect · SRE · Lead">
+  <div class="step-header"><div class="phase-tag green">👥 Roles</div><h2>Your first week, by role</h2></div>
+  <div data-tabs>
+    <div class="tabs"><button class="tab-btn on" data-tab="dev">Developer</button><button class="tab-btn" data-tab="po">Product Owner</button><button class="tab-btn" data-tab="arch">Architect</button><button class="tab-btn" data-tab="sre">SRE / Ops</button><button class="tab-btn" data-tab="lead">Eng. lead</button></div>
+    <div class="tab-pane on" data-pane="dev"><ol class="check-list">
+      <li class="ok"><span class="ci">1</span><div>Do <a href="Codex_Sim_Setup.html">Setup</a>. Run <code>/init</code> to draft <code>AGENTS.md</code>, then edit it.</div></li>
+      <li class="ok"><span class="ci">2</span><div>Do one local task in workspace-write + on-request. Run <code>/review</code> before you commit.</div></li>
+      <li class="ok"><span class="ci">3</span><div>Send one well-scoped task to the cloud with 2–4 attempts. Compare the diffs and open a PR from the best.</div></li>
+    </ol></div>
+    <div class="tab-pane" data-pane="po"><ol class="check-list">
+      <li class="ok"><span class="ci">1</span><div>Write tasks the way Codex cloud needs them: goal, acceptance criteria, files to start from, how to verify.</div></li>
+      <li class="ok"><span class="ci">2</span><div>Answer <code>$aidlc</code> requirement questions in your own session on the same repo.</div></li>
+    </ol></div>
+    <div class="tab-pane" data-pane="arch"><ol class="check-list">
+      <li class="ok"><span class="ci">1</span><div>Own <code>AGENTS.md</code> (including a "Review guidelines" section that <code>@codex review</code> follows).</div></li>
+      <li class="ok"><span class="ci">2</span><div>Design the cloud environment: setup script, dependencies, and the internet allowlist.</div></li>
+      <li class="ok"><span class="ci">3</span><div>Approve AI-DLC design and Units before tasks fan out to the cloud.</div></li>
+    </ol></div>
+    <div class="tab-pane" data-pane="sre"><ol class="check-list">
+      <li class="ok"><span class="ci">1</span><div>Add a <code>codex exec</code> step that explains failed jobs, in a read-only sandbox.</div></li>
+      <li class="ok"><span class="ci">2</span><div>Connect read-only MCP servers for logs. Never give Codex production credentials.</div></li>
+    </ol></div>
+    <div class="tab-pane" data-pane="lead"><ol class="check-list">
+      <li class="ok"><span class="ci">1</span><div>Agree a policy: which sandbox/approval combinations are allowed where, and who may use full access.</div></li>
+      <li class="ok"><span class="ci">2</span><div>Watch review time and attempt-to-PR acceptance rate, plus the <a href="GeminiDORA_Onboarding.html">DORA</a> metrics.</div></li>
+    </ol></div>
+  </div>
+</section>
+
+<section class="step-panel" data-section="Your role" data-title="30-60-90 plan" data-sub="Team rollout">
+  <div class="step-header"><div class="phase-tag amber">📅 Rollout</div><h2>A 30-60-90 day rollout for one team</h2></div>
+  <div class="cards">
+    <div class="card green"><h4>Days 1–30 · Local</h4><p>CLI/IDE in workspace-write + on-request. <code>AGENTS.md</code> merged. <code>@codex review</code> on request. DORA baseline.</p></div>
+    <div class="card blue"><h4>Days 31–60 · Cloud</h4><p>One cloud environment with a working setup script. Small tasks with multiple attempts. Automatic reviews on one repo. <code>$aidlc</code> for one epic.</p></div>
+    <div class="card purple"><h4>Days 61–90 · Pipeline</h4><p>AI-DLC Units fan out as cloud tasks. <code>codex exec</code> triage in CI. Compare metrics against the baseline.</p></div>
+  </div>
+  <div class="callout danger"><div class="icon">⛔</div><p><strong>Rules from day one:</strong> no <code>danger-full-access</code> sandbox and no "never ask" approvals on a developer laptop. Keep cloud internet access off unless you need an allowlist. A person merges every PR.</p></div>
+</section>
+
+<section class="step-panel" data-section="Reference" data-title="FAQ" data-sub="Common questions">
+  <div class="step-header"><div class="phase-tag">❓ FAQ</div><h2>Questions teams ask in week one</h2></div>
+  <div class="faq">
+    <details><summary>What's the difference between sandbox and approvals?</summary><div><p>The <strong>sandbox</strong> sets what Codex can technically do (read-only, write inside the workspace, or full access, plus whether the network is allowed). The <strong>approval policy</strong> sets when it must stop and ask you. You choose both. Most teams use workspace-write with on-request approvals.</p></div></details>
+    <details><summary>Local or cloud?</summary><div><p>Use local when you want to steer, need local tools or secrets, or the task is exploratory. Use cloud for clear, independent tasks you want to run in parallel or with several attempts, while you do something else.</p></div></details>
+    <details><summary>Can cloud tasks reach the internet?</summary><div><p>During setup, yes (to install dependencies). While the agent works, internet is off by default. You can allow it per environment, ideally to an allowlist of domains.</p></div></details>
+    <details><summary>Does Codex read CLAUDE.md or copilot-instructions.md?</summary><div><p>No. Codex reads <code>AGENTS.md</code>. Many teams keep the shared rules in <code>AGENTS.md</code> and point the other tools' files at it.</p></div></details>
+    <details><summary>Why <code>$aidlc</code> and not <code>/aidlc</code>?</summary><div><p>In Codex, skills are invoked with <code>$name</code>. Slash commands are reserved for built-in commands such as <code>/review</code> and <code>/init</code>.</p></div></details>
+  </div>
+</section>
+
+<section class="step-panel" data-section="Reference" data-title="Next steps" data-sub="Sims, training, docs">
+  <div class="step-header"><div class="phase-tag green">➡️ Next</div><h2>Keep going</h2></div>
+  <div class="grid">
+    <a class="tile" href="Codex_Sim_Setup.html"><div class="em">⚙️</div><h3>Sim 1 · Setup</h3><p>Install, sandbox and approvals, AGENTS.md, MCP, cloud environment, AI-DLC.</p></a>
+    <a class="tile" href="Codex_Sim_Greenfield.html"><div class="em">🌱</div><h3>Sim 2 · Greenfield</h3><p>Plan locally, fan out cloud tasks, pick attempts, review.</p></a>
+    <a class="tile" href="Codex_Sim_Brownfield.html"><div class="em">🏢</div><h3>Sim 3 · Brownfield + Ops</h3><p>Read-only exploration, /review, codex exec in CI.</p></a>
+    <a class="tile" href="Codex_Training.html"><div class="em">🎓</div><h3>Training</h3><p>Modules, labs and knowledge checks.</p></a>
+    <a class="tile" href="Platforms_Comparison.html"><div class="em">⚖️</div><h3>Compare platforms</h3><p>Microsoft vs Claude vs Codex vs Gemini.</p></a>
+  </div>
+  <div class="callout info"><div class="icon">ℹ️</div><p><strong>Official docs:</strong> <a href="https://developers.openai.com/codex">developers.openai.com/codex</a> · <a href="https://github.com/openai/codex">github.com/openai/codex</a> · <a href="https://agents.md">agents.md</a>. The Codex CLI ships often and option names change between versions (approval presets in particular). Content checked November 2026, so run <code>codex --help</code> and check the changelog.</p></div>
+</section>
+
+    </div>
+  </main>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script src="assets/platform-kit.js?v=1"></script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude AI SDLC Training Path</title>
+<meta name="description" content="Training curriculum for using Claude Code across the SDLC: six modules with labs, a role matrix and a knowledge check.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<link rel="stylesheet" href="assets/platform-kit.css?v=1">
+</head>
+<body>
+<header class="sim-header claude">
+  <div class="icon">🎓</div>
+  <div>
+    <h1>Claude AI SDLC: Training Path</h1>
+    <p>Six modules from your first session to Claude in CI and AI-DLC on top. About 9 hours in total, with a lab in each module and a knowledge check at the end.</p>
+    <div class="stack-pills"><span class="pill">L100 → L300</span><span class="pill">~9 h</span><span class="pill">6 labs</span><span class="pill">12-question check</span></div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+<div class="wrap">
+  <div class="callout info"><div class="icon">ℹ️</div><p><strong>Before you start:</strong> read the <a href="Claude_Onboarding.html">Onboarding</a> guide. Labs need Claude Code signed in, a sandbox repo with tests, and (for M5) a GitHub repo you can add workflows to.</p></div>
+
+  <h2 class="sec">Modules</h2>
+  <div class="module"><div class="mhead"><span class="lvl l100">L100</span><h4>M1 · How an agentic coding loop works</h4><span class="dur">45 min</span></div>
+    <ul><li>Gather context → act → check → repeat. Tools: read, search, edit, bash, web, MCP.</li><li>The context window: why <code>/clear</code>, <code>/compact</code> and subagents matter.</li><li>Surfaces: CLI, IDE, desktop, web, GitHub, Agent SDK.</li></ul>
+    <div class="lab"><strong>Lab 1:</strong> Ask Claude to explain a module you don't know. Then ask it to prove one claim by running a test. Note where it read versus where it guessed.</div></div>
+  <div class="module"><div class="mhead"><span class="lvl l100">L100</span><h4>M2 · Daily workflow</h4><span class="dur">90 min</span></div>
+    <ul><li>Explore → plan → code → commit. Plan mode with <kbd>Shift+Tab</kbd>.</li><li>Test-first: write the failing test, make it pass, don't touch the test.</li><li><kbd>Esc</kbd>, <code>/rewind</code>, <code>@file</code> mentions, images and pasted errors as context.</li></ul>
+    <div class="lab"><strong>Lab 2:</strong> Fix a real bug test-first in plan mode. Use <code>/rewind</code> at least once on purpose.</div></div>
+  <div class="module"><div class="mhead"><span class="lvl l200">L200</span><h4>M3 · Context engineering</h4><span class="dur">90 min</span></div>
+    <ul><li><code>CLAUDE.md</code> hierarchy (user, project, nested), <code>@</code> imports, keeping it short.</li><li>Skills: when they load, and bundling scripts with them.</li><li>Subagents: tools allowlist, descriptions that trigger delegation, parallel exploration.</li></ul>
+    <div class="lab"><strong>Lab 3:</strong> Write a 30-line <code>CLAUDE.md</code>, one skill and one reviewer subagent. Run the same task before and after, and compare the number of corrections you needed.</div></div>
+  <div class="module"><div class="mhead"><span class="lvl l200">L200</span><h4>M4 · Guardrails: permissions, hooks, MCP</h4><span class="dur">2 h</span></div>
+    <ul><li>Permission modes; allow/ask/deny rules; precedence (managed → project → user, deny first).</li><li>Hook events (<code>PreToolUse</code>, <code>PostToolUse</code>, <code>Stop</code>, session events), exit code 2 to block.</li><li>MCP scopes (local, project <code>.mcp.json</code>, user), approval, least privilege.</li></ul>
+    <div class="lab"><strong>Lab 4:</strong> Add a deny rule for <code>.env</code>, a format hook and a blocking hook for a protected folder. Try to break each one.</div></div>
+  <div class="module"><div class="mhead"><span class="lvl l300">L300</span><h4>M5 · Claude in CI and automation</h4><span class="dur">2 h</span></div>
+    <ul><li><code>/install-github-app</code> and <code>anthropics/claude-code-action</code>: <code>@claude</code> on issues and PRs.</li><li>Headless: <code>claude -p</code>, <code>--allowedTools</code>, <code>--output-format json</code>.</li><li>Parallel sessions: git worktrees and cloud sessions. Agent SDK for custom agents.</li></ul>
+    <div class="lab"><strong>Lab 5:</strong> Add a workflow step that runs <code>claude -p</code> on test failure and posts a 5-line triage comment. Make sure it has read-only tools.</div></div>
+  <div class="module"><div class="mhead"><span class="lvl l300">L300</span><h4>M6 · AI-DLC on Claude Code</h4><span class="dur">90 min</span></div>
+    <ul><li>Scopes, gates, the record in <code>aidlc/</code>, the 14 agents.</li><li>Plan approval, guards and sensors as hooks on top of Claude Code.</li><li>Choosing: plain Claude Code for tasks, <code>/aidlc</code> for features and projects.</li></ul>
+    <div class="lab"><strong>Lab 6:</strong> Run <a href="AIDLC_Sim_Greenfield.html">the AI-DLC greenfield sim</a>, then <code>/aidlc … --scope express</code> on a toy feature for real.</div></div>
+
+  <h2 class="sec">Role matrix</h2>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Role</th><th>Required</th><th>Recommended</th><th>Outcome</th></tr>
+    <tr><td><strong>Developer</strong></td><td>M1–M4</td><td>M5, M6</td><td>Fast, test-first work with guardrails.</td></tr>
+    <tr><td><strong>Architect</strong></td><td>M1, M3, M4, M6</td><td>M5</td><td>Owns context files, subagents, policy.</td></tr>
+    <tr><td><strong>Product Owner</strong></td><td>M1, M6 (gates)</td><td>M2 (asking questions of the code)</td><td>Answers gates, writes testable stories.</td></tr>
+    <tr><td><strong>SRE / Ops</strong></td><td>M1, M4, M5</td><td>—</td><td>Headless triage and read-only MCP.</td></tr>
+    <tr><td><strong>Eng. lead</strong></td><td>M1, M4 (policy)</td><td>All</td><td>Sets managed settings and measures outcomes.</td></tr>
+  </table></div>
+
+  <h2 class="sec">Your progress</h2>
+  <ul class="track" data-key="claude-train" data-meter="claude-train-m">
+    <li><div>M1 · Agentic loop + Lab 1</div></li><li><div>M2 · Daily workflow + Lab 2</div></li><li><div>M3 · Context + Lab 3</div></li><li><div>M4 · Guardrails + Lab 4</div></li><li><div>M5 · CI &amp; automation + Lab 5</div></li><li><div>M6 · AI-DLC + Lab 6</div></li><li><div>Knowledge check passed (10/12 or better)</div></li>
+  </ul>
+  <p class="track-meter" id="claude-train-m"></p>
+
+  <h2 class="sec">Knowledge check</h2>
+  <div class="quiz">
+    <div class="q" data-why="Plan mode is read-only: Claude investigates and proposes a plan; edits start only after you approve."><p>1. What does plan mode do?</p><button class="qo">Runs everything without asking</button><button class="qo" data-ok>Lets Claude read and investigate, but not edit, until you approve a plan</button><button class="qo">Writes a PLAN.md and exits</button></div>
+    <div class="q" data-why="Deny rules are checked first and win in every mode."><p>2. A command matches both an allow rule and a deny rule. What happens?</p><button class="qo">Allow wins because it's more specific</button><button class="qo" data-ok>Deny wins</button><button class="qo">Claude asks you</button></div>
+    <div class="q" data-why="Hooks are run by the harness every time; instructions are followed by the model most of the time."><p>3. You need formatting to run after every edit, without exception. Use…</p><button class="qo">A line in CLAUDE.md</button><button class="qo" data-ok>A PostToolUse hook</button><button class="qo">A skill</button></div>
+    <div class="q" data-why="A PreToolUse hook exiting with code 2 blocks the call and feeds stderr back to Claude."><p>4. How does a PreToolUse hook block an action?</p><button class="qo" data-ok>Exit with code 2 and explain on stderr</button><button class="qo">Delete the file Claude wants to edit</button><button class="qo">Print "deny" to stdout with exit 0</button></div>
+    <div class="q" data-why="Subagents run in their own context window and return a summary."><p>5. Why delegate codebase exploration to a subagent?</p><button class="qo">It uses a different model licence</button><button class="qo" data-ok>It reads in its own context and returns a summary, so the main context stays clean</button><button class="qo">Subagents can push to main</button></div>
+    <div class="q" data-why="Skills load when relevant (or on /name); CLAUDE.md loads every session."><p>6. A long, rarely-needed procedure belongs in…</p><button class="qo">CLAUDE.md</button><button class="qo" data-ok>A skill</button><button class="qo">settings.json</button></div>
+    <div class="q" data-why="Checkpoints cover Claude's file edits, not external side effects like database changes or pushes."><p>7. What does <code>/rewind</code> NOT undo?</p><button class="qo">Files Claude edited</button><button class="qo">The conversation</button><button class="qo" data-ok>A migration already applied to a database</button></div>
+    <div class="q" data-why="-p runs a single prompt non-interactively; allowedTools restricts what it can do."><p>8. Which runs Claude non-interactively in a pipeline with limited tools?</p><button class="qo" data-ok><code>claude -p "…" --allowedTools "Read,Grep"</code></button><button class="qo"><code>claude --dangerously-skip-permissions</code> on the build agent</button><button class="qo"><code>/install-github-app</code></button></div>
+    <div class="q" data-why="Separate worktrees give each session its own checkout and branch, so they don't overwrite each other."><p>9. How do you run two Claude sessions on independent Units safely?</p><button class="qo">Two sessions in the same folder</button><button class="qo" data-ok>One git worktree (or cloud session) per Unit</button><button class="qo">One session with two plans</button></div>
+    <div class="q" data-why="The test defines the behaviour; changing it to pass hides the bug."><p>10. Claude edits a test's assertion to make it pass. What do you do?</p><button class="qo">Accept it; tests are green</button><button class="qo" data-ok>Interrupt, reject the change, and make "never change tests to pass" a rule</button><button class="qo">Delete the test</button></div>
+    <div class="q" data-why="Managed settings are deployed by admins and can't be overridden by project or user settings."><p>11. An org wants a deny rule no developer can override. Where does it go?</p><button class="qo">Each user's settings.local.json</button><button class="qo" data-ok>Managed (enterprise) settings</button><button class="qo">CLAUDE.md</button></div>
+    <div class="q" data-why="AI-DLC layers method (stages, gates, record) on top of the same agent."><p>12. What does <code>/aidlc</code> add on top of plain Claude Code?</p><button class="qo">A faster model</button><button class="qo" data-ok>Scopes, ordered stages, approval gates, reviewer agents, guards and an audit record</button><button class="qo">Free compute</button></div>
+  </div>
+
+  <h2 class="sec">Official learning</h2>
+  <p class="body">Anthropic Academy has free courses on Claude Code and building with the Claude API. The Claude Code docs include best-practice guides for common workflows. Catalogues change, so search them by name.</p>
+  <p class="body"><a href="Claude_Onboarding.html">← Onboarding</a> · <a href="Platforms_Comparison.html">Compare platforms →</a></p>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script src="assets/platform-kit.js?v=1"></script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gemini + DORA Setup Simulator</title>
+<meta name="description" content="Simulated walkthrough: install Gemini CLI, set context and settings, add MCP and custom commands, connect Gemini Code Assist on GitHub and Jules, and record a DORA baseline.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<link rel="stylesheet" href="assets/platform-kit.css?v=1">
+</head>
+<body>
+<header class="sim-header gemini">
+  <div class="icon">⚙️</div>
+  <div>
+    <h1>Gemini + DORA · Sim 1: Setup</h1>
+    <p>Get <code>billing-platform</code> ready for Gemini CLI, Code Assist on GitHub and Jules, and record the DORA baseline you'll compare against later.</p>
+    <div class="stack-pills"><span class="pill">Gemini CLI</span><span class="pill">.gemini/settings.json</span><span class="pill">Code Assist GitHub app</span><span class="pill">Jules</span><span class="pill">DORA baseline</span><span class="pill">Simulated output</span></div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+<div class="sim-body">
+  <nav class="sidebar" id="steps-nav" aria-label="Steps"></nav>
+  <main class="main-area">
+    <div class="progress-bar-container"><div class="progress-bar-outer"><div class="progress-bar-inner" id="progress"></div></div><div class="progress-label" id="progress-label">Step 1</div></div>
+    <div class="step-content-area">
+
+<section class="step-panel" data-section="Measure" data-title="Baseline first" data-sub="Before any tool">
+  <div class="step-header"><div class="phase-tag purple">📊 Baseline</div><h2>Record four weeks of DORA metrics before you change anything</h2>
+  <p>Without a baseline, "AI made us faster" is a feeling. Tomás (SRE) pulls the numbers from CI/CD and the incident tool.</p></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Metric</th><th>Source</th><th>Baseline (4 weeks)</th></tr>
+    <tr><td>Deployment frequency</td><td>Production deploy events from the pipeline</td><td>2.1 per week</td></tr>
+    <tr><td>Change lead time</td><td>First commit → production deploy, per change</td><td>median 6.5 days</td></tr>
+    <tr><td>Change failure rate</td><td>Deploys followed by rollback/hotfix/incident</td><td>18%</td></tr>
+    <tr><td>Failed deployment recovery time</td><td>Incident open → resolved, for deploy-caused incidents</td><td>median 9 h</td></tr>
+    <tr><td>Rework rate</td><td>Unplanned deploys made to fix user-facing bugs</td><td>22%</td></tr>
+  </table></div>
+  <div class="callout tip"><div class="icon">💡</div><p>The DORA Quick Check on dora.dev gives a fast survey-based benchmark if you can't instrument everything yet. Prefer system data where you have it.</p></div>
+</section>
+
+<section class="step-panel" data-section="CLI" data-title="Install Gemini CLI" data-sub="npm, npx or Homebrew">
+  <div class="step-header"><div class="phase-tag">📦 Install</div><h2>Install and sign in</h2></div>
+  <div class="terminal typer"><div class="terminal-header"><div class="terminal-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div><div class="terminal-title">bash</div><button class="run-btn">▶ Run</button></div><div class="terminal-body">
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">npm install -g @google/gemini-cli</span>   <span class="t-comment"># or: brew install gemini-cli · or try: npx @google/gemini-cli</span></span>
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">cd ~/src/billing-platform &amp;&amp; gemini</span></span>
+<span class="l t-info">How would you like to authenticate?  ● Login with Google  ○ Gemini API key  ○ Vertex AI</span>
+<span class="l t-success">Signed in with Google (Gemini Code Assist Standard licence, project contoso-dev-ai)</span>
+  </div></div>
+  <div class="callout info"><div class="icon">ℹ️</div><p>Signing in with the org's Code Assist licence keeps usage under your enterprise terms. A personal API key may not, so check with your admin.</p></div>
+</section>
+
+<section class="step-panel" data-section="CLI" data-title="Context & settings" data-sub="GEMINI.md / AGENTS.md">
+  <div class="step-header"><div class="phase-tag purple">📝 Repo</div><h2>One rules file for every tool</h2>
+  <p>The repo already has <code>AGENTS.md</code> from the other platforms. Instead of copying it, Priya tells Gemini CLI to read it.</p></div>
+  <div class="doc"><div class="doc-bar">.gemini/settings.json (project, committed)</div><div class="doc-body">{
+  <span class="md-k">"context"</span>: { <span class="md-k">"fileName"</span>: ["AGENTS.md", "GEMINI.md"] },
+  <span class="md-k">"general"</span>: { <span class="md-k">"checkpointing"</span>: { "enabled": true } },
+  <span class="md-k">"tools"</span>:   { <span class="md-k">"sandbox"</span>: "docker" },
+  <span class="md-k">"mcpServers"</span>: {
+    <span class="md-k">"ado"</span>: { "command": "npx", "args": ["-y", "@azure-devops/mcp", "contoso"] }
+  }
+}</div></div>
+  <div class="terminal typer"><div class="terminal-header"><div class="terminal-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div><div class="terminal-title">gemini</div><button class="run-btn">▶ Run</button></div><div class="terminal-body">
+<span class="l"><span class="t-prompt">&gt;</span> <span class="t-cmd">/memory show</span></span>
+<span class="l t-output">Loaded context from: ./AGENTS.md, ./src/Billing.Rendering/AGENTS.md</span>
+<span class="l"><span class="t-prompt">&gt;</span> <span class="t-cmd">/mcp</span></span>
+<span class="l t-success">ado · connected · 12 tools</span>
+  </div></div>
+  <div class="callout warn"><div class="icon">⚠️</div><p>Settings keys have moved between Gemini CLI versions (for example from flat keys to grouped ones). Check the settings reference for your version and keep the file in code review.</p></div>
+</section>
+
+<section class="step-panel" data-section="CLI" data-title="Custom commands" data-sub=".gemini/commands/*.toml">
+  <div class="step-header"><div class="phase-tag teal">⌨️ Commands</div><h2>Share repeatable prompts as commands</h2></div>
+  <div class="doc"><div class="doc-bar">.gemini/commands/smallpr.toml → /smallpr</div><div class="doc-body"><span class="md-k">description</span> = <span class="md-s">"Split the current change into small, independently deployable PRs"</span>
+<span class="md-k">prompt</span> = <span class="md-s">"""
+Look at git diff main...HEAD. Propose how to split it into PRs of under 200 changed lines,
+each one deployable on its own behind a flag if needed. List the order and the tests each needs.
+Context from the user: {{args}}
+"""</span></div></div>
+  <p class="body">This command puts DORA capability 5, working in small batches, straight into the tool.</p>
+</section>
+
+<section class="step-panel" data-section="GitHub" data-title="Review & Jules" data-sub="GitHub app, async agent">
+  <div class="step-header"><div class="phase-tag green">🐙 GitHub</div><h2>PR reviews and an async agent</h2></div>
+  <div class="doc"><div class="doc-bar">.gemini/styleguide.md (read by Gemini Code Assist on GitHub)</div><div class="doc-body"><span class="md-h"># Review style</span>
+- Flag PRs over 400 changed lines and suggest how to split them.
+- PII in logs, missing tenant checks, sync I/O in request paths: high severity.
+- Ignore formatting (dotnet format runs in CI).</div></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Jules setting</th><th>Value</th></tr>
+    <tr><td>Connected repos</td><td><code>contoso/billing-platform</code> only</td></tr>
+    <tr><td>Environment setup</td><td><code>dotnet restore &amp;&amp; dotnet build</code> (verified with "Run and snapshot")</td></tr>
+    <tr><td>Plan approval</td><td>Required. A person reads the plan before Jules writes code.</td></tr>
+  </table></div>
+</section>
+
+<section class="step-panel" data-section="Method" data-title="AI-DLC with Gemini" data-sub="No native harness">
+  <div class="step-header"><div class="phase-tag amber">🧭 AI-DLC</div><h2>Using the method without a Gemini harness</h2>
+  <p>AI-DLC doesn't install into Gemini CLI. The team splits the work instead.</p></div>
+  <div class="cards">
+    <div class="card blue"><h4>Inception in a supported harness</h4><p>Run <code>/aidlc</code> or <code>$aidlc</code> in Claude Code, Copilot or Codex. The PO and architect approve there. The record in <code>aidlc/</code> is committed.</p></div>
+    <div class="card purple"><h4>Construction with Gemini</h4><p>Gemini CLI or Jules builds each Unit from its functional design file. Because <code>AGENTS.md</code> is in context, the same rules apply.</p></div>
+    <div class="card coral"><h4>What you lose</h4><p>Hook-enforced gates, guards and the audit trail during Gemini work. Compensate with PR reviews and branch protection.</p></div>
+  </div>
+</section>
+
+<section class="step-panel" data-section="Verify" data-title="Smoke test" data-sub="One small change">
+  <div class="step-header"><div class="phase-tag green">✅ Verify</div><h2>Prove the chain on one small fix</h2></div>
+  <div class="chat reveal"><div class="chat-header gemini">✦ Gemini CLI</div><div class="chat-body">
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">Fix the failing InvoiceNumber test. Write the regression test first.</div></div>
+    <div class="msg ai"><div class="who">Gemini</div><div class="bubble">I'd like to run <code>dotnet test</code> (in the docker sandbox). Allow? [once] [always] [no]</div></div>
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">always</div></div>
+    <div class="msg ai"><div class="who">Gemini</div><div class="bubble">1 failure. Added regression test, fixed <code>InvoiceNumber.cs:41</code>. 413/413 ✓. Checkpoint saved before edits.</div></div>
+    <div class="msg user"><div class="who">Priya (PR #823)</div><div class="bubble">/gemini review</div></div>
+    <div class="msg ai"><div class="who">Gemini Code Assist</div><div class="bubble">Summary: one-line casing fix + regression test. No issues found. PR size: 14 lines ✓.</div></div>
+  </div></div>
+  <div class="callout success"><div class="icon">✅</div><p>Tools work and the baseline is recorded. Next: <a href="GeminiDORA_Sim_Greenfield.html">Sim 2 · Greenfield</a>.</p></div>
+</section>
+
+    </div>
+  </main>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script src="assets/platform-kit.js?v=1"></script>
+</body>
+</html>

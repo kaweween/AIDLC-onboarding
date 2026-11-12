@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Microsoft Agentic DevOps Onboarding</title>
+<meta name="description" content="Onboarding path for Microsoft Agentic DevOps: GitHub Copilot agents, Azure Boards, Azure SRE Agent and Azure, mapped onto the AI-DLC lifecycle.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<link rel="stylesheet" href="assets/platform-kit.css?v=1">
+</head>
+<body>
+<header class="sim-header ms">
+  <div class="icon">🔷</div>
+  <div>
+    <h1>Microsoft Agentic DevOps: Onboarding</h1>
+    <p>GitHub Copilot as a teammate in every phase, Azure Boards for the plan, Azure SRE Agent for production. This guide maps the tools onto the AI-DLC phases you already know.</p>
+    <div class="stack-pills"><span class="pill">GitHub Copilot (agent mode · coding agent · code review)</span><span class="pill">Azure Boards</span><span class="pill">Azure SRE Agent</span><span class="pill">AI-DLC Copilot harness</span></div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+
+<div class="sim-body">
+  <nav class="sidebar" id="steps-nav" aria-label="Steps"></nav>
+  <main class="main-area">
+    <div class="progress-bar-container">
+      <div class="progress-bar-outer"><div class="progress-bar-inner" id="progress"></div></div>
+      <div class="progress-label" id="progress-label">Step 1</div>
+    </div>
+    <div class="step-content-area">
+
+<section class="step-panel" data-section="Orientation" data-title="What it is" data-sub="The agentic DevOps idea">
+  <div class="step-header">
+    <div class="phase-tag">🔷 Orientation</div>
+    <h2>Agents work alongside the team at every stage</h2>
+    <p>Microsoft's name for this is <strong>Agentic DevOps</strong>. AI agents plan, code, review, secure, deploy and run software with people. Agents take the repetitive work. People keep intent, judgement and approval.</p>
+  </div>
+  <div class="cards">
+    <div class="card blue"><h4>Copilot agent mode</h4><p>A synchronous agent in VS Code (and Visual Studio, JetBrains, Copilot CLI). It plans, edits many files, runs terminal commands and iterates on errors while you watch.</p></div>
+    <div class="card purple"><h4>Copilot coding agent</h4><p>An asynchronous teammate. Assign it a GitHub issue (or an Azure Boards work item). It works in an ephemeral GitHub Actions environment and opens a draft PR for you to review.</p></div>
+    <div class="card green"><h4>Copilot code review &amp; security</h4><p>Copilot reviews PRs. GitHub Advanced Security adds code scanning, secret scanning and Copilot Autofix suggestions for alerts.</p></div>
+    <div class="card amber"><h4>Azure SRE Agent</h4><p>An operations agent for Azure resources. It watches alerts, investigates incidents, suggests or runs mitigations, and can open GitHub issues for the code fix.</p></div>
+    <div class="card teal"><h4>Custom agents &amp; MCP</h4><p>Team-specific agents (<code>.github/agents/*.agent.md</code>) and MCP servers (Azure, Azure DevOps, your own tools) extend what Copilot can see and do.</p></div>
+    <div class="card coral"><h4>App modernization</h4><p>Copilot app modernization assesses and upgrades .NET and Java apps (framework upgrades, Azure migration fixes) with a plan you approve.</p></div>
+  </div>
+  <div class="callout info"><div class="icon">ℹ️</div><p><strong>Where AI-DLC fits:</strong> the Microsoft stack provides the <em>agents and the plumbing</em>. AI-DLC provides the <em>method</em>: ordered stages, approval gates and a written record. AI-DLC ships a native <strong>Copilot harness</strong> (<code>aidlc config --harness copilot</code>), so you can run <code>/aidlc</code> inside Copilot agent mode and let the coding agent pick up the Units it produces.</p></div>
+</section>
+
+<section class="step-panel" data-section="Orientation" data-title="Map to the lifecycle" data-sub="Which tool, which phase">
+  <div class="step-header">
+    <div class="phase-tag teal">🗺️ Lifecycle map</div>
+    <h2>One loop, four AI-DLC phases</h2>
+    <p>Use this table to pick the right tool for each step.</p>
+  </div>
+  <div class="flow"><span class="node done">Ideation</span><span class="arrow">→</span><span class="node done">Inception</span><span class="arrow">→</span><span class="node on">Construction</span><span class="arrow">→</span><span class="node">Operation</span><span class="arrow">↺</span><span class="node">back to the backlog</span></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>AI-DLC phase</th><th>Microsoft tools</th><th>Human decision</th></tr>
+    <tr><td><strong>Ideation</strong></td><td>Copilot Chat / Microsoft 365 Copilot for research. Epics in Azure Boards or GitHub Issues.</td><td>PO approves the intent and scope.</td></tr>
+    <tr><td><strong>Inception</strong></td><td>VS Code agent mode with <strong>Plan mode</strong> or GitHub Spec Kit (<code>/speckit.specify</code>, <code>/speckit.plan</code>, <code>/speckit.tasks</code>), or <code>/aidlc</code> on the Copilot harness. Output becomes issues or work items.</td><td>PO approves requirements. Architect approves design and ADRs.</td></tr>
+    <tr><td><strong>Construction</strong></td><td>Agent mode for work you watch. <strong>Coding agent</strong> for queued issues (draft PRs). Copilot code review, code scanning, Autofix. GitHub Actions or Azure Pipelines for CI.</td><td>A developer reviews and merges every PR. The coding agent never merges its own PR.</td></tr>
+    <tr><td><strong>Operation</strong></td><td><code>azd</code> / Bicep / Terraform deploy to Azure. Azure Monitor + Application Insights. <strong>Azure SRE Agent</strong> for incident triage and mitigation.</td><td>SRE approves mitigations (review mode) or sets the agent's autonomy bounds.</td></tr>
+  </table></div>
+  <div class="callout warn"><div class="icon">⚠️</div><p><strong>Repo hosting matters.</strong> The Copilot coding agent, Copilot code review and Agent HQ work on <strong>GitHub</strong> repositories. Teams on Azure Repos can keep Azure Boards and Azure Pipelines and connect Boards to GitHub, or use agent mode locally without the cloud agent. Check the current Azure DevOps integration docs before you plan a migration.</p></div>
+</section>
+
+<section class="step-panel" data-section="Get access" data-title="Licences & policies" data-sub="Org admin checklist">
+  <div class="step-header">
+    <div class="phase-tag amber">🔑 Access</div>
+    <h2>What an admin turns on first</h2>
+    <p>Most onboarding blockers are policy settings, not install problems. An org owner works through this list once.</p>
+  </div>
+  <ul class="track" data-key="msad-admin" data-meter="msad-admin-m">
+    <li><div><strong>Copilot Business or Enterprise</strong> seats for the team. The coding agent and org-level custom agents need a paid org plan.</div></li>
+    <li><div><strong>Policies → Copilot coding agent: enabled</strong> for the org, and for the chosen repositories.</div></li>
+    <li><div><strong>Models policy</strong>: choose which models the team may use (premium requests count against a monthly allowance).</div></li>
+    <li><div><strong>MCP servers policy</strong>: allow MCP and agree on which servers are approved.</div></li>
+    <li><div><strong>Branch protection / rulesets</strong> on <code>main</code>: required reviews and status checks. Agent PRs follow the same rules as human PRs.</div></li>
+    <li><div><strong>GitHub Advanced Security</strong> (code scanning, secret scanning, push protection) on the repos the agent writes to.</div></li>
+    <li><div><strong>Azure</strong>: a subscription and resource group for dev/test, an Entra ID app or managed identity with least privilege, and an OIDC federated credential for GitHub Actions (no stored secrets).</div></li>
+    <li><div><strong>Azure SRE Agent</strong> created in the portal with access scoped to the app's resource groups.</div></li>
+  </ul>
+  <p class="track-meter" id="msad-admin-m"></p>
+  <div class="callout tip"><div class="icon">💡</div><p>Ticks are saved only in this browser. Use them as a personal tracker, not as an audit record.</p></div>
+</section>
+
+<section class="step-panel" data-section="Get access" data-title="Repo files" data-sub="What Copilot reads">
+  <div class="step-header">
+    <div class="phase-tag purple">📁 Repo</div>
+    <h2>The files that steer the agents</h2>
+    <p>Copilot reads these files every time it works in the repo. Keep them short, specific and reviewed like code.</p>
+  </div>
+  <div class="filetree"><div class="ft-header">billing-platform/ (GitHub repo)</div>
+<pre><span class="ft-folder">.github/</span>
+├── <span class="ft-file">copilot-instructions.md</span>          <span class="ft-note">repo-wide: stack, build/test commands, conventions</span>
+├── <span class="ft-folder">instructions/</span>
+│   └── <span class="ft-file">api.instructions.md</span>          <span class="ft-note">path-scoped: applyTo: "src/Api/**"</span>
+├── <span class="ft-folder">prompts/</span>
+│   └── <span class="ft-file">new-endpoint.prompt.md</span>       <span class="ft-note">reusable task prompt (/new-endpoint in chat)</span>
+├── <span class="ft-folder">agents/</span>
+│   └── <span class="ft-file">security-reviewer.agent.md</span>   <span class="ft-note">custom agent: role, tools, MCP servers</span>
+└── <span class="ft-folder">workflows/</span>
+    └── <span class="ft-file">copilot-setup-steps.yml</span>      <span class="ft-note">prepares the coding agent's environment</span>
+<span class="ft-file">AGENTS.md</span>                             <span class="ft-note">agent instructions shared with other tools</span>
+<span class="ft-folder">.vscode/</span><span class="ft-file">mcp.json</span>                      <span class="ft-note">MCP servers for VS Code agent mode</span></pre></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>File</th><th>Write this</th><th>Avoid this</th></tr>
+    <tr><td><code>copilot-instructions.md</code></td><td>"Build: <code>dotnet build</code>. Test: <code>dotnet test --filter Category!=Slow</code>. Use xUnit + FluentAssertions. No new NuGet packages without an ADR."</td><td>Long style essays, or rules your linter already enforces.</td></tr>
+    <tr><td><code>copilot-setup-steps.yml</code></td><td>A job named <code>copilot-setup-steps</code> that installs the SDK, restores packages and starts test dependencies.</td><td>Production secrets. Give the agent only what it needs to build and test.</td></tr>
+    <tr><td><code>*.agent.md</code></td><td>One clear role per agent, the tools it may use, and what "done" means.</td><td>An "all-powerful" agent that does everything.</td></tr>
+  </table></div>
+</section>
+
+<section class="step-panel" data-section="Your role" data-title="Role quick-starts" data-sub="Dev · PO · Architect · SRE · Lead">
+  <div class="step-header">
+    <div class="phase-tag green">👥 Roles</div>
+    <h2>Your first week, by role</h2>
+  </div>
+  <div data-tabs>
+    <div class="tabs"><button class="tab-btn on" data-tab="dev">Developer</button><button class="tab-btn" data-tab="po">Product Owner</button><button class="tab-btn" data-tab="arch">Architect</button><button class="tab-btn" data-tab="sre">SRE / Ops</button><button class="tab-btn" data-tab="lead">Eng. lead</button></div>
+    <div class="tab-pane on" data-pane="dev"><ol class="check-list">
+      <li class="ok"><span class="ci">1</span><div>Day 1: do <a href="MSAD_Sim_Setup.html">Setup</a>. Open the repo in VS Code, switch Chat to <strong>Agent</strong>, ask it to explain the build and run the tests.</div></li>
+      <li class="ok"><span class="ci">2</span><div>Day 2: use <strong>Plan</strong> mode for a small bug. Read the plan before you let it edit.</div></li>
+      <li class="ok"><span class="ci">3</span><div>Day 3: assign a well-scoped issue to <strong>Copilot</strong>. Review its draft PR the way you'd review a new teammate's: comment with <code>@copilot</code> to request changes.</div></li>
+      <li class="ok"><span class="ci">4</span><div>Day 4–5: run the <a href="MSAD_Sim_Greenfield.html">Greenfield</a> sim, then the module labs in <a href="MSAD_Training.html">Training</a>.</div></li>
+    </ol></div>
+    <div class="tab-pane" data-pane="po"><ol class="check-list">
+      <li class="ok"><span class="ci">1</span><div>Write work items with an outcome, acceptance criteria (Given/When/Then) and a "not in scope" line. Agents follow good tickets and guess on vague ones.</div></li>
+      <li class="ok"><span class="ci">2</span><div>Learn which items suit the coding agent: small, testable, low ambiguity. Tag them (for example <code>agent-ready</code>).</div></li>
+      <li class="ok"><span class="ci">3</span><div>Answer AI-DLC requirement questions from your own Copilot chat. Your answers become the record.</div></li>
+    </ol></div>
+    <div class="tab-pane" data-pane="arch"><ol class="check-list">
+      <li class="ok"><span class="ci">1</span><div>Own <code>copilot-instructions.md</code>, path-scoped instructions and the ADR folder. This is how architecture reaches the agent.</div></li>
+      <li class="ok"><span class="ci">2</span><div>Define custom agents (for example a security or API reviewer) and the approved MCP server list.</div></li>
+      <li class="ok"><span class="ci">3</span><div>Approve design and NFR stages in AI-DLC before any Unit goes to the coding agent.</div></li>
+    </ol></div>
+    <div class="tab-pane" data-pane="sre"><ol class="check-list">
+      <li class="ok"><span class="ci">1</span><div>Create the Azure SRE Agent with read access to the app's resource groups. Start in <strong>review</strong> mode, so every action needs your approval.</div></li>
+      <li class="ok"><span class="ci">2</span><div>Connect alerting (Azure Monitor, and your incident tool) and a GitHub repo, so the agent can file issues for code fixes.</div></li>
+      <li class="ok"><span class="ci">3</span><div>Run the incident part of the <a href="MSAD_Sim_Brownfield.html">Brownfield</a> sim.</div></li>
+    </ol></div>
+    <div class="tab-pane" data-pane="lead"><ol class="check-list">
+      <li class="ok"><span class="ci">1</span><div>Set the team's agent policy: what agents may do alone, what always needs a person, and who approves production.</div></li>
+      <li class="ok"><span class="ci">2</span><div>Measure outcomes, not usage: lead time, change failure rate and PR review time, before and after (see the <a href="GeminiDORA_Onboarding.html">DORA</a> track).</div></li>
+      <li class="ok"><span class="ci">3</span><div>Watch premium-request spend and agent PR acceptance rate in the Copilot metrics dashboard.</div></li>
+    </ol></div>
+  </div>
+</section>
+
+<section class="step-panel" data-section="Your role" data-title="30-60-90 plan" data-sub="Team rollout">
+  <div class="step-header">
+    <div class="phase-tag amber">📅 Rollout</div>
+    <h2>A 30-60-90 day rollout for one team</h2>
+  </div>
+  <div class="cards">
+    <div class="card green"><h4>Days 1–30 · Assist</h4><p>Agent mode in the IDE. Instructions files merged. Copilot code review on every PR. Baseline DORA metrics recorded. No agent touches production.</p></div>
+    <div class="card blue"><h4>Days 31–60 · Delegate</h4><p>Coding agent on labelled, low-risk issues. One custom agent. AI-DLC <code>classic</code> or <code>feature</code> scope for one real epic. SRE Agent in review mode.</p></div>
+    <div class="card purple"><h4>Days 61–90 · Orchestrate</h4><p>Units from AI-DLC go to the coding agent in parallel. SRE Agent files issues that Copilot fixes, and people approve. Compare metrics against the baseline.</p></div>
+  </div>
+  <div class="callout danger"><div class="icon">⛔</div><p><strong>Keep these rules from day one:</strong> agents never merge to <code>main</code> by themselves. Agents never get production credentials in their setup steps. A person signs off every production deploy.</p></div>
+</section>
+
+<section class="step-panel" data-section="Reference" data-title="FAQ" data-sub="Common questions">
+  <div class="step-header">
+    <div class="phase-tag">❓ FAQ</div>
+    <h2>Questions teams ask in week one</h2>
+  </div>
+  <div class="faq">
+    <details><summary>Agent mode or coding agent: which should I use?</summary><div><p>Use <strong>agent mode</strong> when you want to steer while it works, for exploratory or tricky changes. Use the <strong>coding agent</strong> for a clear, testable issue you can review later as a PR. Several coding-agent tasks can run in parallel.</p></div></details>
+    <details><summary>Can the coding agent push to main?</summary><div><p>No. It works on a <code>copilot/…</code> branch and opens a draft PR. Your branch protection and required reviews still apply. The person who assigned the task can't be the only approver of the PR.</p></div></details>
+    <details><summary>Does it see our secrets?</summary><div><p>Only what you put in the agent's environment (the <code>copilot</code> environment's secrets and variables, and the setup steps). Keep it to what build and test need. Its internet access goes through a firewall you can configure.</p></div></details>
+    <details><summary>Where do AI-DLC and Spec Kit overlap?</summary><div><p>Both turn intent into specs, plans and tasks before code. Spec Kit is a light, file-based flow (constitution → spec → plan → tasks → implement). AI-DLC adds scopes, approval gates, review agents, guards and an audit trail. Use one per piece of work, not both at once.</p></div></details>
+    <details><summary>We're on Azure Repos. Are we stuck?</summary><div><p>No. You can use agent mode in the IDE with any Git host, and Azure Pipelines and Boards keep working. The cloud coding agent and Copilot PR review need GitHub. Many teams move the repo to GitHub and keep Boards connected to it.</p></div></details>
+    <details><summary>Will the SRE Agent restart production by itself?</summary><div><p>Only if you allow it. In review mode it proposes and you approve. Autonomous actions are bounded by the permissions and run mode you give it. Start in review mode.</p></div></details>
+  </div>
+</section>
+
+<section class="step-panel" data-section="Reference" data-title="Next steps" data-sub="Sims, training, docs">
+  <div class="step-header">
+    <div class="phase-tag green">➡️ Next</div>
+    <h2>Keep going</h2>
+  </div>
+  <div class="grid">
+    <a class="tile" href="MSAD_Sim_Setup.html"><div class="em">⚙️</div><h3>Sim 1 · Setup</h3><p>Policies, instructions, setup steps, MCP, AI-DLC Copilot harness.</p></a>
+    <a class="tile" href="MSAD_Sim_Greenfield.html"><div class="em">🌱</div><h3>Sim 2 · Greenfield</h3><p>Spec → issues → coding agent PRs → Azure deploy.</p></a>
+    <a class="tile" href="MSAD_Sim_Brownfield.html"><div class="em">🏢</div><h3>Sim 3 · Brownfield + Ops</h3><p>.NET upgrade, feature change, SRE Agent incident loop.</p></a>
+    <a class="tile" href="MSAD_Training.html"><div class="em">🎓</div><h3>Training</h3><p>Modules, labs and knowledge checks.</p></a>
+    <a class="tile" href="Platforms_Comparison.html"><div class="em">⚖️</div><h3>Compare platforms</h3><p>Microsoft vs Claude vs Codex vs Gemini.</p></a>
+  </div>
+  <div class="callout info"><div class="icon">ℹ️</div><p><strong>Official docs:</strong> <a href="https://docs.github.com/copilot">docs.github.com/copilot</a> · <a href="https://learn.microsoft.com/azure/sre-agent/">Azure SRE Agent</a> · <a href="https://learn.microsoft.com/azure/devops/boards/">Azure Boards</a> · <a href="https://github.com/github/spec-kit">github/spec-kit</a>. Product names, plans and limits change often. Content checked November 2026, so confirm details in the docs before you rely on them.</p></div>
+</section>
+
+    </div>
+  </main>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script src="assets/platform-kit.js?v=1"></script>
+</body>
+</html>

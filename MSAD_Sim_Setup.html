@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic DevOps Setup Simulator</title>
+<meta name="description" content="Simulated walkthrough: set up a GitHub repo and Azure subscription for Copilot agent mode, the Copilot coding agent, MCP, the AI-DLC Copilot harness and Azure SRE Agent.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<link rel="stylesheet" href="assets/platform-kit.css?v=1">
+</head>
+<body>
+<header class="sim-header ms">
+  <div class="icon">⚙️</div>
+  <div>
+    <h1>Microsoft Agentic DevOps · Sim 1: Setup</h1>
+    <p>Prepare <code>billing-platform</code> so Copilot can work in the IDE and in the cloud, AI-DLC can drive the method, and Azure is ready for deploys and the SRE Agent.</p>
+    <div class="stack-pills"><span class="pill">GitHub Enterprise Cloud</span><span class="pill">VS Code agent mode</span><span class="pill">Copilot coding agent</span><span class="pill">Azure · OIDC</span><span class="pill">Simulated output</span></div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+<div class="sim-body">
+  <nav class="sidebar" id="steps-nav" aria-label="Steps"></nav>
+  <main class="main-area">
+    <div class="progress-bar-container"><div class="progress-bar-outer"><div class="progress-bar-inner" id="progress"></div></div><div class="progress-label" id="progress-label">Step 1</div></div>
+    <div class="step-content-area">
+
+<section class="step-panel" data-section="Plan" data-title="The goal" data-sub="What 'ready' means">
+  <div class="step-header"><div class="phase-tag">🎯 Goal</div><h2>Six things are true at the end of this sim</h2>
+  <p>Marcus (lead dev) and Priya (architect) are setting up the team's repo. Dana (org admin) has already switched on the Copilot policies from the <a href="MSAD_Onboarding.html#step-3">admin checklist</a>.</p></div>
+  <ol class="check-list">
+    <li><span class="ci">1</span><div>VS Code agent mode can build and test the repo.</div></li>
+    <li><span class="ci">2</span><div>Repo instructions tell every agent the stack, commands and rules.</div></li>
+    <li><span class="ci">3</span><div>The coding agent's cloud environment is prepared by <code>copilot-setup-steps.yml</code>.</div></li>
+    <li><span class="ci">4</span><div>Approved MCP servers are configured (Azure, Azure DevOps).</div></li>
+    <li><span class="ci">5</span><div>AI-DLC's Copilot harness is installed for the method and gates.</div></li>
+    <li><span class="ci">6</span><div>Azure: OIDC for Actions and an SRE Agent in review mode.</div></li>
+  </ol>
+</section>
+
+<section class="step-panel" data-section="IDE" data-title="Agent mode check" data-sub="VS Code">
+  <div class="step-header"><div class="phase-tag blue">🖥️ IDE</div><h2>First conversation: prove the agent can build</h2>
+  <p>Open Chat, pick <strong>Agent</strong> from the mode picker, and ask a question that makes it run real commands. Approve each terminal command the first time.</p></div>
+  <div class="chat reveal"><div class="chat-header ms">🤖 GitHub Copilot · Agent <span class="tag">billing-platform</span></div><div class="chat-body">
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">Explain how this repo builds and tests, then run the unit tests and tell me what fails.</div></div>
+    <div class="msg ai"><div class="who">Copilot</div><div class="bubble">Found <code>BillingPlatform.sln</code> (.NET 8, 6 projects). Tests use xUnit. I'd like to run:<br><code>dotnet test tests/Billing.UnitTests</code><br><strong>Allow?</strong> [Allow once] [Always allow in this workspace] [Skip]</div></div>
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">Allow once</div></div>
+    <div class="msg ai"><div class="who">Copilot</div><div class="bubble">412 passed, 1 failed: <code>InvoiceNumberTests.Format_UsesTenantPrefix</code>. The test expects <code>INV-</code> and the code returns <code>inv-</code>. It looks like a recent casing change in <code>InvoiceNumber.cs:41</code>. Want me to fix it?</div></div>
+  </div></div>
+  <div class="callout tip"><div class="icon">💡</div><p>Write down what it had to discover (solution file, test filter, slow categories). That goes into the instructions file next, so no agent has to rediscover it.</p></div>
+</section>
+
+<section class="step-panel" data-section="Repo" data-title="Instructions" data-sub="copilot-instructions.md">
+  <div class="step-header"><div class="phase-tag purple">📝 Repo</div><h2>Write the repo instructions</h2>
+  <p>You can ask the agent to draft them ("Generate instructions" in the Chat menu), then edit by hand. Priya keeps them under 60 lines.</p></div>
+  <div class="doc"><div class="doc-bar">.github/copilot-instructions.md<span class="state">reviewed in PR #811</span></div><div class="doc-body"><span class="md-h"># billing-platform</span>
+.NET 8 Web API + worker. Azure SQL, Service Bus, Container Apps.
+
+<span class="md-h">## Commands</span>
+- Build: <span class="md-c">dotnet build BillingPlatform.sln</span>
+- Fast tests: <span class="md-c">dotnet test --filter Category!=Slow</span>
+- Format: <span class="md-c">dotnet format --verify-no-changes</span>
+
+<span class="md-h">## Rules</span>
+- xUnit + FluentAssertions + NSubstitute. Every change ships tests.
+- No new NuGet packages without an ADR in docs/adr/.
+- Never log PII (email, IBAN). Use the Redact() helper.
+- Public API changes need an OpenAPI update in api/openapi.yaml.
+
+<span class="md-h">## Method</span>
+- Non-trivial work goes through AI-DLC (/aidlc). Respect its gates.</div></div>
+  <div class="doc"><div class="doc-bar">.github/instructions/api.instructions.md</div><div class="doc-body"><span class="md-k">---</span>
+<span class="md-k">applyTo:</span> <span class="md-s">"src/Billing.Api/**"</span>
+<span class="md-k">---</span>
+Controllers stay thin; logic lives in Billing.Application.
+Return ProblemDetails for errors. Validate with FluentValidation.</div></div>
+</section>
+
+<section class="step-panel" data-section="Repo" data-title="Coding agent env" data-sub="copilot-setup-steps.yml">
+  <div class="step-header"><div class="phase-tag purple">☁️ Coding agent</div><h2>Prepare the cloud agent's environment</h2>
+  <p>The coding agent runs in a GitHub Actions-powered environment. This workflow runs before it starts, so dependencies are ready and builds don't fail on missing tools.</p></div>
+  <div class="doc"><div class="doc-bar">.github/workflows/copilot-setup-steps.yml</div><div class="doc-body"><span class="md-k">name:</span> Copilot Setup Steps
+<span class="md-k">on:</span> { workflow_dispatch: {}, push: { paths: [.github/workflows/copilot-setup-steps.yml] } }
+<span class="md-k">jobs:</span>
+  <span class="md-k">copilot-setup-steps:</span>          <span class="md-c"># the job name must be exactly this</span>
+    <span class="md-k">runs-on:</span> ubuntu-latest
+    <span class="md-k">permissions:</span> { contents: read }
+    <span class="md-k">steps:</span>
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '8.0.x' }
+      - run: dotnet restore BillingPlatform.sln
+      - run: docker compose -f tests/compose.yml up -d sqledge   <span class="md-c"># local SQL for integration tests</span></div></div>
+  <div class="callout warn"><div class="icon">⚠️</div><p>Run the workflow once by hand from the Actions tab to prove it works. A broken setup step turns every agent task into a slow failure.</p></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Repo setting</th><th>Value Marcus chose</th></tr>
+    <tr><td>Copilot → Coding agent → Firewall</td><td>On, with the recommended allowlist plus <code>api.nuget.org</code>.</td></tr>
+    <tr><td>Environment <code>copilot</code> secrets</td><td>None. Variables: <code>ASPNETCORE_ENVIRONMENT=Test</code>.</td></tr>
+    <tr><td>Rulesets on <code>main</code></td><td>1 approving review, status checks <code>build</code> + <code>codeql</code>, no bypass for bots.</td></tr>
+  </table></div>
+</section>
+
+<section class="step-panel" data-section="Repo" data-title="MCP servers" data-sub="Azure + Azure DevOps">
+  <div class="step-header"><div class="phase-tag teal">🔌 MCP</div><h2>Give agents approved tools</h2>
+  <p>MCP servers let agents query Azure resources or Boards work items. Only add servers on the team's approved list.</p></div>
+  <div data-tabs>
+    <div class="tabs"><button class="tab-btn on" data-tab="vs">VS Code (.vscode/mcp.json)</button><button class="tab-btn" data-tab="ca">Coding agent (repo settings)</button></div>
+    <div class="tab-pane on" data-pane="vs"><div class="doc"><div class="doc-bar">.vscode/mcp.json</div><div class="doc-body">{
+  <span class="md-k">"servers"</span>: {
+    <span class="md-k">"azure"</span>: { "type": "stdio", "command": "npx", "args": ["-y", "@azure/mcp@latest", "server", "start"] },
+    <span class="md-k">"ado"</span>:   { "type": "stdio", "command": "npx", "args": ["-y", "@azure-devops/mcp", "contoso"] }
+  }
+}</div></div></div>
+    <div class="tab-pane" data-pane="ca"><div class="doc"><div class="doc-bar">Settings → Copilot → Coding agent → MCP configuration</div><div class="doc-body">{
+  <span class="md-k">"mcpServers"</span>: {
+    <span class="md-k">"azure"</span>: { "type": "local", "command": "npx",
+      "args": ["-y", "@azure/mcp@latest", "server", "start"],
+      <span class="md-k">"tools"</span>: ["*"] }
+  }
+}</div></div><p class="body">For the cloud agent, sign in to Azure in <code>copilot-setup-steps.yml</code> with OIDC (<code>azure/login</code>) and a read-only identity. Never use an owner identity.</p></div>
+  </div>
+  <div class="callout tip"><div class="icon">💡</div><p>Package names and arguments for MCP servers change. Copy the current snippet from each server's README.</p></div>
+</section>
+
+<section class="step-panel" data-section="Method" data-title="AI-DLC harness" data-sub="aidlc config --harness copilot">
+  <div class="step-header"><div class="phase-tag green">🧭 AI-DLC</div><h2>Add the method on top</h2>
+  <p>The same native <code>aidlc</code> command from the <a href="AIDLC_Sim_Setup.html">AI-DLC setup sim</a> projects skills, agents and hooks into <code>.github/</code> and <code>.aidlc/</code>. One install serves both VS Code agent mode and Copilot CLI.</p></div>
+  <div class="terminal typer"><div class="terminal-header"><div class="terminal-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div><div class="terminal-title">PowerShell · billing-platform</div><button class="run-btn">▶ Run</button></div><div class="terminal-body">
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">aidlc config --harness copilot</span></span>
+<span class="l t-output">Writing .github/skills/aidlc*/  .github/agents/aidlc-*.md  .github/hooks/aidlc.json  .aidlc/</span>
+<span class="l t-output">Merged AGENTS.md (AI-DLC block appended; your content kept)</span>
+<span class="l t-success">Configured the copilot harness. Next: aidlc config trust --harness copilot</span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">aidlc config trust --harness copilot --acknowledge --yes</span></span>
+<span class="l t-success">Recorded the trust answer in .aidlc/tools/data/harness.json</span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">aidlc --doctor</span></span>
+<span class="l t-success">✓ harness copilot · ✓ hooks · ✓ skills 48 · ✓ agents 14 · ✓ workspace aidlc/</span>
+  </div></div>
+  <div class="callout info"><div class="icon">ℹ️</div><p>In Copilot chat, start the method with <code>/aidlc &lt;what you want&gt;</code>. Its stage outputs (requirements, units, plans) are plain Markdown under <code>aidlc/</code>, so the coding agent can read them when you assign it a Unit.</p></div>
+</section>
+
+<section class="step-panel" data-section="Azure" data-title="Azure & SRE Agent" data-sub="OIDC, review mode">
+  <div class="step-header"><div class="phase-tag amber">☁️ Azure</div><h2>Deploy identity and the operations agent</h2></div>
+  <div class="terminal typer"><div class="terminal-header"><div class="terminal-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div><div class="terminal-title">bash · Azure CLI</div><button class="run-btn">▶ Run</button></div><div class="terminal-body">
+<span class="l t-comment"># Federated credential: GitHub Actions on main gets a token without a stored secret</span>
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">az ad app federated-credential create --id $APP_ID --parameters '{"name":"gh-main","issuer":"https://token.actions.githubusercontent.com","subject":"repo:contoso/billing-platform:ref:refs/heads/main","audiences":["api://AzureADTokenExchange"]}'</span></span>
+<span class="l t-success">Created federated credential gh-main</span>
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">az role assignment create --assignee $APP_ID --role "Contributor" --scope /subscriptions/$SUB/resourceGroups/rg-billing-dev</span></span>
+<span class="l t-success">Scoped to rg-billing-dev only</span>
+  </div></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>SRE Agent setting (portal)</th><th>Day-one value</th><th>Why</th></tr>
+    <tr><td>Managed resource groups</td><td><code>rg-billing-dev</code>, <code>rg-billing-prod</code></td><td>The agent only sees what you scope.</td></tr>
+    <tr><td>Run mode</td><td><strong>Review</strong></td><td>Every write action waits for a person.</td></tr>
+    <tr><td>Incident source</td><td>Azure Monitor alerts (+ your incident tool)</td><td>Investigations start when alerts fire.</td></tr>
+    <tr><td>Code repository</td><td><code>contoso/billing-platform</code></td><td>Lets it link telemetry to code and file issues.</td></tr>
+  </table></div>
+</section>
+
+<section class="step-panel" data-section="Verify" data-title="Smoke test" data-sub="First agent PR">
+  <div class="step-header"><div class="phase-tag green">✅ Verify</div><h2>Prove the whole chain with a tiny issue</h2>
+  <p>Marcus assigns the failing-test bug from step 2 to Copilot on GitHub.</p></div>
+  <div class="chat reveal"><div class="chat-header">🐙 GitHub · Issue #812 "InvoiceNumber prefix casing"</div><div class="chat-body">
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">Assignees → <strong>Copilot</strong>. Additional instructions: "Fix the casing, keep the public format unchanged, add a regression test."</div></div>
+    <div class="msg ai"><div class="who">Copilot</div><div class="bubble">👀 Opened draft PR #813 <em>[WIP] Fix InvoiceNumber prefix casing</em>. Session log is live in the PR.</div></div>
+    <div class="msg hook"><div class="who">Actions</div><div class="bubble">copilot-setup-steps ✓ · dotnet build ✓ · tests 413/413 ✓</div></div>
+    <div class="msg ai"><div class="who">Copilot</div><div class="bubble">Done. One-line fix in <code>InvoiceNumber.cs</code> plus <code>Format_UsesUpperCasePrefix_ForAllTenants</code>. Ready for review.</div></div>
+    <div class="msg user"><div class="who">Priya</div><div class="bubble">Approved. Squash-merged. 🎉 Setup verified.</div></div>
+  </div></div>
+  <div class="callout success"><div class="icon">✅</div><p>All six goals are met. Next: <a href="MSAD_Sim_Greenfield.html">Sim 2 · Greenfield</a>.</p></div>
+</section>
+
+    </div>
+  </main>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script src="assets/platform-kit.js?v=1"></script>
+</body>
+</html>

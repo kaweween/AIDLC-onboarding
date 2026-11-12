@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic DevOps Greenfield Simulator</title>
+<meta name="description" content="Simulated walkthrough: build a notification service with AI-DLC on Copilot, the Copilot coding agent working Units in parallel, GitHub Advanced Security and an Azure deploy.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<link rel="stylesheet" href="assets/platform-kit.css?v=1">
+</head>
+<body>
+<header class="sim-header ms">
+  <div class="icon">🌱</div>
+  <div>
+    <h1>Microsoft Agentic DevOps · Sim 2: Greenfield</h1>
+    <p>The notification service from the AI-DLC greenfield sim, built the agentic DevOps way: spec in the IDE, Units as issues, Copilot coding agent PRs in parallel, deploy to Azure Container Apps.</p>
+    <div class="stack-pills"><span class="pill">AI-DLC classic on Copilot</span><span class="pill">Spec Kit (alternative)</span><span class="pill">Coding agent ×3</span><span class="pill">GitHub Actions + azd</span><span class="pill">Simulated output</span></div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+<div class="sim-body">
+  <nav class="sidebar" id="steps-nav" aria-label="Steps"></nav>
+  <main class="main-area">
+    <div class="progress-bar-container"><div class="progress-bar-outer"><div class="progress-bar-inner" id="progress"></div></div><div class="progress-label" id="progress-label">Step 1</div></div>
+    <div class="step-content-area">
+
+<section class="step-panel" data-section="Scenario" data-title="The brief" data-sub="Epic #5012">
+  <div class="step-header"><div class="phase-tag green">🌱 Scenario</div><h2>Real-time notifications, new repo</h2>
+  <p>Same brief as the <a href="AIDLC_Sim_Greenfield.html">AI-DLC greenfield sim</a>, so you can compare tools. The repo <code>notification-service</code> already went through <a href="MSAD_Sim_Setup.html">Sim 1</a>.</p></div>
+  <div class="doc"><div class="doc-bar">Azure Boards · Epic 5012<span class="state">PO: Sarah T. · Priority 1</span></div><div class="doc-body"><span class="md-h">Real-time notification service</span>
+<span class="md-k">Request:</span> email (SendGrid) and in-app notifications, triggered by Azure Service Bus events; templates, per-channel preferences, unsubscribe.
+<span class="md-k">Constraints:</span> Entra ID auth. Never notify opted-out users.
+<span class="md-k">Success:</span> 99% of emails delivered within 30 s of the event. Zero false notifications.</div></div>
+  <div class="cards">
+    <div class="card amber"><h4>Sarah · PO</h4><p>Answers requirements questions in her VS Code Copilot chat.</p></div>
+    <div class="card blue"><h4>Marcus · Lead dev</h4><p>Runs <code>/aidlc</code> in agent mode and reviews agent PRs.</p></div>
+    <div class="card purple"><h4>Priya · Architect</h4><p>Approves design, owns the custom reviewer agent.</p></div>
+    <div class="card teal"><h4>Copilot</h4><p>Agent mode in the IDE; coding agent on GitHub.</p></div>
+  </div>
+</section>
+
+<section class="step-panel" data-section="Inception" data-title="Choose the spec flow" data-sub="AI-DLC or Spec Kit">
+  <div class="step-header"><div class="phase-tag blue">📡 Inception</div><h2>Turn the brief into a reviewed spec</h2>
+  <p>Both flows run in Copilot agent mode and write Markdown into the repo. The team picks AI-DLC because they want approval gates and an audit trail.</p></div>
+  <div data-tabs>
+    <div class="tabs"><button class="tab-btn on" data-tab="a">AI-DLC (chosen)</button><button class="tab-btn" data-tab="s">Spec Kit</button></div>
+    <div class="tab-pane on" data-pane="a"><div class="chat reveal"><div class="chat-header ms">🤖 Copilot · Agent <span class="tag">notification-service</span></div><div class="chat-body">
+      <div class="msg user"><div class="who">Marcus</div><div class="bubble">/aidlc Build epic 5012: email via SendGrid and in-app badges, triggered by Service Bus events, with per-channel preferences. Use the classic scope.</div></div>
+      <div class="msg ai"><div class="who">AIDLC</div><div class="bubble">Starting "classic" (Inception + Construction). Workspace: greenfield. First up: Practices Discovery, then Requirements Analysis. I'll pull the epic from Azure Boards through the <code>ado</code> MCP server so the requirements can cite it.</div></div>
+      <div class="msg ai"><div class="who">AIDLC · product agent</div><div class="bubble">Q3: If a user is opted out of email but in-app is on, should a "payment failed" event still create an in-app badge? <code>[Answer]:</code></div></div>
+      <div class="msg user"><div class="who">Sarah (her own chat)</div><div class="bubble">Yes. Opt-out is per channel. Security alerts ignore opt-out (legal requirement).</div></div>
+    </div></div></div>
+    <div class="tab-pane" data-pane="s"><div class="terminal"><div class="terminal-header"><div class="terminal-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div><div class="terminal-title">Spec Kit in Copilot chat</div></div><div class="terminal-body">
+<span class="l t-comment"># one-time: specify init . --ai copilot</span>
+<span class="l"><span class="t-cmd">/speckit.constitution</span> <span class="t-output">Tests first, no PII in logs, Entra ID only</span></span>
+<span class="l"><span class="t-cmd">/speckit.specify</span> <span class="t-output">Notifications from Service Bus events: email + in-app …</span></span>
+<span class="l"><span class="t-cmd">/speckit.clarify</span> <span class="t-output">→ asks about opt-out, retries, templates</span></span>
+<span class="l"><span class="t-cmd">/speckit.plan</span> <span class="t-output">.NET 8 worker, Azure Container Apps, SendGrid, Azure SQL</span></span>
+<span class="l"><span class="t-cmd">/speckit.tasks</span> <span class="t-output">→ specs/001-notifications/tasks.md</span></span>
+<span class="l"><span class="t-cmd">/speckit.implement</span></span>
+    </div></div><p class="body">Lighter than AI-DLC: no scopes, guards or reviewer agents. It's a good fit for small teams or a spike.</p></div>
+  </div>
+</section>
+
+<section class="step-panel" data-section="Inception" data-title="Design & Units" data-sub="Architect gate">
+  <div class="step-header"><div class="phase-tag purple">🏛️ Design</div><h2>Priya approves the design. AI-DLC cuts Units.</h2></div>
+  <div class="doc"><div class="doc-bar">aidlc/…/inception/units-generation/units.md<span class="state">✅ approved by Priya</span></div><div class="doc-body"><span class="md-k">units:</span>
+  - <span class="md-k">name:</span> event-ingest      <span class="md-k">kind:</span> service  <span class="md-k">depends_on:</span> []
+  - <span class="md-k">name:</span> preferences-api   <span class="md-k">kind:</span> service  <span class="md-k">depends_on:</span> []
+  - <span class="md-k">name:</span> email-dispatcher  <span class="md-k">kind:</span> service  <span class="md-k">depends_on:</span> [event-ingest, preferences-api]
+  - <span class="md-k">name:</span> inapp-badges      <span class="md-k">kind:</span> service  <span class="md-k">depends_on:</span> [event-ingest, preferences-api]</div></div>
+  <div class="callout tip"><div class="icon">💡</div><p>The two Units with no dependencies can run in parallel. That's the shape the coding agent works best on: independent, testable slices with clear acceptance criteria.</p></div>
+</section>
+
+<section class="step-panel" data-section="Construction" data-title="Units → issues" data-sub="Delegate to coding agent">
+  <div class="step-header"><div class="phase-tag amber">🏗️ Construction</div><h2>Hand the first two Units to Copilot</h2>
+  <p>Marcus asks agent mode to create one GitHub issue per independent Unit, linked to the Boards epic, then assigns them to Copilot.</p></div>
+  <div class="chat reveal"><div class="chat-header ms">🤖 Copilot · Agent</div><div class="chat-body">
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">Create GitHub issues for event-ingest and preferences-api from units.md and their functional designs. Include acceptance criteria, the AI-DLC plan path and "AB#5012". Assign both to Copilot.</div></div>
+    <div class="msg ai"><div class="who">Copilot</div><div class="bubble">Created #21 <em>Unit: event-ingest</em> and #22 <em>Unit: preferences-api</em>, each pointing to <code>aidlc/…/construction/&lt;unit&gt;/</code>. Both assigned to Copilot coding agent, using the custom agent <strong>dotnet-service</strong>.</div></div>
+  </div></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Issue</th><th>Agent session</th><th>Status</th></tr>
+    <tr><td>#21 event-ingest</td><td>PR #23 · branch <code>copilot/unit-event-ingest</code></td><td>⏳ working (14 min)</td></tr>
+    <tr><td>#22 preferences-api</td><td>PR #24 · branch <code>copilot/unit-preferences-api</code></td><td>⏳ working (11 min)</td></tr>
+  </table></div>
+  <div class="callout info"><div class="icon">ℹ️</div><p>Track every session from the Agents panel on GitHub (or VS Code). You can watch the log, steer it mid-task, or stop it.</p></div>
+</section>
+
+<section class="step-panel" data-section="Construction" data-title="Review the PR" data-sub="@copilot iterations">
+  <div class="step-header"><div class="phase-tag blue">🔍 Review</div><h2>Review the agent's PR like a teammate's</h2></div>
+  <div class="chat reveal"><div class="chat-header">🐙 PR #24 · Unit: preferences-api</div><div class="chat-body">
+    <div class="msg ai"><div class="who">Copilot</div><div class="bubble">Implements GET/PUT <code>/preferences/{userId}</code>, per-channel opt-out, EF Core migration, 27 tests. Ready for review.</div></div>
+    <div class="msg ai"><div class="who">Copilot code review</div><div class="bubble">Suggestion: <code>PUT</code> accepts an unknown channel name and stores it. Validate against the <code>Channel</code> enum.</div></div>
+    <div class="msg hook"><div class="who">Code scanning (CodeQL)</div><div class="bubble">1 alert: log entry built from user input (<code>cs/log-forging</code>). <strong>Copilot Autofix</strong> suggestion available.</div></div>
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">@copilot apply the Autofix, validate channels against the enum, and add a test that security alerts ignore opt-out (see requirements FR-7).</div></div>
+    <div class="msg ai"><div class="who">Copilot</div><div class="bubble">Pushed 3 commits. 31 tests pass. CodeQL alert closed.</div></div>
+    <div class="msg user"><div class="who">Priya</div><div class="bubble">Approve ✅ (custom agent <code>api-reviewer</code> found no contract drift against <code>openapi.yaml</code>.)</div></div>
+  </div></div>
+  <div class="callout warn"><div class="icon">⚠️</div><p>Marcus assigned the issue, so his approval alone can't merge the agent's PR. A second person (Priya) approves. That's the separation of duties you want for agent-authored code.</p></div>
+</section>
+
+<section class="step-panel" data-section="Construction" data-title="Dependent Units" data-sub="Second wave">
+  <div class="step-header"><div class="phase-tag amber">🌊 Wave 2</div><h2>When wave 1 merges, wave 2 starts</h2>
+  <p>email-dispatcher and inapp-badges depend on both merged Units. Marcus works on email-dispatcher himself in agent mode, because retries and SendGrid limits are tricky. He gives inapp-badges to the coding agent.</p></div>
+  <div class="cards">
+    <div class="card blue"><h4>Agent mode (synchronous)</h4><p>email-dispatcher: Marcus steers Polly retry policy, idempotency keys and the 30 s latency test step by step.</p></div>
+    <div class="card purple"><h4>Coding agent (asynchronous)</h4><p>inapp-badges: issue #27 → PR #28, reviewed the next morning.</p></div>
+  </div>
+  <div class="callout tip"><div class="icon">💡</div><p>Rule of thumb: <strong>delegate</strong> what's well specified, <strong>pair</strong> on what's risky or novel.</p></div>
+</section>
+
+<section class="step-panel" data-section="Operation" data-title="CI/CD to Azure" data-sub="Actions + azd + approval">
+  <div class="step-header"><div class="phase-tag teal">🚀 Deploy</div><h2>Ship to Container Apps with a human gate on prod</h2></div>
+  <div class="doc"><div class="doc-bar">.github/workflows/deploy.yml (excerpt)</div><div class="doc-body"><span class="md-k">permissions:</span> { id-token: write, contents: read }
+<span class="md-k">jobs:</span>
+  <span class="md-k">dev:</span>
+    <span class="md-k">environment:</span> dev
+    <span class="md-k">steps:</span>
+      - uses: azure/login@v2           <span class="md-c"># OIDC, no secret</span>
+      - run: azd deploy --environment dev
+  <span class="md-k">prod:</span>
+    <span class="md-k">needs:</span> dev
+    <span class="md-k">environment:</span> production      <span class="md-c"># required reviewers: Priya + Sarah</span>
+    <span class="md-k">steps:</span>
+      - uses: azure/login@v2
+      - run: azd deploy --environment prod</div></div>
+  <div class="chat reveal"><div class="chat-header">🐙 Actions · deploy #41</div><div class="chat-body">
+    <div class="msg hook"><div class="who">Actions</div><div class="bubble">dev ✓ · smoke test ✓ (p99 email latency 6.2 s) · <strong>production: waiting for review</strong></div></div>
+    <div class="msg user"><div class="who">Priya</div><div class="bubble">Approve and deploy</div></div>
+    <div class="msg user"><div class="who">Sarah</div><div class="bubble">Approve and deploy</div></div>
+    <div class="msg hook"><div class="who">Actions</div><div class="bubble">production ✓ · revision notification-service--0007 active</div></div>
+  </div></div>
+</section>
+
+<section class="step-panel" data-section="Wrap-up" data-title="Retro" data-sub="What to measure">
+  <div class="step-header"><div class="phase-tag green">📈 Retro</div><h2>What the team learned</h2></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Observation</th><th>Change for next time</th></tr>
+    <tr><td>Agent PR #23 stalled for 20 min on a missing Service Bus emulator.</td><td>Add the emulator to <code>copilot-setup-steps.yml</code>.</td></tr>
+    <tr><td>Issues that linked the AI-DLC functional design needed fewer review rounds (1.3 vs 2.8).</td><td>Always paste the plan path into agent issues.</td></tr>
+    <tr><td>Review time, not coding time, became the bottleneck.</td><td>Cap open agent PRs at 2 per reviewer.</td></tr>
+  </table></div>
+  <div class="callout success"><div class="icon">✅</div><p>Next: <a href="MSAD_Sim_Brownfield.html">Sim 3 · Brownfield + Ops</a>, or test yourself in <a href="MSAD_Training.html">Training</a>.</p></div>
+</section>
+
+    </div>
+  </main>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script src="assets/platform-kit.js?v=1"></script>
+</body>
+</html>

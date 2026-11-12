@@ -1,0 +1,89 @@
+/* Extra widgets for the AI platform onboarding tracks (Microsoft Agentic DevOps,
+   Claude AI SDLC, OpenAI Codex, Google Gemini + DORA).
+   Loaded after aidlc-sim.css; reuses its tokens. */
+
+/* Platform header colours */
+.sim-header.ms{background:linear-gradient(135deg,#0B3A75,#0078D4 55%,#5C2D91);}
+.sim-header.claude{background:linear-gradient(135deg,#3B2418,#B0563A 60%,#D97757);}
+.sim-header.codex{background:linear-gradient(135deg,#06231B,#0E6E55 60%,#10A37F);}
+.sim-header.gemini{background:linear-gradient(135deg,#1A2A6C,#4285F4 55%,#9B72CB);}
+.sim-header.multi{background:linear-gradient(135deg,#0B3A75,#0E6E55 35%,#B0563A 70%,#9B72CB);}
+
+/* Chat header variants */
+.chat-header.ms{background:#0B2A4D;}
+.chat-header.claude{background:#3A2015;}
+.chat-header.codex{background:#0A2E24;}
+.chat-header.gemini{background:#1B2557;}
+
+/* Page layout for non-stepped pages */
+.wrap{max-width:1100px;margin:0 auto;padding:28px 40px 60px;}
+h2.sec{font-size:13px;text-transform:uppercase;letter-spacing:1.4px;color:var(--teal);margin:26px 0 8px;}
+h3.sub{font-size:17px;margin:18px 0 6px;}
+p.body,.wrap>p{color:var(--muted);margin:6px 0 10px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;margin:12px 0 22px;}
+a.tile{display:block;text-decoration:none;color:inherit;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;transition:border-color .15s,transform .15s;}
+a.tile:hover{border-color:var(--blue);transform:translateY(-2px);}
+a.tile .em{font-size:24px;}
+a.tile h3{font-size:16px;margin:6px 0 4px;}
+a.tile p{font-size:13px;color:var(--muted);}
+a.tile .tag{display:inline-block;margin-top:8px;font-size:11px;border:1px solid var(--border2);border-radius:10px;padding:1px 8px;color:var(--muted);}
+a.tile .tag.new{border-color:var(--amber);color:var(--amber);}
+
+/* FAQ */
+.faq details{background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin:8px 0;padding:0 14px;}
+.faq summary{cursor:pointer;padding:11px 0;font-weight:600;list-style:none;}
+.faq summary::-webkit-details-marker{display:none;}
+.faq summary::before{content:'▸ ';color:var(--teal);}
+.faq details[open] summary::before{content:'▾ ';}
+.faq details>div{padding:0 0 12px;color:var(--muted);font-size:14px;}
+.faq details>div p{margin:6px 0;}
+
+/* Module cards (training) */
+.module{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin:12px 0;}
+.module .mhead{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;}
+.module .lvl{font-family:var(--font-mono);font-size:11px;border-radius:8px;padding:1px 8px;border:1px solid var(--border2);color:var(--muted);}
+.module .lvl.l100{border-color:var(--green);color:var(--green);}
+.module .lvl.l200{border-color:var(--blue);color:var(--blue);}
+.module .lvl.l300{border-color:var(--purple);color:var(--purple);}
+.module h4{font-size:15.5px;}
+.module .dur{font-size:12px;color:var(--dim);margin-left:auto;}
+.module ul,.module ol{margin:8px 0 4px 20px;color:var(--muted);font-size:14px;}
+.module li{margin:3px 0;}
+.module .lab{margin-top:10px;border-top:1px dashed var(--border2);padding-top:8px;font-size:13.5px;color:var(--muted);}
+.module .lab strong{color:var(--amber);}
+
+/* Persisted checklist: <ul class="track" data-key="..."> <li>…</li> */
+.track{list-style:none;margin:10px 0;}
+.track li{display:flex;gap:10px;align-items:flex-start;background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:9px 12px;margin:6px 0;cursor:pointer;font-size:14px;color:var(--muted);user-select:none;}
+.track li .box{flex:0 0 18px;height:18px;border:2px solid var(--border2);border-radius:4px;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#000;}
+.track li.ok{border-color:var(--green);color:var(--white);}
+.track li.ok .box{background:var(--green);border-color:var(--green);}
+.track-meter{font-family:var(--font-mono);font-size:12px;color:var(--muted);}
+
+/* Quiz: <div class="quiz"> <div class="q" data-why="…"> <p>…</p> <button class="qo" data-ok>…</button> … */
+.quiz{margin:12px 0;}
+.quiz .q{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin:10px 0;}
+.quiz .q>p{font-weight:600;margin-bottom:8px;}
+.quiz .qo{display:block;width:100%;text-align:left;background:var(--bg3);border:1px solid var(--border2);border-radius:7px;color:var(--white);padding:7px 11px;margin:5px 0;font-family:var(--font-ui);font-size:14px;cursor:pointer;}
+.quiz .qo:hover{border-color:var(--blue);}
+.quiz .qo.right{background:var(--green-dim);border-color:var(--green);}
+.quiz .qo.wrong{background:var(--coral-dim);border-color:var(--coral);}
+.quiz .qo:disabled{cursor:default;}
+.quiz .why{display:none;font-size:13.5px;color:var(--muted);margin-top:6px;border-left:3px solid var(--teal);padding-left:10px;}
+.quiz .q.done .why{display:block;}
+.quiz-score{font-family:var(--font-mono);font-size:13px;color:var(--teal);margin-top:6px;}
+
+/* Matrix table tweaks */
+.tbl td.y{color:var(--green);} .tbl td.p{color:var(--amber);} .tbl td.n{color:var(--dim);}
+.tbl th.ms{color:#4CA6FF;} .tbl th.claude{color:#E8916F;} .tbl th.codex{color:#3CCB9E;} .tbl th.gemini{color:#9FB8FF;}
+
+/* Simple meters */
+.meter{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;margin:4px 0 10px;}
+.meter>span{display:block;height:100%;background:var(--teal);transition:width .25s;}
+input.num,select.sel{background:var(--bg3);border:1px solid var(--border2);border-radius:7px;color:var(--white);padding:6px 9px;font-family:var(--font-ui);font-size:14px;}
+input.num{width:110px;}
+
+@media (max-width:860px){
+  .wrap{padding:18px 16px 40px;}
+  .module .dur{margin-left:0;width:100%;}
+}

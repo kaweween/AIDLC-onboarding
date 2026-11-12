@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic DevOps Training Path</title>
+<meta name="description" content="Training curriculum for Microsoft Agentic DevOps: six modules with labs, a role matrix and a knowledge check.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<link rel="stylesheet" href="assets/platform-kit.css?v=1">
+</head>
+<body>
+<header class="sim-header ms">
+  <div class="icon">🎓</div>
+  <div>
+    <h1>Microsoft Agentic DevOps: Training Path</h1>
+    <p>Six modules from first prompt to an ops loop with people approving. About 9 hours in total, with a hands-on lab in each module and a knowledge check at the end.</p>
+    <div class="stack-pills"><span class="pill">L100 → L300</span><span class="pill">~9 h</span><span class="pill">6 labs</span><span class="pill">12-question check</span></div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+<div class="wrap">
+  <div class="callout info"><div class="icon">ℹ️</div><p><strong>Before you start:</strong> read the <a href="MSAD_Onboarding.html">Onboarding</a> guide. Labs assume a GitHub org with Copilot Business/Enterprise, VS Code, and an Azure dev subscription. Use a sandbox repo, not production.</p></div>
+
+  <h2 class="sec">Modules</h2>
+  <div class="module"><div class="mhead"><span class="lvl l100">L100</span><h4>M1 · Agentic DevOps concepts</h4><span class="dur">45 min</span></div>
+    <ul><li>Assistant vs agent vs autonomous agent. Synchronous (agent mode) vs asynchronous (coding agent).</li><li>The tool map across Ideation → Inception → Construction → Operation.</li><li>What stays human: intent, approval, merge, production.</li></ul>
+    <div class="lab"><strong>Lab 1:</strong> For the last five tickets your team closed, mark each one "agent mode", "coding agent" or "human only" and say why. Compare with a peer.</div></div>
+  <div class="module"><div class="mhead"><span class="lvl l100">L100</span><h4>M2 · Copilot agent mode in the IDE</h4><span class="dur">90 min</span></div>
+    <ul><li>Ask / Edit / Agent / Plan modes, and approving tools and terminal commands.</li><li>Context: <code>#file</code>, <code>#codebase</code>, workspace instructions.</li><li>Undo and checkpoints. When to stop and restart a conversation.</li></ul>
+    <div class="lab"><strong>Lab 2:</strong> Do <a href="MSAD_Sim_Setup.html#step-2">Sim 1 step 2</a> for real: have agent mode build, test and fix one failing test. Use Plan mode first.</div></div>
+  <div class="module"><div class="mhead"><span class="lvl l200">L200</span><h4>M3 · Steering: instructions, prompts, custom agents, MCP</h4><span class="dur">90 min</span></div>
+    <ul><li><code>copilot-instructions.md</code>, path-scoped <code>*.instructions.md</code> (<code>applyTo</code>), <code>AGENTS.md</code>.</li><li>Prompt files (<code>*.prompt.md</code>) and custom agents (<code>*.agent.md</code>): role, tools, handoffs.</li><li>MCP: VS Code <code>mcp.json</code> vs coding agent repo settings. Approved server list.</li></ul>
+    <div class="lab"><strong>Lab 3:</strong> Write a 40-line instructions file and one custom "test-writer" agent. Ask the same question with and without them and compare the answers.</div></div>
+  <div class="module"><div class="mhead"><span class="lvl l200">L200</span><h4>M4 · Copilot coding agent and PR review</h4><span class="dur">2 h</span></div>
+    <ul><li>Writing agent-ready issues: outcome, acceptance criteria, constraints, files to look at.</li><li><code>copilot-setup-steps.yml</code>, the firewall and the <code>copilot</code> environment.</li><li>Reviewing agent PRs: <code>@copilot</code> comments, Copilot code review, CodeQL and Autofix, separation of duties.</li></ul>
+    <div class="lab"><strong>Lab 4:</strong> Assign two independent issues to Copilot at once. Iterate on one PR at least twice with <code>@copilot</code> comments. Record the review time.</div></div>
+  <div class="module"><div class="mhead"><span class="lvl l300">L300</span><h4>M5 · Spec-driven delivery with AI-DLC (or Spec Kit)</h4><span class="dur">2 h</span></div>
+    <ul><li>AI-DLC on the Copilot harness: scopes, gates, Units, the record in <code>aidlc/</code>.</li><li>Turning Units into coding-agent issues. Waves from the dependency graph.</li><li>Spec Kit's constitution → specify → plan → tasks → implement flow, and when it's enough.</li></ul>
+    <div class="lab"><strong>Lab 5:</strong> Run <a href="MSAD_Sim_Greenfield.html">Sim 2</a> on a toy service with <code>/aidlc … --scope express</code>, then give one Unit to the coding agent.</div></div>
+  <div class="module"><div class="mhead"><span class="lvl l300">L300</span><h4>M6 · Operations with Azure SRE Agent</h4><span class="dur">90 min</span></div>
+    <ul><li>Scoping resource groups, run modes (review vs autonomous), incident sources.</li><li>From incident to GitHub issue to Copilot PR. Post-incident summaries.</li><li>An autonomy policy table for your team.</li></ul>
+    <div class="lab"><strong>Lab 6:</strong> In a dev subscription, break something on purpose (for example a bad config value). Let the SRE Agent investigate in review mode and file the issue.</div></div>
+
+  <h2 class="sec">Role matrix</h2>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Role</th><th>Required</th><th>Recommended</th><th>Outcome</th></tr>
+    <tr><td><strong>Developer</strong></td><td>M1–M4</td><td>M5</td><td>Delegates and reviews agent PRs safely.</td></tr>
+    <tr><td><strong>Architect</strong></td><td>M1, M3, M5</td><td>M4</td><td>Owns instructions, custom agents, MCP list, design gates.</td></tr>
+    <tr><td><strong>Product Owner</strong></td><td>M1, M5 (theory)</td><td>M4 (issue writing)</td><td>Writes agent-ready work items. Answers AI-DLC gates.</td></tr>
+    <tr><td><strong>SRE / Ops</strong></td><td>M1, M6</td><td>M4</td><td>Runs the incident → issue → PR loop.</td></tr>
+    <tr><td><strong>Eng. lead</strong></td><td>M1, M6 (policy)</td><td>All</td><td>Sets autonomy policy and measures outcomes.</td></tr>
+  </table></div>
+
+  <h2 class="sec">Your progress</h2>
+  <ul class="track" data-key="msad-train" data-meter="msad-train-m">
+    <li><div>M1 · Concepts + Lab 1</div></li><li><div>M2 · Agent mode + Lab 2</div></li><li><div>M3 · Steering + Lab 3</div></li><li><div>M4 · Coding agent + Lab 4</div></li><li><div>M5 · Spec-driven + Lab 5</div></li><li><div>M6 · SRE Agent + Lab 6</div></li><li><div>Knowledge check passed (10/12 or better)</div></li>
+  </ul>
+  <p class="track-meter" id="msad-train-m"></p>
+
+  <h2 class="sec">Knowledge check</h2>
+  <div class="quiz">
+    <div class="q" data-why="The coding agent works asynchronously on an assigned issue and delivers a draft PR. Agent mode runs in your IDE while you watch."><p>1. You want Copilot to work on a clear issue overnight and give you something to review in the morning. Which do you use?</p><button class="qo">Agent mode in VS Code</button><button class="qo" data-ok>Copilot coding agent (assign the issue to Copilot)</button><button class="qo">Copilot Chat Ask mode</button></div>
+    <div class="q" data-why="The workflow must contain a job named exactly copilot-setup-steps; it runs before the agent starts working."><p>2. Where do you install dependencies for the coding agent's environment?</p><button class="qo">.vscode/settings.json</button><button class="qo">AGENTS.md</button><button class="qo" data-ok>A <code>copilot-setup-steps</code> job in <code>.github/workflows/copilot-setup-steps.yml</code></button></div>
+    <div class="q" data-why="Path-scoped instruction files use applyTo frontmatter with a glob."><p>3. How do you give rules that apply only to <code>src/Api/**</code>?</p><button class="qo" data-ok>A <code>.github/instructions/*.instructions.md</code> file with <code>applyTo: "src/Api/**"</code></button><button class="qo">A comment at the top of each controller</button><button class="qo">A second copilot-instructions.md in src/Api</button></div>
+    <div class="q" data-why="The agent pushes to its own branch and opens a PR; branch protection and reviews still apply."><p>4. What happens to the coding agent's changes?</p><button class="qo">They're pushed straight to main</button><button class="qo" data-ok>They go to a <code>copilot/…</code> branch as a draft PR, and normal review rules apply</button><button class="qo">They're stored in Azure Boards</button></div>
+    <div class="q" data-why="The person who asked Copilot to do the work shouldn't be the sole approver of its PR, which keeps a second set of eyes on agent code."><p>5. Marcus assigned the issue to Copilot. Can Marcus alone approve and merge the resulting PR?</p><button class="qo">Yes, he's the owner</button><button class="qo" data-ok>No, another reviewer has to approve</button><button class="qo">Only if CodeQL passes</button></div>
+    <div class="q" data-why="Comments mentioning @copilot on the PR ask the agent to iterate."><p>6. How do you ask the coding agent to change its open PR?</p><button class="qo" data-ok>Comment on the PR mentioning <code>@copilot</code></button><button class="qo">Close it and open a new issue</button><button class="qo">Edit copilot-instructions.md</button></div>
+    <div class="q" data-why="OIDC federated credentials give short-lived tokens with no stored secret."><p>7. Best way for GitHub Actions to deploy to Azure?</p><button class="qo">Store a service principal password as a repo secret</button><button class="qo" data-ok>OIDC federated credential + <code>azure/login</code>, scoped to a resource group</button><button class="qo">Give the coding agent owner rights</button></div>
+    <div class="q" data-why="Review mode makes every write action wait for a person; start there."><p>8. A safe day-one run mode for Azure SRE Agent?</p><button class="qo" data-ok>Review: it proposes, a person approves</button><button class="qo">Autonomous for everything</button><button class="qo">Off until an incident happens</button></div>
+    <div class="q" data-why="SRE Agent can create a GitHub issue with its analysis, which Copilot (or a person) then fixes through a normal PR."><p>9. How does an incident root cause become a code fix in the agentic loop?</p><button class="qo">SRE Agent edits production code directly</button><button class="qo" data-ok>SRE Agent files a GitHub issue; Copilot or a person fixes it in a reviewed PR</button><button class="qo">Azure Monitor patches the container</button></div>
+    <div class="q" data-why="AI-DLC adds scopes, gates, reviewer agents, guards and an audit record; Spec Kit is a lighter file-based spec flow."><p>10. What does AI-DLC add over Spec Kit?</p><button class="qo">Code completion</button><button class="qo" data-ok>Scopes, approval gates, reviewer agents, guards and an audit trail</button><button class="qo">A hosted model</button></div>
+    <div class="q" data-why="Separate PRs isolate risk and make rollback and root-cause analysis simple."><p>11. You need a framework upgrade and a new feature. How do you ship them?</p><button class="qo">One big PR to save review time</button><button class="qo" data-ok>Upgrade PR first, feature PR after</button><button class="qo">Feature first, upgrade later in the same PR</button></div>
+    <div class="q" data-why="When agents write code fast, human review capacity becomes the constraint; cap the queue."><p>12. After a month, agent PRs wait days for review. What's the best fix?</p><button class="qo">Let agents approve each other</button><button class="qo">Turn off branch protection</button><button class="qo" data-ok>Limit open agent PRs per reviewer and make issues smaller</button></div>
+  </div>
+
+  <h2 class="sec">Official learning</h2>
+  <p class="body">Microsoft Learn has GitHub Copilot learning paths and the GitHub Copilot certification (GH-300). GitHub Docs has tutorials for the coding agent, custom agents and MCP. Azure SRE Agent docs are on Microsoft Learn. Catalogues change, so search them by name.</p>
+  <p class="body"><a href="MSAD_Onboarding.html">← Onboarding</a> · <a href="Platforms_Comparison.html">Compare platforms →</a></p>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script src="assets/platform-kit.js?v=1"></script>
+</body>
+</html>

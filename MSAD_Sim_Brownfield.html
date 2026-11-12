@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic DevOps Brownfield Simulator</title>
+<meta name="description" content="Simulated walkthrough: modernise a legacy billing service with Copilot app modernization, add bulk invoice export, then close the loop with an Azure SRE Agent incident.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<link rel="stylesheet" href="assets/platform-kit.css?v=1">
+</head>
+<body>
+<header class="sim-header ms">
+  <div class="icon">🏢</div>
+  <div>
+    <h1>Microsoft Agentic DevOps · Sim 3: Brownfield + Ops loop</h1>
+    <p>A 38k-line billing service: upgrade it, add bulk invoice export, ship it, then watch Azure SRE Agent catch a production problem and hand the fix back to Copilot.</p>
+    <div class="stack-pills"><span class="pill">Copilot app modernization</span><span class="pill">AI-DLC feature scope</span><span class="pill">Azure SRE Agent</span><span class="pill">Incident → issue → PR</span><span class="pill">Simulated output</span></div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+<div class="sim-body">
+  <nav class="sidebar" id="steps-nav" aria-label="Steps"></nav>
+  <main class="main-area">
+    <div class="progress-bar-container"><div class="progress-bar-outer"><div class="progress-bar-inner" id="progress"></div></div><div class="progress-label" id="progress-label">Step 1</div></div>
+    <div class="step-content-area">
+
+<section class="step-panel" data-section="Scenario" data-title="The legacy service" data-sub="billing-service">
+  <div class="step-header"><div class="phase-tag coral">🏢 Scenario</div><h2>Old code, new request</h2>
+  <p><code>billing-service</code>: .NET 6 (out of support), 38k lines, thin tests around exports. Finance wants <strong>bulk invoice export</strong> (up to 50k invoices to CSV/PDF zip) this quarter.</p></div>
+  <div class="cards">
+    <div class="card coral"><h4>Risk</h4><p>Unsupported runtime. Exports run in the request thread today. Nobody wants to touch <code>InvoiceRenderer</code>.</p></div>
+    <div class="card blue"><h4>Plan</h4><p>1) Upgrade the runtime with app modernization. 2) Add the feature through AI-DLC with Reverse Engineering. 3) Operate it with SRE Agent.</p></div>
+    <div class="card amber"><h4>People</h4><p>Marcus (dev), Priya (architect), Tomás (SRE), Sarah (PO).</p></div>
+  </div>
+</section>
+
+<section class="step-panel" data-section="Modernize" data-title="Assess & upgrade" data-sub="App modernization">
+  <div class="step-header"><div class="phase-tag purple">⬆️ Modernize</div><h2>Upgrade first, in its own PR</h2>
+  <p>In VS Code, Marcus opens the GitHub Copilot app modernization view for .NET and asks for an upgrade to the current LTS. It assesses, writes a plan, and waits for approval.</p></div>
+  <div class="chat reveal"><div class="chat-header ms">🤖 Copilot · App modernization</div><div class="chat-body">
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">Upgrade billing-service to the current .NET LTS.</div></div>
+    <div class="msg ai"><div class="who">Copilot</div><div class="bubble">Assessment: 6 projects, 41 NuGet packages (7 need major bumps), 2 breaking API uses (<code>BinaryFormatter</code>, <code>WebClient</code>). Plan saved to <code>.github/upgrades/dotnet-upgrade-plan.md</code>. <strong>Review the plan, then say "start".</strong></div></div>
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">Replace BinaryFormatter with System.Text.Json, not a compat shim. Then start.</div></div>
+    <div class="msg ai"><div class="who">Copilot</div><div class="bubble">Upgraded project by project, with a commit per step. Build ✓, tests 388/388 ✓. Summary in <code>dotnet-upgrade-report.md</code>.</div></div>
+  </div></div>
+  <div class="callout tip"><div class="icon">💡</div><p>Keep the upgrade and the feature in separate PRs. If production breaks, you'll know which change caused it.</p></div>
+</section>
+
+<section class="step-panel" data-section="Feature" data-title="Reverse engineering" data-sub="AI-DLC feature scope">
+  <div class="step-header"><div class="phase-tag blue">🔎 Inception</div><h2>Understand before changing</h2>
+  <p>With the runtime current, Marcus runs AI-DLC on the Copilot harness. Brownfield detection turns on Reverse Engineering, and the team sets Guard Policy <code>strict</code>.</p></div>
+  <div class="chat reveal"><div class="chat-header ms">🤖 Copilot · Agent</div><div class="chat-body">
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">/aidlc Add bulk invoice export (CSV and PDF zip, up to 50k invoices, async, emailed link). --scope feature --guard-policy strict</div></div>
+    <div class="msg ai"><div class="who">AIDLC</div><div class="bubble">Brownfield detected (38k LOC). Reverse Engineering first: architecture, component map, hot spots. Findings: <code>InvoiceRenderer</code> is synchronous and allocates a full PDF in memory; export runs in the API request; there's no job table.</div></div>
+    <div class="msg ai"><div class="who">AIDLC · architect agent</div><div class="bubble">Proposed ADR-014: move exports to a Service Bus queue + worker, stream PDFs into a zip on Blob Storage, and email a SAS link valid for 24 h. Alternatives considered: Durable Functions; a larger API tier.</div></div>
+    <div class="msg user"><div class="who">Priya</div><div class="bubble">Approve ADR-014. Add a limit: 5 concurrent exports per tenant.</div></div>
+  </div></div>
+</section>
+
+<section class="step-panel" data-section="Feature" data-title="Build & ship" data-sub="Agents + people">
+  <div class="step-header"><div class="phase-tag amber">🏗️ Construction</div><h2>Three Units, mixed delegation</h2></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Unit</th><th>Who builds</th><th>Why</th></tr>
+    <tr><td>export-jobs (table + API)</td><td>Coding agent, PR #301</td><td>Well specified, plenty of existing patterns.</td></tr>
+    <tr><td>export-worker (streaming zip)</td><td>Marcus + agent mode</td><td>Memory and performance risk.</td></tr>
+    <tr><td>export-email</td><td>Coding agent, PR #303</td><td>Reuses the notification service client.</td></tr>
+  </table></div>
+  <div class="callout success"><div class="icon">✅</div><p>Load test: 50k invoices exported in 7 min 40 s, worker memory flat at 310 MB. Shipped behind the feature flag <code>bulk-export</code>, on for 3 tenants.</p></div>
+</section>
+
+<section class="step-panel" data-section="Operate" data-title="Incident" data-sub="SRE Agent investigates">
+  <div class="step-header"><div class="phase-tag coral">🚨 Operation</div><h2>Two days later: an alert at 02:14</h2>
+  <p>Azure Monitor fires "export-worker: dead-letter count &gt; 50". Azure SRE Agent starts investigating before Tomás opens his laptop.</p></div>
+  <div class="chat reveal"><div class="chat-header ms">🛟 Azure SRE Agent · Incident 7731 <span class="tag">review mode</span></div><div class="chat-body">
+    <div class="msg ai"><div class="who">SRE Agent</div><div class="bubble">Investigating. Correlated signals:<br>• 212 dead-lettered messages since 01:50 (tenant <code>fabrikam</code>)<br>• Worker exceptions: <code>Azure.RequestFailedException: 409 BlobAlreadyExists</code><br>• Deploy history: no deploys in 41 h<br>• Code: <code>ExportWorker.cs:88</code> uses a blob name of <code>{tenant}/{date}.zip</code>, so two exports on the same day collide.</div></div>
+    <div class="msg ai"><div class="who">SRE Agent</div><div class="bubble"><strong>Proposed mitigation:</strong> requeue dead-lettered messages after a fix. <strong>Proposed code fix:</strong> include the job id in the blob name. I can open a GitHub issue with this analysis and assign it to Copilot. <em>Approve?</em></div></div>
+    <div class="msg user"><div class="who">Tomás</div><div class="bubble">Approve the issue. Don't requeue yet. Turn the feature flag off for fabrikam now.</div></div>
+    <div class="msg ai"><div class="who">SRE Agent</div><div class="bubble">Flag off for fabrikam. Opened issue #318 "Blob name collision in export-worker" with logs, KQL query and suspected line. Assigned to Copilot.</div></div>
+  </div></div>
+</section>
+
+<section class="step-panel" data-section="Operate" data-title="Fix & close the loop" data-sub="Issue → PR → requeue">
+  <div class="step-header"><div class="phase-tag green">🔁 Loop</div><h2>Operations hands the fix back to development</h2></div>
+  <div class="chat reveal"><div class="chat-header">🐙 PR #319 · Fix blob name collision</div><div class="chat-body">
+    <div class="msg ai"><div class="who">Copilot coding agent</div><div class="bubble">Blob name is now <code>{tenant}/{date}/{jobId}.zip</code>. Added regression test <code>TwoExportsSameDay_DoNotCollide</code>. Tests 402/402 ✓.</div></div>
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">Approved. Merge, deploy via the normal pipeline.</div></div>
+    <div class="msg user"><div class="who">Tomás → SRE Agent</div><div class="bubble">Fix is live. Requeue the 212 dead-lettered messages and re-enable the flag for fabrikam.</div></div>
+    <div class="msg ai"><div class="who">SRE Agent</div><div class="bubble">Requeued 212, all completed. Flag on. Incident resolved; draft post-incident summary attached for review.</div></div>
+  </div></div>
+  <div class="flow"><span class="node done">Alert</span><span class="arrow">→</span><span class="node done">SRE Agent RCA</span><span class="arrow">→</span><span class="node done">Human approves</span><span class="arrow">→</span><span class="node done">Issue → Copilot</span><span class="arrow">→</span><span class="node done">PR reviewed</span><span class="arrow">→</span><span class="node done">Deploy</span><span class="arrow">→</span><span class="node on">Requeue + verify</span></div>
+</section>
+
+<section class="step-panel" data-section="Wrap-up" data-title="Try it: autonomy" data-sub="Who may do what">
+  <div class="step-header"><div class="phase-tag purple">🎛️ Try it</div><h2>What should the agent do alone?</h2>
+  <p>Pick an action and an autonomy level. These suggested answers are a starting team policy, not product defaults.</p></div>
+  <div class="ctl-row">
+    <div><label>Action</label><select class="sel" id="a-act">
+      <option value="read">Read logs and metrics</option><option value="issue">Open a GitHub issue</option><option value="scale">Scale out a Container App</option><option value="restart">Restart a revision</option><option value="flag">Toggle a feature flag</option><option value="rollback">Roll back a production deploy</option><option value="merge">Merge its own fix PR</option></select></div>
+    <div><label>SRE Agent run mode</label><div class="seg" id="a-mode"><button data-v="review" class="on">Review</button><button data-v="auto">Autonomous</button></div></div>
+  </div>
+  <div class="result" id="a-out"></div>
+</section>
+
+    </div>
+  </main>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script src="assets/platform-kit.js?v=1"></script>
+<script>
+(function(){
+  const P={
+    read:{review:['allow','Alone','Read-only investigation is the main value. Always allowed inside its scoped resource groups.'],auto:['allow','Alone','Same.']},
+    issue:{review:['ask','Ask first','In review mode it drafts the issue and waits.'],auto:['allow','Alone','Low risk: an issue changes nothing in production.']},
+    scale:{review:['ask','Ask first','Proposes the scale-out with the metric that justifies it.'],auto:['allow','Alone, within bounds','Allow within a cap (for example max 10 replicas) and log it to the incident.']},
+    restart:{review:['ask','Ask first','Proposes it and waits.'],auto:['ask','Ask first in prod','Many teams allow it in dev/test only. A restart can hide the evidence you need for the root cause.']},
+    flag:{review:['ask','Ask first','Tomás approved this in the sim.'],auto:['ask','Ask first','A flag change is customer-visible. Keep a person in the loop.']},
+    rollback:{review:['ask','Ask first','Proposes the rollback target revision.'],auto:['deny','Never alone','Production rollback is a release decision. Route it through the deploy pipeline and its approvers.']},
+    merge:{review:['deny','Never','No agent merges code. The coding agent opens PRs; people approve under branch protection.'],auto:['deny','Never','Same in every mode.']}
+  };
+  let mode='review';const sel=document.getElementById('a-act'),out=document.getElementById('a-out');
+  const ic={allow:'✅',ask:'✋',deny:'⛔'};
+  function r(){const v=P[sel.value][mode];out.className='result '+v[0];out.innerHTML='<div class="verdict">'+ic[v[0]]+' '+v[1]+'</div><div>'+v[2]+'</div>';}
+  document.querySelectorAll('#a-mode button').forEach(b=>b.onclick=()=>{mode=b.dataset.v;document.querySelectorAll('#a-mode button').forEach(x=>x.classList.toggle('on',x===b));r();});
+  sel.onchange=r;r();
+})();
+</script>
+</body>
+</html>

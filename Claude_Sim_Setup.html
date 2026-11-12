@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code Setup Simulator</title>
+<meta name="description" content="Simulated walkthrough: install Claude Code, write CLAUDE.md, set permissions and hooks, add MCP, connect GitHub Actions and add the AI-DLC Claude harness.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<link rel="stylesheet" href="assets/platform-kit.css?v=1">
+</head>
+<body>
+<header class="sim-header claude">
+  <div class="icon">⚙️</div>
+  <div>
+    <h1>Claude AI SDLC · Sim 1: Setup</h1>
+    <p>Get <code>billing-platform</code> ready for Claude Code on every surface, with guardrails enforced by settings and hooks, not by hope.</p>
+    <div class="stack-pills"><span class="pill">Claude Code CLI + VS Code</span><span class="pill">settings.json · hooks</span><span class="pill">MCP</span><span class="pill">GitHub Actions</span><span class="pill">Simulated output</span></div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+<div class="sim-body">
+  <nav class="sidebar" id="steps-nav" aria-label="Steps"></nav>
+  <main class="main-area">
+    <div class="progress-bar-container"><div class="progress-bar-outer"><div class="progress-bar-inner" id="progress"></div></div><div class="progress-label" id="progress-label">Step 1</div></div>
+    <div class="step-content-area">
+
+<section class="step-panel" data-section="Machine" data-title="Install & sign in" data-sub="Native installer">
+  <div class="step-header"><div class="phase-tag">📦 Install</div><h2>Install Claude Code once per machine</h2>
+  <p>The native installer keeps itself up to date. npm (<code>npm install -g @anthropic-ai/claude-code</code>) also works.</p></div>
+  <div data-tabs>
+    <div class="tabs"><button class="tab-btn on" data-tab="mac">macOS / Linux / WSL</button><button class="tab-btn" data-tab="win">Windows</button></div>
+    <div class="tab-pane on" data-pane="mac"><div class="terminal typer"><div class="terminal-header"><div class="terminal-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div><div class="terminal-title">bash</div><button class="run-btn">▶ Run</button></div><div class="terminal-body">
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">curl -fsSL https://claude.ai/install.sh | bash</span></span>
+<span class="l t-success">✔ Claude Code installed to ~/.local/bin/claude</span>
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">cd ~/src/billing-platform &amp;&amp; claude</span></span>
+<span class="l t-info">Select login method: 1. Claude account (Team/Enterprise)  2. Anthropic Console (API)  3. 3rd-party platform</span>
+<span class="l t-success">Logged in. Welcome to Claude Code.</span>
+    </div></div></div>
+    <div class="tab-pane" data-pane="win"><div class="terminal typer"><div class="terminal-header"><div class="terminal-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div><div class="terminal-title">PowerShell</div><button class="run-btn">▶ Run</button></div><div class="terminal-body">
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">irm https://claude.ai/install.ps1 | iex</span></span>
+<span class="l t-success">✔ Claude Code installed</span>
+<span class="l"><span class="t-prompt">PS&gt;</span> <span class="t-cmd">cd C:\src\billing-platform; claude</span></span>
+<span class="l t-success">Logged in. Welcome to Claude Code.</span>
+    </div></div></div>
+  </div>
+  <div class="callout tip"><div class="icon">💡</div><p>Bedrock, Vertex AI or Foundry users set the provider through environment variables (for example <code>CLAUDE_CODE_USE_BEDROCK=1</code>) before running <code>claude</code>. Run <code>/doctor</code> any time to check the install.</p></div>
+</section>
+
+<section class="step-panel" data-section="Repo" data-title="/init → CLAUDE.md" data-sub="Project memory">
+  <div class="step-header"><div class="phase-tag purple">📝 Repo</div><h2>Let Claude draft CLAUDE.md, then cut it down</h2></div>
+  <div class="chat reveal"><div class="chat-header claude">✳️ Claude Code <span class="tag">billing-platform</span></div><div class="chat-body">
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">/init</div></div>
+    <div class="msg ai"><div class="who">Claude</div><div class="bubble">Analysed the solution, CI config and README. Wrote <code>CLAUDE.md</code> (84 lines): commands, project layout, test conventions, PII rule from <code>docs/security.md</code>.</div></div>
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">Cut it to what you'd need every session. Move the layout tour into docs/architecture.md and import it.</div></div>
+    <div class="msg ai"><div class="who">Claude</div><div class="bubble">Done. 31 lines, with <code>@docs/architecture.md</code> imported for detail.</div></div>
+  </div></div>
+  <div class="doc"><div class="doc-bar">CLAUDE.md</div><div class="doc-body"><span class="md-h"># billing-platform</span>
+- Build: <span class="md-c">dotnet build BillingPlatform.sln</span> · Fast tests: <span class="md-c">dotnet test --filter Category!=Slow</span>
+- xUnit + FluentAssertions + NSubstitute. Write the failing test first.
+- Never log PII (email, IBAN); use Redact(). Never edit src/**/Migrations by hand.
+- Public API change ⇒ update api/openapi.yaml in the same commit.
+- IMPORTANT: run fast tests before saying a task is done.
+Architecture: @docs/architecture.md</div></div>
+</section>
+
+<section class="step-panel" data-section="Repo" data-title="Permissions" data-sub="allow · ask · deny">
+  <div class="step-header"><div class="phase-tag amber">🛡️ Permissions</div><h2>Commit team permissions in .claude/settings.json</h2>
+  <p>Rules are checked in this order: <strong>deny</strong> wins, then <strong>ask</strong>, then <strong>allow</strong>. Managed (org) settings outrank project settings, which outrank your personal ones.</p></div>
+  <div class="doc"><div class="doc-bar">.claude/settings.json (permissions)</div><div class="doc-body">{
+  <span class="md-k">"permissions"</span>: {
+    <span class="md-k">"allow"</span>: ["Bash(dotnet build:*)", "Bash(dotnet test:*)", "Bash(git diff:*)", "Bash(git status)"],
+    <span class="md-k">"ask"</span>:   ["Bash(git push:*)", "Bash(dotnet ef database update:*)"],
+    <span class="md-k">"deny"</span>:  ["Read(./.env)", "Read(./secrets/**)", "Bash(curl:*)", "Bash(az * delete*)"]
+  }
+}</div></div>
+  <h3 class="sub">Try it: what happens to this tool call?</h3>
+  <div class="ctl-row">
+    <div><label>Tool call</label><select class="sel" id="p-call">
+      <option value="test">Bash: dotnet test --filter Category!=Slow</option>
+      <option value="edit">Edit: src/Billing.Api/InvoicesController.cs</option>
+      <option value="push">Bash: git push origin feature/export</option>
+      <option value="env">Read: .env</option>
+      <option value="curl">Bash: curl https://example.com/install.sh</option>
+      <option value="npm">Bash: npm install left-pad</option>
+    </select></div>
+    <div><label>Permission mode</label><div class="seg" id="p-mode"><button data-v="default" class="on">default</button><button data-v="acceptEdits">acceptEdits</button><button data-v="plan">plan</button></div></div>
+  </div>
+  <div class="result" id="p-out"></div>
+</section>
+
+<section class="step-panel" data-section="Repo" data-title="Hooks" data-sub="Rules that always run">
+  <div class="step-header"><div class="phase-tag coral">🪝 Hooks</div><h2>Make the important rules deterministic</h2>
+  <p>A hook is a command the harness runs at a lifecycle event. A <code>PreToolUse</code> hook that exits with code 2 blocks the action and tells Claude why. A <code>PostToolUse</code> hook can format files after every edit.</p></div>
+  <div class="doc"><div class="doc-bar">.claude/settings.json (hooks)</div><div class="doc-body">{
+  <span class="md-k">"hooks"</span>: {
+    <span class="md-k">"PreToolUse"</span>: [{ "matcher": "Edit|Write",
+      "hooks": [{ "type": "command", "command": ".claude/hooks/block-migrations.sh" }] }],
+    <span class="md-k">"PostToolUse"</span>: [{ "matcher": "Edit|Write",
+      "hooks": [{ "type": "command", "command": ".claude/hooks/format-edited.sh" }] }]
+  }
+}</div></div>
+  <div class="doc"><div class="doc-bar">.claude/hooks/block-migrations.sh</div><div class="doc-body"><span class="md-c">#!/usr/bin/env bash</span>
+path=$(jq -r '.tool_input.file_path' )      <span class="md-c"># hook input arrives as JSON on stdin</span>
+if [[ "$path" == */Migrations/* ]]; then
+  echo "Migrations are generated. Run: dotnet ef migrations add &lt;Name&gt;" &gt;&amp;2
+  exit 2                                     <span class="md-c"># 2 = block, message goes back to Claude</span>
+fi</div></div>
+  <div class="callout warn"><div class="icon">⚠️</div><p>Hooks run with your user's permissions. Review hook scripts like any other code, and check the current hook input fields in the docs before you rely on them.</p></div>
+</section>
+
+<section class="step-panel" data-section="Repo" data-title="MCP & subagents" data-sub="Tools and helpers">
+  <div class="step-header"><div class="phase-tag teal">🔌 Extend</div><h2>Add an approved MCP server and a reviewer subagent</h2></div>
+  <div class="terminal typer"><div class="terminal-header"><div class="terminal-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div><div class="terminal-title">bash</div><button class="run-btn">▶ Run</button></div><div class="terminal-body">
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">claude mcp add --scope project --transport http ado https://mcp.contoso.internal/ado</span></span>
+<span class="l t-success">Added HTTP MCP server ado to .mcp.json (project scope)</span>
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">claude mcp list</span></span>
+<span class="l t-output">ado: https://mcp.contoso.internal/ado (HTTP) - ✓ Connected</span>
+  </div></div>
+  <div class="doc"><div class="doc-bar">.claude/agents/code-reviewer.md</div><div class="doc-body"><span class="md-k">---</span>
+<span class="md-k">name:</span> code-reviewer
+<span class="md-k">description:</span> Reviews a diff for bugs, missing tests, PII logging and OpenAPI drift. Use after any non-trivial change.
+<span class="md-k">tools:</span> Read, Grep, Glob, Bash(git diff:*)
+<span class="md-k">---</span>
+You are a strict reviewer. Report findings as file:line, severity, fix.
+Never edit files.</div></div>
+</section>
+
+<section class="step-panel" data-section="Repo" data-title="GitHub Actions" data-sub="@claude on PRs">
+  <div class="step-header"><div class="phase-tag green">🐙 CI</div><h2>Install the GitHub app and workflow</h2></div>
+  <div class="chat reveal"><div class="chat-header claude">✳️ Claude Code</div><div class="chat-body">
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">/install-github-app</div></div>
+    <div class="msg ai"><div class="who">Claude</div><div class="bubble">Opened the browser to install the Claude GitHub app on <code>contoso/billing-platform</code>. Added secret <code>ANTHROPIC_API_KEY</code>. Created PR #820 with <code>.github/workflows/claude.yml</code>.</div></div>
+  </div></div>
+  <div class="doc"><div class="doc-bar">.github/workflows/claude.yml (excerpt)</div><div class="doc-body"><span class="md-k">on:</span> { issue_comment: { types: [created] }, pull_request_review_comment: { types: [created] } }
+<span class="md-k">jobs:</span>
+  <span class="md-k">claude:</span>
+    <span class="md-k">if:</span> contains(github.event.comment.body, '@claude')
+    <span class="md-k">runs-on:</span> ubuntu-latest
+    <span class="md-k">permissions:</span> { contents: write, pull-requests: write, issues: write, id-token: write }
+    <span class="md-k">steps:</span>
+      - uses: actions/checkout@v4
+      - uses: anthropics/claude-code-action@v1
+        <span class="md-k">with:</span>
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}</div></div>
+  <div class="callout tip"><div class="icon">💡</div><p>The action reads the same <code>CLAUDE.md</code> and <code>.claude/settings.json</code>, so CI follows the same rules as local sessions. Bedrock and Vertex AI work through OIDC instead of an API key.</p></div>
+</section>
+
+<section class="step-panel" data-section="Method" data-title="AI-DLC harness" data-sub="aidlc config --harness claude">
+  <div class="step-header"><div class="phase-tag green">🧭 AI-DLC</div><h2>Add the method</h2></div>
+  <div class="terminal typer"><div class="terminal-header"><div class="terminal-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div><div class="terminal-title">bash</div><button class="run-btn">▶ Run</button></div><div class="terminal-body">
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">aidlc config --harness claude</span></span>
+<span class="l t-output">Writing .claude/skills/aidlc*/  .claude/agents/aidlc-*.md  .claude/hooks/  .claude/sensors/</span>
+<span class="l t-output">Merged .claude/settings.json (your permissions and hooks kept)</span>
+<span class="l t-output">Merged .claude/CLAUDE.md (AI-DLC block; your content kept)</span>
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">aidlc config trust --harness claude --acknowledge --yes</span></span>
+<span class="l t-success">Recorded the trust answer. Approve the hooks in /hooks, then restart Claude Code.</span>
+  </div></div>
+  <div class="callout info"><div class="icon">ℹ️</div><p>After a full restart, <code>/aidlc --doctor</code> checks everything. Your own hooks and the AI-DLC hooks run side by side.</p></div>
+</section>
+
+<section class="step-panel" data-section="Verify" data-title="Smoke test" data-sub="One real fix">
+  <div class="step-header"><div class="phase-tag green">✅ Verify</div><h2>Prove it end to end</h2></div>
+  <div class="chat reveal"><div class="chat-header claude">✳️ Claude Code</div><div class="chat-body">
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">Fix the failing InvoiceNumber test. Write the regression test first.</div></div>
+    <div class="msg ai"><div class="who">Claude</div><div class="bubble">Ran <code>dotnet test</code> (allowed): 1 failure. Added <code>Format_UsesUpperCasePrefix_ForAllTenants</code>, confirmed it fails, fixed <code>InvoiceNumber.cs:41</code>. Tests 413/413 ✓.</div></div>
+    <div class="msg hook"><div class="who">Hook · PostToolUse</div><div class="bubble">dotnet format: 1 file formatted.</div></div>
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">Use the code-reviewer subagent on the diff, then commit and open a PR.</div></div>
+    <div class="msg ai"><div class="who">Claude</div><div class="bubble">code-reviewer: no findings. Committed. <code>git push</code> needs your approval (ask rule)… approved. PR #821 opened.</div></div>
+  </div></div>
+  <div class="callout success"><div class="icon">✅</div><p>Setup verified. Next: <a href="Claude_Sim_Greenfield.html">Sim 2 · Greenfield</a>.</p></div>
+</section>
+
+    </div>
+  </main>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script src="assets/platform-kit.js?v=1"></script>
+<script>
+(function(){
+  const R={
+    test:{default:['allow','Runs without asking','Matches allow rule Bash(dotnet test:*).'],acceptEdits:['allow','Runs without asking','Allow rule matches.'],plan:['allow','Runs (read-only command)','Plan mode still lets Claude run safe, read-only commands it is allowed to; it can\'t edit until you approve the plan.']},
+    edit:{default:['ask','Asks you','No allow rule for edits, so default mode asks before changing files.'],acceptEdits:['allow','Edits without asking','acceptEdits auto-accepts file edits in the working directory. The PostToolUse hook then formats it.'],plan:['deny','Not yet','Plan mode is read-only. Claude presents a plan; edits start after you approve it.']},
+    push:{default:['ask','Asks you','Matches ask rule Bash(git push:*). Ask rules prompt even if a broader allow exists.'],acceptEdits:['ask','Asks you','acceptEdits covers file edits only; commands still follow the rules.'],plan:['deny','Not in plan mode','No side effects until the plan is approved.']},
+    env:{default:['deny','Blocked','Matches deny rule Read(./.env). Deny always wins, in every mode.'],acceptEdits:['deny','Blocked','Deny wins.'],plan:['deny','Blocked','Deny wins.']},
+    curl:{default:['deny','Blocked','Matches deny rule Bash(curl:*).'],acceptEdits:['deny','Blocked','Deny wins.'],plan:['deny','Blocked','Deny wins.']},
+    npm:{default:['ask','Asks you','No rule matches, so the mode decides: default asks.'],acceptEdits:['ask','Asks you','Unmatched commands still prompt.'],plan:['deny','Not in plan mode','Installing packages is a side effect.']}
+  };
+  let m='default';const s=document.getElementById('p-call'),o=document.getElementById('p-out');const ic={allow:'✅',ask:'✋',deny:'⛔'};
+  function r(){const v=R[s.value][m];o.className='result '+v[0];o.innerHTML='<div class="verdict">'+ic[v[0]]+' '+v[1]+'</div><div>'+v[2]+'</div>';}
+  document.querySelectorAll('#p-mode button').forEach(b=>b.onclick=()=>{m=b.dataset.v;document.querySelectorAll('#p-mode button').forEach(x=>x.classList.toggle('on',x===b));r();});
+  s.onchange=r;r();
+})();
+</script>
+</body>
+</html>

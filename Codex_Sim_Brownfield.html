@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Codex Brownfield Simulator</title>
+<meta name="description" content="Simulated walkthrough: explore a legacy billing service with Codex in a read-only profile, deliver bulk invoice export with /review, and use codex exec in CI to explain and propose fixes for failures.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<link rel="stylesheet" href="assets/platform-kit.css?v=1">
+</head>
+<body>
+<header class="sim-header codex">
+  <div class="icon">🏢</div>
+  <div>
+    <h1>OpenAI Codex · Sim 3: Brownfield + Ops</h1>
+    <p>Bulk invoice export on the 38k-line billing service: read-only exploration, a scoped change with local review, then <code>codex exec</code> in the pipeline when a deploy check fails.</p>
+    <div class="stack-pills"><span class="pill">--profile explore (read-only)</span><span class="pill">Nested AGENTS.md</span><span class="pill">/review</span><span class="pill">codex exec · GitHub Action</span><span class="pill">Simulated output</span></div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+<div class="sim-body">
+  <nav class="sidebar" id="steps-nav" aria-label="Steps"></nav>
+  <main class="main-area">
+    <div class="progress-bar-container"><div class="progress-bar-outer"><div class="progress-bar-inner" id="progress"></div></div><div class="progress-label" id="progress-label">Step 1</div></div>
+    <div class="step-content-area">
+
+<section class="step-panel" data-section="Understand" data-title="Explore read-only" data-sub="No risk of edits">
+  <div class="step-header"><div class="phase-tag coral">🔎 Explore</div><h2>Start in a read-only sandbox</h2>
+  <p>On unfamiliar code, Marcus uses the <code>explore</code> profile from Sim 1. Codex can read and run read-only commands, but can't change a file.</p></div>
+  <div class="chat reveal"><div class="chat-header codex">◎ codex --profile explore <span class="tag">billing-service</span></div><div class="chat-body">
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">How are invoices exported today? List every caller of InvoiceRenderer and any thread-safety risk. file:line only.</div></div>
+    <div class="msg ai"><div class="who">Codex</div><div class="bubble">Export: <code>ExportController.cs:52</code>, synchronous, in the request.<br>Callers: <code>ExportController</code>, <code>EmailInvoiceJob</code>, <code>PortalController</code>, <code>AdminTools</code>.<br>Risk: <code>FontCache</code> (<code>InvoiceRenderer.cs:14</code>) is a static <code>Dictionary</code> with no lock.</div></div>
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">Write that into a plan file.</div></div>
+    <div class="msg ai"><div class="who">Codex</div><div class="bubble">That needs write access, and this session is read-only. Switch to workspace-write (or restart without the profile) and I'll write <code>docs/plans/bulk-export.md</code>.</div></div>
+  </div></div>
+  <div class="callout tip"><div class="icon">💡</div><p>For the full method, <code>$aidlc … --scope feature</code> runs Reverse Engineering and stores the findings in the record.</p></div>
+</section>
+
+<section class="step-panel" data-section="Understand" data-title="Nested AGENTS.md" data-sub="Local warnings">
+  <div class="step-header"><div class="phase-tag purple">📝 Context</div><h2>Put the warning next to the code</h2></div>
+  <div class="doc"><div class="doc-bar">src/Billing.Rendering/AGENTS.md</div><div class="doc-body"><span class="md-h"># Rendering</span>
+- FontCache is static and NOT thread-safe. Never call InvoiceRenderer.Render() concurrently;
+  use RendererPool (one renderer per worker).
+- Golden snapshots in tests/Rendering.Golden change only with human approval.
+  If a golden test fails on a timestamp, inject IClock; do not update the snapshot.</div></div>
+  <p class="body">Codex merges instructions from the repo root down to the folder it's working in. The closer file wins on conflicts.</p>
+</section>
+
+<section class="step-panel" data-section="Change" data-title="Build with /review" data-sub="Local loop">
+  <div class="step-header"><div class="phase-tag amber">🏗️ Build</div><h2>Small steps, review before each commit</h2></div>
+  <div class="terminal typer"><div class="terminal-header"><div class="terminal-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div><div class="terminal-title">codex · workspace-write · on-request</div><button class="run-btn">▶ Run</button></div><div class="terminal-body">
+<span class="l"><span class="t-prompt">›</span> <span class="t-cmd">Add ExportJob table + POST /exports (202 + job id). Tests first.</span></span>
+<span class="l t-info">• Edited 5 files · ran dotnet test → 396 ✓</span>
+<span class="l"><span class="t-prompt">›</span> <span class="t-cmd">/review</span></span>
+<span class="l t-warn">  P2 ExportsController.cs:31 no per-tenant concurrency limit (ADR-014 says 5)</span>
+<span class="l"><span class="t-prompt">›</span> <span class="t-cmd">Fix the P2 with a test.</span></span>
+<span class="l t-info">• Edited 2 files · ran dotnet test → 398 ✓</span>
+<span class="l"><span class="t-prompt">›</span> <span class="t-cmd">Add the export worker with RendererPool and a streaming zip writer.</span></span>
+<span class="l t-warn">  ✋ Codex wants to run: dotnet add package SharpZipLib  (network; outside sandbox) [Approve] [Deny]</span>
+<span class="l"><span class="t-prompt">›</span> <span class="t-cmd">Deny. Use System.IO.Compression; no new packages without an ADR.</span></span>
+<span class="l t-info">• Edited 4 files · ran dotnet test → 402 ✓</span>
+<span class="l t-success">  /review: no P0–P2 findings</span>
+  </div></div>
+  <div class="callout info"><div class="icon">ℹ️</div><p>The network request needed approval because the sandbox blocks network by default. That's when Marcus caught the unapproved dependency.</p></div>
+</section>
+
+<section class="step-panel" data-section="Operate" data-title="codex exec in CI" data-sub="Explain failures">
+  <div class="step-header"><div class="phase-tag teal">🤖 Ops</div><h2>Let Codex explain a failed smoke test, read-only</h2></div>
+  <div class="doc"><div class="doc-bar">.github/workflows/deploy.yml (failure step, excerpt)</div><div class="doc-body">- <span class="md-k">name:</span> Explain failure with Codex
+  <span class="md-k">if:</span> failure()
+  <span class="md-k">uses:</span> openai/codex-action@v1
+  <span class="md-k">with:</span>
+    openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+    sandbox: read-only
+    prompt: |
+      Read smoke.log and the diff for this deploy. In at most 6 lines:
+      likely cause, file:line, suggested fix, and a regression test idea.
+<span class="md-c"># equivalent locally: codex exec --sandbox read-only "…"</span></div></div>
+  <div class="chat reveal"><div class="chat-header">🐙 PR #341 · bot comment</div><div class="chat-body">
+    <div class="msg ai"><div class="who">Codex (CI)</div><div class="bubble">Cause: <code>409 BlobAlreadyExists</code> for a second export the same day. <code>ExportWorker.cs:88</code> names blobs <code>{tenant}/{date}.zip</code>. Fix: append the job id. Test: two exports, same tenant and day.</div></div>
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">Accepted. Sending to Codex cloud: "Apply the fix from the CI comment on PR #341 with the test."</div></div>
+    <div class="msg ai"><div class="who">Codex cloud</div><div class="bubble">PR #342 opened. 403/403 ✓.</div></div>
+  </div></div>
+  <div class="callout warn"><div class="icon">⚠️</div><p>Logs are untrusted input. Keep the CI step read-only and without production secrets, so a crafted log line can't make it do anything harmful.</p></div>
+</section>
+
+<section class="step-panel" data-section="Wrap-up" data-title="Try it: pick a surface" data-sub="Local, cloud, exec, review">
+  <div class="step-header"><div class="phase-tag purple">🎛️ Try it</div><h2>Which Codex surface fits?</h2></div>
+  <div class="ctl-row"><div><label>Situation</label><select class="sel" id="w-s">
+    <option value="a">Understand an unfamiliar module</option>
+    <option value="b">Five small, independent bug fixes before lunch</option>
+    <option value="c">A tricky concurrency change you want to steer</option>
+    <option value="d">Explain why the nightly build failed</option>
+    <option value="e">Second opinion on a teammate's PR</option>
+    <option value="f">Two competing designs for a new API</option>
+  </select></div></div>
+  <div class="result" id="w-o"></div>
+</section>
+
+    </div>
+  </main>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script src="assets/platform-kit.js?v=1"></script>
+<script>
+(function(){
+  const A={a:['CLI with a read-only profile','Zero risk of edits while you learn the code.'],
+    b:['Codex cloud, one task each','Independent, well-specified work runs in parallel while you do something else.'],
+    c:['CLI or IDE, workspace-write + on-request','You want to see each step and stop it early.'],
+    d:['codex exec / GitHub Action, read-only','Non-interactive, posts a summary; no write access needed.'],
+    e:['@codex review on the PR','Uses AGENTS.md review guidelines; a person still approves.'],
+    f:['Codex cloud with 2–4 attempts','Compare real diffs instead of debating in the abstract.']};
+  const s=document.getElementById('w-s'),o=document.getElementById('w-o');
+  function r(){const v=A[s.value];o.className='result allow';o.innerHTML='<div class="verdict">✅ '+v[0]+'</div><div>'+v[1]+'</div>';}
+  s.onchange=r;r();
+})();
+</script>
+</body>
+</html>
