@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Codex Greenfield Simulator</title>
+<meta name="description" content="Simulated walkthrough: build the notification service with Codex: AI-DLC Inception via $aidlc, then Units as parallel Codex cloud tasks with multiple attempts, and @codex review on PRs.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<link rel="stylesheet" href="assets/platform-kit.css?v=1">
+</head>
+<body>
+<header class="sim-header codex">
+  <div class="icon">🌱</div>
+  <div>
+    <h1>OpenAI Codex · Sim 2: Greenfield</h1>
+    <p>The notification service again: spec and Units with <code>$aidlc</code> in the CLI, then fan Units out as cloud tasks, compare attempts, and review on GitHub.</p>
+    <div class="stack-pills"><span class="pill">$aidlc classic</span><span class="pill">Cloud tasks ×2, 3 attempts each</span><span class="pill">@codex review</span><span class="pill">Simulated output</span></div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+<div class="sim-body">
+  <nav class="sidebar" id="steps-nav" aria-label="Steps"></nav>
+  <main class="main-area">
+    <div class="progress-bar-container"><div class="progress-bar-outer"><div class="progress-bar-inner" id="progress"></div></div><div class="progress-label" id="progress-label">Step 1</div></div>
+    <div class="step-content-area">
+
+<section class="step-panel" data-section="Scenario" data-title="The brief" data-sub="Epic #5012">
+  <div class="step-header"><div class="phase-tag green">🌱 Scenario</div><h2>Same brief, cloud-first delivery</h2>
+  <p>Email and in-app notifications from Service Bus events; per-channel preferences; 99% of emails in 30 s. Compare with the <a href="MSAD_Sim_Greenfield.html">Microsoft</a> and <a href="Claude_Sim_Greenfield.html">Claude</a> versions.</p></div>
+  <div class="callout info"><div class="icon">ℹ️</div><p>What's different here is <strong>multiple attempts</strong>. A cloud task can produce several independent solutions to the same prompt. You review and pick one, which is useful when there's more than one reasonable design.</p></div>
+</section>
+
+<section class="step-panel" data-section="Inception" data-title="$aidlc for the spec" data-sub="Local CLI">
+  <div class="step-header"><div class="phase-tag blue">📡 Inception</div><h2>Gates first, locally</h2></div>
+  <div class="chat reveal"><div class="chat-header codex">◎ Codex CLI <span class="tag">notification-service</span></div><div class="chat-body">
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">$aidlc Build the notification service in docs/briefs/ADO-5012-notifications.docx. classic scope.</div></div>
+    <div class="msg ai"><div class="who">AIDLC</div><div class="bubble">Starting "classic". Practices Discovery → Requirements → … → Units Generation. Requirements questions for Sarah are in <code>requirements-analysis-questions.md</code>.</div></div>
+    <div class="msg user"><div class="who">Sarah (her session)</div><div class="bubble">Opt-out is per channel. Security alerts ignore opt-out.</div></div>
+    <div class="msg ai"><div class="who">AIDLC</div><div class="bubble">Units approved by Priya: event-ingest, preferences-api (no dependencies), then email-dispatcher, inapp-badges. Each Unit has a functional design under <code>aidlc/…/construction/&lt;unit&gt;/</code>.</div></div>
+  </div></div>
+  <div class="callout tip"><div class="icon">💡</div><p>Commit and push the <code>aidlc/</code> record before you start cloud tasks. Cloud containers clone the branch, so they can only read what's pushed.</p></div>
+</section>
+
+<section class="step-panel" data-section="Construction" data-title="Fan out" data-sub="Cloud tasks with attempts">
+  <div class="step-header"><div class="phase-tag amber">☁️ Construction</div><h2>Two Units, three attempts each</h2></div>
+  <div class="terminal typer"><div class="terminal-header"><div class="terminal-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div><div class="terminal-title">Codex cloud · new task</div><button class="run-btn">▶ Run</button></div><div class="terminal-body">
+<span class="l t-comment"># from the web UI, the IDE extension, or the CLI's cloud command</span>
+<span class="l"><span class="t-prompt">task</span> <span class="t-cmd">Implement Unit event-ingest per aidlc/…/construction/event-ingest/functional-design.md. Tests first. Done = fast tests pass.</span></span>
+<span class="l t-output">  env: notification-service (dotnet) · branch: main · attempts: 3</span>
+<span class="l"><span class="t-prompt">task</span> <span class="t-cmd">Implement Unit preferences-api per …/preferences-api/functional-design.md. Tests first. Done = fast tests pass.</span></span>
+<span class="l t-output">  env: notification-service (dotnet) · branch: main · attempts: 3</span>
+<span class="l t-info">⏳ 6 containers running…</span>
+<span class="l t-success">✓ event-ingest: 3/3 attempts finished · ✓ preferences-api: 3/3 attempts finished</span>
+  </div></div>
+</section>
+
+<section class="step-panel" data-section="Construction" data-title="Pick an attempt" data-sub="Compare diffs">
+  <div class="step-header"><div class="phase-tag purple">⚖️ Choose</div><h2>Compare three solutions for preferences-api</h2>
+  <p>Each attempt shows its diff, test logs and summary. Click one to see why Marcus did or didn't pick it.</p></div>
+  <div class="seg" id="att"><button data-v="1" class="on">Attempt 1</button><button data-v="2">Attempt 2</button><button data-v="3">Attempt 3</button></div>
+  <div class="result" id="att-out"></div>
+  <div class="callout tip"><div class="icon">💡</div><p>Attempts are cheap to make and expensive to review. Use several when the design is open. For a well-specified change, one attempt is usually enough.</p></div>
+</section>
+
+<section class="step-panel" data-section="Construction" data-title="Iterate & PR" data-sub="Follow-ups, then PR">
+  <div class="step-header"><div class="phase-tag blue">🔁 Iterate</div><h2>Ask for changes in the task, then open a PR</h2></div>
+  <div class="chat reveal"><div class="chat-header codex">◎ Codex cloud · preferences-api · attempt 2</div><div class="chat-body">
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">Enforce that userId matches the caller's oid claim; add a 403 test. Keep everything else.</div></div>
+    <div class="msg ai"><div class="who">Codex</div><div class="bubble">Added the ownership check and <code>Put_OtherUsersPreferences_Returns403</code>. 32/32 ✓.</div></div>
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">[Create PR]</div></div>
+    <div class="msg ai"><div class="who">Codex</div><div class="bubble">Opened PR #42 "Unit: preferences-api" with summary, test log and a link to the task.</div></div>
+  </div></div>
+</section>
+
+<section class="step-panel" data-section="Review" data-title="@codex review" data-sub="Second opinion">
+  <div class="step-header"><div class="phase-tag teal">🔍 Review</div><h2>Agent review, then a human decision</h2></div>
+  <div class="chat reveal"><div class="chat-header">🐙 PR #42</div><div class="chat-body">
+    <div class="msg user"><div class="who">Priya</div><div class="bubble">@codex review for tenant isolation</div></div>
+    <div class="msg ai"><div class="who">Codex</div><div class="bubble"><strong>P1</strong> <code>PreferencesRepository.cs:27</code>: query filters by userId but not tenantId. A user id collision across tenants would leak preferences. Suggest a composite key.</div></div>
+    <div class="msg user"><div class="who">Priya</div><div class="bubble">@codex fix this</div></div>
+    <div class="msg ai"><div class="who">Codex</div><div class="bubble">Pushed: composite (tenantId, userId) key + migration + test. CI ✓.</div></div>
+    <div class="msg user"><div class="who">Priya</div><div class="bubble">Approved ✅</div></div>
+  </div></div>
+</section>
+
+<section class="step-panel" data-section="Wrap-up" data-title="Retro" data-sub="What to keep">
+  <div class="step-header"><div class="phase-tag green">📈 Retro</div><h2>What the team learned</h2></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Observation</th><th>Change</th></tr>
+    <tr><td>Three attempts on event-ingest were near-identical.</td><td>1 attempt for specified Units, 3 only for open design questions.</td></tr>
+    <tr><td>One attempt failed on a missing Service Bus emulator.</td><td>Start the emulator in the environment setup script.</td></tr>
+    <tr><td>The tenant-isolation bug was found in review, not by tests.</td><td>Added a "tenant isolation" line to AGENTS.md review guidelines and a functional-design checklist item.</td></tr>
+  </table></div>
+  <div class="callout success"><div class="icon">✅</div><p>Next: <a href="Codex_Sim_Brownfield.html">Sim 3 · Brownfield + Ops</a>, or test yourself in <a href="Codex_Training.html">Training</a>.</p></div>
+</section>
+
+    </div>
+  </main>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script src="assets/platform-kit.js?v=1"></script>
+<script>
+(function(){
+  const A={
+    1:['deny','Not picked','Minimal API, 29 tests ✓. Stores preferences as a JSON blob per user, so you can\'t query "everyone opted out of email" for reporting. Doesn\'t fit the functional design.'],
+    2:['allow','Picked','Controllers + EF Core table per channel, 31 tests ✓, OpenAPI updated, validates channels against the enum. Matches the functional design and team conventions.'],
+    3:['ask','Close second','Same shape as attempt 2 but adds a caching layer nobody asked for (+180 lines). Good idea later, out of scope now.']};
+  const out=document.getElementById('att-out');const ic={allow:'✅',ask:'🤔',deny:'❌'};
+  function r(v){const a=A[v];out.className='result '+a[0];out.innerHTML='<div class="verdict">'+ic[a[0]]+' '+a[1]+'</div><div>'+a[2]+'</div>';}
+  document.querySelectorAll('#att button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#att button').forEach(x=>x.classList.toggle('on',x===b));r(b.dataset.v);});
+  r('1');
+})();
+</script>
+</body>
+</html>

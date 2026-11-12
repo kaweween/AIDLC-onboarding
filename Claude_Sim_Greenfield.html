@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code Greenfield Simulator</title>
+<meta name="description" content="Simulated walkthrough: build the notification service with Claude Code using AI-DLC for Inception, plan mode, test-first Units in parallel worktrees, subagent review and @claude in GitHub.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<link rel="stylesheet" href="assets/platform-kit.css?v=1">
+</head>
+<body>
+<header class="sim-header claude">
+  <div class="icon">🌱</div>
+  <div>
+    <h1>Claude AI SDLC · Sim 2: Greenfield</h1>
+    <p>The same notification service, built with Claude Code: AI-DLC for the spec, plan mode before each Unit, tests first, parallel sessions, review subagents and <code>@claude</code> on the PR.</p>
+    <div class="stack-pills"><span class="pill">/aidlc classic</span><span class="pill">Plan mode</span><span class="pill">git worktrees ×2</span><span class="pill">Subagents</span><span class="pill">claude-code-action</span><span class="pill">Simulated output</span></div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+<div class="sim-body">
+  <nav class="sidebar" id="steps-nav" aria-label="Steps"></nav>
+  <main class="main-area">
+    <div class="progress-bar-container"><div class="progress-bar-outer"><div class="progress-bar-inner" id="progress"></div></div><div class="progress-label" id="progress-label">Step 1</div></div>
+    <div class="step-content-area">
+
+<section class="step-panel" data-section="Scenario" data-title="The brief" data-sub="Epic #5012">
+  <div class="step-header"><div class="phase-tag green">🌱 Scenario</div><h2>Same brief, different agent</h2>
+  <p>Email (SendGrid) and in-app notifications from Service Bus events, with per-channel preferences. 99% of emails within 30 s, never notify opted-out users. Compare with the <a href="MSAD_Sim_Greenfield.html">Microsoft</a> and <a href="Codex_Sim_Greenfield.html">Codex</a> versions.</p></div>
+  <div class="cards">
+    <div class="card amber"><h4>Sarah · PO</h4><p>Answers requirement questions from her own session.</p></div>
+    <div class="card blue"><h4>Marcus · Lead dev</h4><p>Drives Claude Code in the terminal.</p></div>
+    <div class="card purple"><h4>Priya · Architect</h4><p>Approves design. Owns subagent definitions.</p></div>
+    <div class="card coral"><h4>Claude Code</h4><p>Main session plus subagents. AI-DLC agents for Inception.</p></div>
+  </div>
+</section>
+
+<section class="step-panel" data-section="Inception" data-title="/aidlc for the spec" data-sub="Requirements → Units">
+  <div class="step-header"><div class="phase-tag blue">📡 Inception</div><h2>Use the method for the parts people must approve</h2>
+  <p>Inception runs through AI-DLC so the PO and architect get proper gates. This repo already has the Claude harness.</p></div>
+  <div class="chat reveal"><div class="chat-header claude">✳️ Claude Code <span class="tag">notification-service</span></div><div class="chat-body">
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">/aidlc Build the notification service in docs/briefs/ADO-5012-notifications.docx. classic scope.</div></div>
+    <div class="msg ai"><div class="who">AIDLC</div><div class="bubble">Onboarded the brief into DocumentKB. Starting "classic". Practices Discovery → Requirements Analysis → … → Units Generation.</div></div>
+    <div class="msg ai"><div class="who">AIDLC · product agent</div><div class="bubble">Requirements drafted (FR-1 … FR-9). 4 open questions are waiting for Sarah.</div></div>
+    <div class="msg user"><div class="who">Sarah (her session)</div><div class="bubble">Q3: opt-out is per channel; security alerts ignore opt-out.</div></div>
+    <div class="msg ai"><div class="who">AIDLC</div><div class="bubble">Units approved by Priya: event-ingest, preferences-api, email-dispatcher, inapp-badges. Construction is next; each Unit gets a code generation plan for your approval.</div></div>
+  </div></div>
+  <div class="callout tip"><div class="icon">💡</div><p>Not using AI-DLC? The plain Claude Code version is: ask it to interview you about the feature, write <code>SPEC.md</code>, then start a <em>new</em> session to implement it from the spec.</p></div>
+</section>
+
+<section class="step-panel" data-section="Construction" data-title="Plan mode" data-sub="Read-only first">
+  <div class="step-header"><div class="phase-tag purple">🧠 Plan</div><h2>Plan before edits, for every Unit</h2>
+  <p>Marcus presses <kbd>Shift+Tab</kbd> until the status line reads <strong>plan mode</strong>. Claude can read and search but can't change anything until he approves.</p></div>
+  <div class="chat reveal"><div class="chat-header claude">✳️ Claude Code · ⏸ plan mode</div><div class="chat-body">
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">Plan the preferences-api Unit from its functional design. Think hard about the opt-out edge cases.</div></div>
+    <div class="msg ai"><div class="who">Claude</div><div class="bubble"><strong>Plan</strong><br>1. Tests first: <code>PreferencesApiTests</code> (8 cases incl. unknown channel, security-alert override, concurrent PUT).<br>2. <code>Preference</code> entity + EF Core migration (generated, not hand-written).<br>3. GET/PUT endpoints, FluentValidation against the <code>Channel</code> enum.<br>4. Update <code>api/openapi.yaml</code>.<br>5. Run fast tests, then the code-reviewer subagent.<br><em>Ready to code?</em> [Yes, auto-accept edits] [Yes, ask each edit] [Keep planning]</div></div>
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">Yes, auto-accept edits</div></div>
+  </div></div>
+</section>
+
+<section class="step-panel" data-section="Construction" data-title="Test-first build" data-sub="Red → green">
+  <div class="step-header"><div class="phase-tag amber">🧪 Build</div><h2>Tests first, then code, and don't touch the tests</h2></div>
+  <div class="terminal typer"><div class="terminal-header"><div class="terminal-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div><div class="terminal-title">Claude Code · tool calls</div><button class="run-btn">▶ Run</button></div><div class="terminal-body">
+<span class="l t-info">● Write(tests/Preferences.Tests/PreferencesApiTests.cs)</span>
+<span class="l t-info">● Bash(dotnet test tests/Preferences.Tests)</span>
+<span class="l t-error">  ⎿ Failed: 8, Passed: 0   ← expected: no implementation yet</span>
+<span class="l t-info">● Write(src/Preferences/Preference.cs) · Write(src/Preferences/PreferencesEndpoints.cs)</span>
+<span class="l t-info">● Bash(dotnet ef migrations add AddPreferences)</span>
+<span class="l t-info">● Bash(dotnet test tests/Preferences.Tests)</span>
+<span class="l t-warn">  ⎿ Failed: 1 (SecurityAlert_IgnoresOptOut), Passed: 7</span>
+<span class="l t-info">● Edit(src/Preferences/DeliveryPolicy.cs)   ← fixes code, not the test</span>
+<span class="l t-info">● Bash(dotnet test tests/Preferences.Tests)</span>
+<span class="l t-success">  ⎿ Passed: 8</span>
+<span class="l t-info">● Task(code-reviewer): review git diff</span>
+<span class="l t-success">  ⎿ 1 finding: PUT returns 200 on no-op; spec says 204. Fixed.</span>
+  </div></div>
+  <div class="callout warn"><div class="icon">⚠️</div><p>If Claude tries to "fix" a failing test by changing the assertion, press <kbd>Esc</kbd>, say so, and add "never change tests to make them pass" to <code>CLAUDE.md</code>. In AI-DLC the plan's Testing Contract covers this.</p></div>
+</section>
+
+<section class="step-panel" data-section="Construction" data-title="Parallel Units" data-sub="Worktrees / cloud sessions">
+  <div class="step-header"><div class="phase-tag teal">🔀 Parallel</div><h2>Two independent Units at once</h2>
+  <p>event-ingest and preferences-api don't depend on each other. Marcus runs one Claude session per git worktree, so they never edit the same checkout.</p></div>
+  <div class="terminal typer"><div class="terminal-header"><div class="terminal-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div><div class="terminal-title">bash</div><button class="run-btn">▶ Run</button></div><div class="terminal-body">
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">git worktree add ../ns-ingest -b unit/event-ingest</span></span>
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">git worktree add ../ns-prefs  -b unit/preferences-api</span></span>
+<span class="l t-comment"># terminal tab 1</span>
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">cd ../ns-ingest &amp;&amp; claude</span></span>
+<span class="l t-comment"># terminal tab 2</span>
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">cd ../ns-prefs &amp;&amp; claude</span></span>
+  </div></div>
+  <div class="cards">
+    <div class="card blue"><h4>Local worktrees</h4><p>Full control, your machine's tools, one terminal tab per session.</p></div>
+    <div class="card purple"><h4>Cloud sessions</h4><p>Start each Unit as a Claude Code web session on its own branch. Check progress from your phone; the session pushes a branch for review.</p></div>
+  </div>
+  <div class="callout info"><div class="icon">ℹ️</div><p>AI-DLC's Construction swarm does the same thing with a referee: it claims a worktree per Unit and blocks cross-Unit writes.</p></div>
+</section>
+
+<section class="step-panel" data-section="Review" data-title="Review & PR" data-sub="/code-review, @claude">
+  <div class="step-header"><div class="phase-tag blue">🔍 Review</div><h2>Three review layers before a person approves</h2></div>
+  <div class="chat reveal"><div class="chat-header">🐙 PR #31 · Unit: preferences-api</div><div class="chat-body">
+    <div class="msg ai"><div class="who">Claude (local, /security-review)</div><div class="bubble">No high-severity issues. Note: <code>userId</code> comes from the route, not the token. Make sure it matches the caller's <code>oid</code> claim.</div></div>
+    <div class="msg user"><div class="who">Priya</div><div class="bubble">@claude enforce that userId equals the caller's oid claim, add a 403 test, and update openapi.yaml.</div></div>
+    <div class="msg ai"><div class="who">claude-code-action</div><div class="bubble">Pushed 1 commit: ownership check + <code>Put_OtherUsersPreferences_Returns403</code>. CI ✓.</div></div>
+    <div class="msg user"><div class="who">Priya</div><div class="bubble">Approved ✅</div></div>
+  </div></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Layer</th><th>What it catches</th></tr>
+    <tr><td>Subagent review in the session</td><td>Spec drift, missing tests, conventions.</td></tr>
+    <tr><td><code>/security-review</code></td><td>Injection, auth gaps, secrets, unsafe data handling.</td></tr>
+    <tr><td>Human review + <code>@claude</code></td><td>Judgement calls. Claude makes the requested fix in the PR.</td></tr>
+  </table></div>
+</section>
+
+<section class="step-panel" data-section="Wrap-up" data-title="Retro" data-sub="What to keep">
+  <div class="step-header"><div class="phase-tag green">📈 Retro</div><h2>What the team learned</h2></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Observation</th><th>Change</th></tr>
+    <tr><td>Long sessions drifted after ~2 hours of mixed tasks.</td><td><code>/clear</code> between Units; one Unit per session.</td></tr>
+    <tr><td>Plan mode caught a missing migration step twice.</td><td>Plan mode is mandatory for every Unit (written into <code>CLAUDE.md</code>).</td></tr>
+    <tr><td>The reviewer subagent repeated linter findings.</td><td>Told it to skip anything <code>dotnet format</code> and analyzers already cover.</td></tr>
+  </table></div>
+  <div class="callout success"><div class="icon">✅</div><p>Next: <a href="Claude_Sim_Brownfield.html">Sim 3 · Brownfield + Ops</a>, or test yourself in <a href="Claude_Training.html">Training</a>.</p></div>
+</section>
+
+    </div>
+  </main>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script src="assets/platform-kit.js?v=1"></script>
+</body>
+</html>

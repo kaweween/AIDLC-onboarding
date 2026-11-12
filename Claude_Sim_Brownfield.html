@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code Brownfield Simulator</title>
+<meta name="description" content="Simulated walkthrough: map a 38k-line service with an Explore subagent, add bulk invoice export behind guard hooks, recover with rewind, and triage a production failure with headless Claude in CI.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<link rel="stylesheet" href="assets/platform-kit.css?v=1">
+</head>
+<body>
+<header class="sim-header claude">
+  <div class="icon">🏢</div>
+  <div>
+    <h1>Claude AI SDLC · Sim 3: Brownfield + Ops</h1>
+    <p>Bulk invoice export on the legacy billing service: explore without polluting context, change it under hooks, roll back a bad turn, then let headless Claude triage a failure in the pipeline.</p>
+    <div class="stack-pills"><span class="pill">Explore subagent</span><span class="pill">Nested CLAUDE.md</span><span class="pill">PreToolUse guard</span><span class="pill">/rewind</span><span class="pill">claude -p in CI</span><span class="pill">Simulated output</span></div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+<div class="sim-body">
+  <nav class="sidebar" id="steps-nav" aria-label="Steps"></nav>
+  <main class="main-area">
+    <div class="progress-bar-container"><div class="progress-bar-outer"><div class="progress-bar-inner" id="progress"></div></div><div class="progress-label" id="progress-label">Step 1</div></div>
+    <div class="step-content-area">
+
+<section class="step-panel" data-section="Understand" data-title="Explore" data-sub="Subagent maps the code">
+  <div class="step-header"><div class="phase-tag coral">🔎 Explore</div><h2>Ask a subagent to read, so your session stays focused</h2>
+  <p>Reading 38k lines in the main conversation would fill its context with file contents. A subagent reads in its own context and returns a short map.</p></div>
+  <div class="chat reveal"><div class="chat-header claude">✳️ Claude Code <span class="tag">billing-service</span></div><div class="chat-body">
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">Use subagents to find (1) how invoices are rendered and exported today, (2) every caller of InvoiceRenderer, (3) where tenant limits are enforced. Report file:line, no code dumps.</div></div>
+    <div class="msg ai"><div class="who">Claude</div><div class="bubble">Ran 3 Explore subagents in parallel.<br>1. Export: <code>ExportController.cs:52</code> renders synchronously in the request; one PDF in memory per invoice.<br>2. Callers: 4 (<code>ExportController</code>, <code>EmailInvoiceJob</code>, <code>PortalController</code>, <code>AdminTools</code>).<br>3. Tenant limits: <code>TenantQuotaMiddleware.cs</code>, API-rate only, nothing for background work.<br>Risk: <code>InvoiceRenderer</code> holds a static font cache that isn't thread-safe.</div></div>
+  </div></div>
+  <div class="callout tip"><div class="icon">💡</div><p>For the full method, <code>/aidlc … --scope feature</code> runs Reverse Engineering and writes the map into the record, so the next person doesn't redo it.</p></div>
+</section>
+
+<section class="step-panel" data-section="Understand" data-title="Local rules" data-sub="Nested CLAUDE.md">
+  <div class="step-header"><div class="phase-tag purple">📝 Context</div><h2>Put the dangerous knowledge where Claude will see it</h2></div>
+  <div class="doc"><div class="doc-bar">src/Billing.Rendering/CLAUDE.md (new)</div><div class="doc-body"><span class="md-h"># Rendering</span>
+- InvoiceRenderer has a static, NON-thread-safe FontCache. Never call Render() in parallel.
+  Use RendererPool (one renderer per worker) for concurrent work.
+- Golden-file tests: tests/Rendering.Golden. Update snapshots only with approval.</div></div>
+  <p class="body">Claude reads this file whenever it works in that folder. Priya reviews it in the PR like code.</p>
+</section>
+
+<section class="step-panel" data-section="Change" data-title="Guard hook fires" data-sub="PreToolUse blocks">
+  <div class="step-header"><div class="phase-tag amber">🪝 Guard</div><h2>The hook stops a risky edit</h2>
+  <p>During the export-worker change, Claude tries to update golden snapshots to make a test pass. The team's hook blocks writes under <code>tests/Rendering.Golden/</code>.</p></div>
+  <div class="chat reveal"><div class="chat-header claude">✳️ Claude Code · accept edits on</div><div class="chat-body">
+    <div class="msg ai"><div class="who">Claude</div><div class="bubble">Golden test <code>Invoice_Pdf_Matches</code> fails by a 2-byte timestamp difference. Updating the snapshot…</div></div>
+    <div class="msg hook"><div class="who">Hook · PreToolUse (exit 2)</div><div class="bubble">Blocked: golden snapshots need human approval. Make rendering deterministic instead (inject IClock).</div></div>
+    <div class="msg ai"><div class="who">Claude</div><div class="bubble">Understood. Injecting <code>IClock</code> into <code>InvoiceRenderer</code> and using a fixed clock in tests. Golden test passes with the original snapshot.</div></div>
+  </div></div>
+  <div class="callout info"><div class="icon">ℹ️</div><p>That's the difference between an instruction and a hook. <code>CLAUDE.md</code> asks; a hook enforces.</p></div>
+</section>
+
+<section class="step-panel" data-section="Change" data-title="Rewind" data-sub="Undo a bad turn">
+  <div class="step-header"><div class="phase-tag coral">⏪ Rewind</div><h2>A wrong turn costs one keystroke</h2>
+  <p>Marcus asks for streaming zip output. Claude rewrites the whole <code>ExportService</code> instead of adding a writer. Rather than arguing with it, he rewinds.</p></div>
+  <div class="terminal typer"><div class="terminal-header"><div class="terminal-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div><div class="terminal-title">Claude Code</div><button class="run-btn">▶ Run</button></div><div class="terminal-body">
+<span class="l"><span class="t-prompt">&gt;</span> <span class="t-cmd">/rewind</span></span>
+<span class="l t-output">  ● 14:02  "Use subagents to find …"</span>
+<span class="l t-output">  ● 14:31  "Add the export-worker with RendererPool"</span>
+<span class="l t-hl">  ▸ 14:58  "Stream the zip instead of buffering"   ← restore code + conversation to before this</span>
+<span class="l t-success">Restored 6 files and the conversation to 14:58.</span>
+<span class="l"><span class="t-prompt">&gt;</span> <span class="t-cmd">Stream the zip by adding a ZipStreamWriter. Do not modify ExportService beyond wiring it in.</span></span>
+  </div></div>
+  <div class="callout warn"><div class="icon">⚠️</div><p>Checkpoints track Claude's file edits, not side effects such as database changes or pushed commits. Git is still your real safety net.</p></div>
+</section>
+
+<section class="step-panel" data-section="Ship" data-title="Ship" data-sub="PR + review">
+  <div class="step-header"><div class="phase-tag green">🚢 Ship</div><h2>Feature flag, load test, PR</h2></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Check</th><th>Result</th></tr>
+    <tr><td>Unit + golden tests</td><td>✅ 402 passed</td></tr>
+    <tr><td>Load test 50k invoices</td><td>✅ 7 min 52 s, memory flat at 300 MB</td></tr>
+    <tr><td><code>/security-review</code></td><td>✅ SAS links scoped to one blob, 24 h expiry</td></tr>
+    <tr><td>Human review</td><td>✅ Priya</td></tr>
+  </table></div>
+</section>
+
+<section class="step-panel" data-section="Operate" data-title="CI triage" data-sub="Headless claude -p">
+  <div class="step-header"><div class="phase-tag teal">🤖 Ops</div><h2>When the deploy smoke test fails, Claude explains it in the PR</h2>
+  <p>The pipeline runs Claude in headless mode with read-only tools and posts a summary. It doesn't fix anything on its own.</p></div>
+  <div class="doc"><div class="doc-bar">.github/workflows/deploy.yml (failure step)</div><div class="doc-body">- <span class="md-k">name:</span> Explain failure
+  <span class="md-k">if:</span> failure()
+  <span class="md-k">run:</span> |
+    claude -p "Read smoke.log and the last deploy diff. Explain the most likely cause in 5 lines and suggest a fix. Do not edit files." \
+      --allowedTools "Read,Grep,Bash(git diff:*)" \
+      --output-format json &gt; triage.json
+    gh pr comment "$PR" --body "$(jq -r .result triage.json)"</div></div>
+  <div class="chat reveal"><div class="chat-header">🐙 PR #341 · comment from the pipeline</div><div class="chat-body">
+    <div class="msg ai"><div class="who">Pipeline (Claude triage)</div><div class="bubble">Smoke test failed: <code>409 BlobAlreadyExists</code> on the second export of the day for the same tenant. Cause: blob name <code>{tenant}/{date}.zip</code> in <code>ExportWorker.cs:88</code>. Fix: include the job id. Suggested regression test: two exports, same tenant, same day.</div></div>
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">@claude apply the suggested fix and test.</div></div>
+    <div class="msg ai"><div class="who">claude-code-action</div><div class="bubble">Pushed fix + <code>TwoExportsSameDay_DoNotCollide</code>. CI ✓, smoke ✓.</div></div>
+  </div></div>
+</section>
+
+<section class="step-panel" data-section="Wrap-up" data-title="Try it: which tool?" data-sub="Instruction, skill, hook…">
+  <div class="step-header"><div class="phase-tag purple">🎛️ Try it</div><h2>Pick the right mechanism</h2></div>
+  <div class="ctl-row"><div><label>Need</label><select class="sel" id="w-need">
+    <option value="fmt">Format every file Claude edits</option>
+    <option value="secret">Never read .env or secrets/</option>
+    <option value="cmd">Tell Claude the test command</option>
+    <option value="proc">A 12-step procedure for adding a payment provider</option>
+    <option value="rev">Review diffs without filling the main context</option>
+    <option value="share">Share our hooks, skills and agents across 20 repos</option>
+  </select></div></div>
+  <div class="result" id="w-out"></div>
+</section>
+
+    </div>
+  </main>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script src="assets/platform-kit.js?v=1"></script>
+<script>
+(function(){
+  const A={fmt:['PostToolUse hook','It must happen every time, so the harness runs it, not the model.'],
+    secret:['Permission deny rule (managed settings for the org)','Deny always wins, in every permission mode.'],
+    cmd:['CLAUDE.md','A short fact needed in every session.'],
+    proc:['Skill (.claude/skills/…/SKILL.md)','Loaded only when the task needs it; can bundle scripts and templates.'],
+    rev:['Subagent (.claude/agents/…)','Runs in its own context and returns a summary.'],
+    share:['Plugin in a team marketplace','Bundles skills, agents, hooks and MCP servers; install with /plugin.']};
+  const s=document.getElementById('w-need'),o=document.getElementById('w-out');
+  function r(){const v=A[s.value];o.className='result allow';o.innerHTML='<div class="verdict">✅ '+v[0]+'</div><div>'+v[1]+'</div>';}
+  s.onchange=r;r();
+})();
+</script>
+</body>
+</html>

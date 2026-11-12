@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gemini + DORA Brownfield Lab</title>
+<meta name="description" content="Simulated walkthrough and interactive lab: change a legacy service with Gemini CLI checkpoints and headless triage, then calculate DORA metrics and self-assess the seven DORA AI capabilities.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<link rel="stylesheet" href="assets/platform-kit.css?v=1">
+<style>
+.cap{display:grid;grid-template-columns:1fr 150px 30px;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:14px;}
+.cap input{width:100%;}
+.cap .v{font-family:var(--font-mono);color:var(--teal);text-align:right;}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:12px 0;}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;}
+.kpi .n{font-size:12px;color:var(--muted);}
+.kpi .t{font-size:17px;font-weight:700;margin-top:2px;}
+.kpi.elite{border-color:var(--green);} .kpi.high{border-color:var(--blue);} .kpi.medium{border-color:var(--amber);} .kpi.low{border-color:var(--coral);}
+@media (max-width:860px){.cap{grid-template-columns:1fr 110px 26px;}}
+</style>
+</head>
+<body>
+<header class="sim-header gemini">
+  <div class="icon">📊</div>
+  <div>
+    <h1>Gemini + DORA · Sim 3: Brownfield + DORA lab</h1>
+    <p>Change the legacy billing service with Gemini CLI, recover from a bad turn with checkpoints, triage a failure headlessly. Then measure your own team with the DORA calculator and capability assessment.</p>
+    <div class="stack-pills"><span class="pill">Gemini CLI checkpoints · /restore</span><span class="pill">gemini -p in CI</span><span class="pill">DORA metrics calculator</span><span class="pill">AI capabilities self-assessment</span></div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+<div class="sim-body">
+  <nav class="sidebar" id="steps-nav" aria-label="Steps"></nav>
+  <main class="main-area">
+    <div class="progress-bar-container"><div class="progress-bar-outer"><div class="progress-bar-inner" id="progress"></div></div><div class="progress-label" id="progress-label">Step 1</div></div>
+    <div class="step-content-area">
+
+<section class="step-panel" data-section="Change" data-title="Explore" data-sub="Legacy billing-service">
+  <div class="step-header"><div class="phase-tag coral">🔎 Explore</div><h2>Bulk invoice export on 38k lines of legacy code</h2>
+  <p>Same request as the other brownfield sims. Gemini CLI's large context window lets it read wide areas of the code, but Marcus still asks for references, not summaries he can't check.</p></div>
+  <div class="chat reveal"><div class="chat-header gemini">✦ Gemini CLI <span class="tag">billing-service</span></div><div class="chat-body">
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">@src/ How are invoices exported today? Every caller of InvoiceRenderer, and any thread-safety risk. Cite file:line.</div></div>
+    <div class="msg ai"><div class="who">Gemini</div><div class="bubble">Export is synchronous in <code>ExportController.cs:52</code>. Callers: <code>ExportController</code>, <code>EmailInvoiceJob</code>, <code>PortalController</code>, <code>AdminTools</code>. Risk: static <code>FontCache</code> at <code>InvoiceRenderer.cs:14</code> has no locking.</div></div>
+  </div></div>
+</section>
+
+<section class="step-panel" data-section="Change" data-title="Checkpoint & restore" data-sub="Undo a bad turn">
+  <div class="step-header"><div class="phase-tag amber">⏪ Restore</div><h2>Checkpointing turns a mistake into a one-line undo</h2>
+  <p>With checkpointing on (Sim 1), Gemini CLI snapshots the project before tools change files.</p></div>
+  <div class="terminal typer"><div class="terminal-header"><div class="terminal-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div><div class="terminal-title">gemini</div><button class="run-btn">▶ Run</button></div><div class="terminal-body">
+<span class="l"><span class="t-prompt">&gt;</span> <span class="t-cmd">Add a streaming zip writer for exports.</span></span>
+<span class="l t-warn">✎ Rewrote ExportService.cs (612 lines changed), InvoiceRenderer.cs, 3 tests</span>
+<span class="l t-comment">  Marcus: way too big, and it touched the renderer</span>
+<span class="l"><span class="t-prompt">&gt;</span> <span class="t-cmd">/restore</span></span>
+<span class="l t-output">  2026-11-10T14:58  replace ExportService.cs …</span>
+<span class="l"><span class="t-prompt">&gt;</span> <span class="t-cmd">/restore 2026-11-10T14:58-replace-ExportService</span></span>
+<span class="l t-success">Restored project files and conversation to before the edit.</span>
+<span class="l"><span class="t-prompt">&gt;</span> <span class="t-cmd">Add a new ZipStreamWriter class only. Do not modify InvoiceRenderer. Keep it under 150 lines.</span></span>
+<span class="l t-success">✎ Added ZipStreamWriter.cs (118 lines) + 4 tests ✓</span>
+  </div></div>
+  <div class="callout info"><div class="icon">ℹ️</div><p>From a DORA point of view, the restore kept the batch small, so the next PR stays reviewable. Checkpoints are local. They don't undo anything already pushed or deployed.</p></div>
+</section>
+
+<section class="step-panel" data-section="Change" data-title="Headless triage" data-sub="run-gemini-cli">
+  <div class="step-header"><div class="phase-tag teal">🤖 Ops</div><h2>Read-only triage when a deploy check fails</h2></div>
+  <div class="doc"><div class="doc-bar">.github/workflows/deploy.yml (excerpt)</div><div class="doc-body">- <span class="md-k">name:</span> Explain failure
+  <span class="md-k">if:</span> failure()
+  <span class="md-k">uses:</span> google-github-actions/run-gemini-cli@v0
+  <span class="md-k">with:</span>
+    gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+    prompt: |
+      Read smoke.log and the deploy diff. Give the likely cause, file:line,
+      a fix and a regression test idea in at most 6 lines. Do not edit files.</div></div>
+  <div class="chat reveal"><div class="chat-header">🐙 PR #341 · bot comment</div><div class="chat-body">
+    <div class="msg ai"><div class="who">Gemini (CI)</div><div class="bubble">409 BlobAlreadyExists on the second same-day export. <code>ExportWorker.cs:88</code> uses <code>{tenant}/{date}.zip</code>. Fix: append the job id. Test: two exports, same tenant and day.</div></div>
+    <div class="msg user"><div class="who">Tomás</div><div class="bubble">Flag off for the affected tenant (recovery: 11 min). Logged as a failed change for CFR and recovery time.</div></div>
+  </div></div>
+  <div class="callout tip"><div class="icon">💡</div><p>Record every failed change and its recovery time automatically. Those events feed two of the five DORA metrics.</p></div>
+</section>
+
+<section class="step-panel" data-section="DORA lab" data-title="Metrics calculator" data-sub="Your team's numbers">
+  <div class="step-header"><div class="phase-tag purple">🧮 Calculator</div><h2>Where does your team sit today?</h2>
+  <p>Enter your current numbers. Tiers use the cluster thresholds from the <strong>2024</strong> DORA report as an indicative guide. The 2025 report moved from four tiers to seven team profiles. Nothing you enter leaves this page.</p></div>
+  <div class="ctl-row">
+    <div><label>Deployment frequency</label><select class="sel" id="d-df">
+      <option value="4">On demand (several per day)</option><option value="3" selected>Daily to weekly</option><option value="2">Weekly to monthly</option><option value="1">Monthly to every 6 months</option><option value="0">Less than every 6 months</option></select></div>
+    <div><label>Change lead time</label><select class="sel" id="d-lt">
+      <option value="4">Under 1 day</option><option value="3">1 day to 1 week</option><option value="2" selected>1 week to 1 month</option><option value="1">1 to 6 months</option><option value="0">Over 6 months</option></select></div>
+  </div>
+  <div class="ctl-row">
+    <div><label>Failed deployment recovery time</label><select class="sel" id="d-rt">
+      <option value="4">Under 1 hour</option><option value="3" selected>Under 1 day</option><option value="1">1 day to 1 month</option><option value="0">Over 1 month</option></select></div>
+    <div><label>Change failure rate (%)</label><input class="num" type="number" id="d-cfr" min="0" max="100" value="18"></div>
+    <div><label>Rework rate (%)</label><input class="num" type="number" id="d-rw" min="0" max="100" value="22"></div>
+  </div>
+  <div class="kpis" id="d-kpis"></div>
+  <div class="result" id="d-out"></div>
+</section>
+
+<section class="step-panel" data-section="DORA lab" data-title="Capabilities assessment" data-sub="Seven capabilities">
+  <div class="step-header"><div class="phase-tag teal">🧩 Assess</div><h2>Rate the seven DORA AI capabilities</h2>
+  <p>1 = not at all, 5 = consistently true. Do it as a team and compare answers. Disagreement is useful information. The page suggests where to start; it isn't an official DORA score.</p></div>
+  <div id="caps"></div>
+  <div class="result" id="c-out"></div>
+</section>
+
+<section class="step-panel" data-section="DORA lab" data-title="Action plan" data-sub="Next quarter">
+  <div class="step-header"><div class="phase-tag green">🗒️ Plan</div><h2>Turn the assessment into three experiments</h2></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Experiment</th><th>Capability</th><th>Metric to watch</th><th>Tool hook</th></tr>
+    <tr><td>PRs over 300 lines need a split plan (<code>/smallpr</code>)</td><td>Small batches</td><td>Lead time, CFR</td><td>Gemini CLI command + Code Assist style guide</td></tr>
+    <tr><td>Expose ADRs, runbooks and API specs through one MCP server</td><td>AI-accessible internal data</td><td>Rework rate</td><td>Gemini CLI <code>mcpServers</code>; Code Assist Enterprise customisation</td></tr>
+    <tr><td>One-page AI stance (tools, data, review rules) published and in onboarding</td><td>Clear AI stance</td><td>Survey: trust in AI output</td><td>Linked from <code>AGENTS.md</code></td></tr>
+  </table></div>
+  <div class="callout success"><div class="icon">✅</div><p>Re-run the calculator and assessment next quarter. Then test yourself in <a href="GeminiDORA_Training.html">Training</a>.</p></div>
+</section>
+
+    </div>
+  </main>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script src="assets/platform-kit.js?v=1"></script>
+<script>
+(function(){
+  /* DORA calculator */
+  const T=['Low','Low','Medium','High','Elite'];
+  const cls=t=>t.toLowerCase();
+  const $=id=>document.getElementById(id);
+  function cfrTier(p){return p<=5?4:p<=15?3:p<=30?2:0;}
+  function calc(){
+    const df=+$('d-df').value, lt=+$('d-lt').value, rt=+$('d-rt').value;
+    const cfr=Math.max(0,Math.min(100,+$('d-cfr').value||0)), rw=Math.max(0,Math.min(100,+$('d-rw').value||0));
+    const ct=cfrTier(cfr);
+    const k=[['Deployment frequency',T[df]],['Change lead time',T[lt]],['Recovery time',T[rt]],['Change failure rate · '+cfr+'%',T[ct]],['Rework rate · '+rw+'%',rw<=10?'Healthy':rw<=20?'Watch':'High']];
+    $('d-kpis').innerHTML=k.map(x=>{const c=x[1]==='Healthy'?'elite':x[1]==='Watch'?'medium':x[1]==='High'&&x[0].startsWith('Rework')?'low':cls(x[1]);return '<div class="kpi '+c+'"><div class="n">'+x[0]+'</div><div class="t">'+x[1]+'</div></div>';}).join('');
+    const thr=(df+lt+rt)/3, inst=(ct+(rw<=10?4:rw<=20?2:0))/2;
+    let msg,kind;
+    if(thr>=3 && inst>=3){kind='allow';msg='Fast and stable. AI is likely to amplify good habits here. Focus on keeping batches small as volume grows.';}
+    else if(thr>=3 && inst<3){kind='ask';msg='Fast but unstable: the pattern DORA warns about with AI. Invest in tests, review depth and smaller deploys before adding more AI-generated volume.';}
+    else if(thr<3 && inst>=3){kind='ask';msg='Stable but slow. Look at batch size, approval queues and pipeline time. Agents writing code faster won\'t help if changes wait days for review or release.';}
+    else {kind='deny';msg='Slow and unstable. Fix foundations first (version control discipline, CI, small batches, platform). Adding AI on top will mostly amplify the friction.';}
+    $('d-out').className='result '+kind;$('d-out').innerHTML='<div class="verdict">Reading</div><div>'+msg+'</div>';
+  }
+  ['d-df','d-lt','d-rt','d-cfr','d-rw'].forEach(id=>{$(id).addEventListener('input',calc);$(id).addEventListener('change',calc);});
+  calc();
+
+  /* capabilities */
+  const C=[
+    ['Clear and communicated AI stance','Publish a one-page policy: allowed tools, data rules, where review is required. Repeat it in onboarding.'],
+    ['Healthy data ecosystems','Pick one high-value internal data set (for example incidents or API specs) and make it clean, current and owned.'],
+    ['AI-accessible internal data','Expose docs, ADRs and tickets to agents via context files and approved MCP servers; consider Code Assist Enterprise customisation.'],
+    ['Strong version control practices','Commit often, protect main, make rollback a one-click path. Agents should always work on branches.'],
+    ['Working in small batches','Set a PR size target, use feature flags, and add a split-the-PR command to your tools.'],
+    ['User-centric focus','Tie each epic to a user outcome metric and review it after release, not just "shipped".'],
+    ['Quality internal platforms','Invest in golden paths: templates, CI/CD and self-service environments that agents and people both use.']];
+  const box=$('caps');
+  box.innerHTML=C.map((c,i)=>'<div class="cap"><div>'+(i+1)+'. '+c[0]+'</div><input type="range" min="1" max="5" value="3" data-i="'+i+'" aria-label="'+c[0]+'"><div class="v" id="cv'+i+'">3</div></div>').join('');
+  function cap(){
+    const vals=[...box.querySelectorAll('input')].map(x=>+x.value);
+    vals.forEach((v,i)=>$('cv'+i).textContent=v);
+    const avg=(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1);
+    const order=vals.map((v,i)=>[v,i]).sort((a,b)=>a[0]-b[0]).slice(0,2);
+    $('c-out').className='result '+(avg>=4?'allow':avg>=3?'ask':'deny');
+    $('c-out').innerHTML='<div class="verdict">Average '+avg+' / 5 · start with your two lowest</div>'+order.map(o=>'<div style="margin-top:6px"><strong>'+C[o[1]][0]+' ('+o[0]+')</strong>: '+C[o[1]][1]+'</div>').join('');
+  }
+  box.querySelectorAll('input').forEach(x=>x.addEventListener('input',cap));cap();
+})();
+</script>
+</body>
+</html>

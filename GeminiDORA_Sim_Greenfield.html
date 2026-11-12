@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gemini + DORA Greenfield Simulator</title>
+<meta name="description" content="Simulated walkthrough: build the notification service in small batches with Gemini CLI and Jules, reviewed by Gemini Code Assist on GitHub, while tracking DORA lead time and change failure rate.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<link rel="stylesheet" href="assets/platform-kit.css?v=1">
+</head>
+<body>
+<header class="sim-header gemini">
+  <div class="icon">🌱</div>
+  <div>
+    <h1>Gemini + DORA · Sim 2: Greenfield in small batches</h1>
+    <p>The notification service built with Gemini CLI and Jules. AI makes big changes easy to produce; the team keeps them small anyway and watches lead time and change failure rate.</p>
+    <div class="stack-pills"><span class="pill">AI-DLC record (from Claude Code)</span><span class="pill">Jules ×2</span><span class="pill">Gemini CLI</span><span class="pill">Feature flags</span><span class="pill">DORA tracked</span><span class="pill">Simulated output</span></div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+<div class="sim-body">
+  <nav class="sidebar" id="steps-nav" aria-label="Steps"></nav>
+  <main class="main-area">
+    <div class="progress-bar-container"><div class="progress-bar-outer"><div class="progress-bar-inner" id="progress"></div></div><div class="progress-label" id="progress-label">Step 1</div></div>
+    <div class="step-content-area">
+
+<section class="step-panel" data-section="Scenario" data-title="The brief" data-sub="Same epic, new lens">
+  <div class="step-header"><div class="phase-tag green">🌱 Scenario</div><h2>Same brief, measured delivery</h2>
+  <p>Email and in-app notifications from Service Bus events, with per-channel preferences. Inception already ran in AI-DLC on Claude Code (see <a href="Claude_Sim_Greenfield.html#step-2">Claude Sim 2</a>), so the Units and functional designs are committed in <code>aidlc/</code>.</p></div>
+  <div class="callout info"><div class="icon">ℹ️</div><p>The team's DORA goal for this epic: <strong>no PR over 300 changed lines</strong>, <strong>every Unit deployable behind a flag</strong>, and lead time under 2 days per change.</p></div>
+</section>
+
+<section class="step-panel" data-section="Plan" data-title="Slice small" data-sub="/smallpr">
+  <div class="step-header"><div class="phase-tag blue">✂️ Plan</div><h2>Turn 4 Units into 9 small, shippable changes</h2></div>
+  <div class="chat reveal"><div class="chat-header gemini">✦ Gemini CLI <span class="tag">notification-service</span></div><div class="chat-body">
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">Read aidlc/…/units.md and each functional design. Propose a sequence of PRs, each under 300 lines and deployable alone behind the flag notifications.enabled.</div></div>
+    <div class="msg ai"><div class="who">Gemini</div><div class="bubble">1. Flag + empty worker skeleton + health check (~80)<br>2. Preferences table + migration (~120)<br>3. GET/PUT preferences (~220)<br>4. Service Bus consumer, log-only (~180)<br>5. Template rendering (~200)<br>6. SendGrid sender + retries (~240)<br>7. Opt-out + security-alert override (~150)<br>8. In-app badge store + API (~260)<br>9. End-to-end latency test + dashboard (~140)</div></div>
+  </div></div>
+  <div class="callout tip"><div class="icon">💡</div><p>PR 1 deploys to production on day one, with the flag off. From then on, every merge exercises the real pipeline. That's what keeps lead time short.</p></div>
+</section>
+
+<section class="step-panel" data-section="Build" data-title="Jules + CLI" data-sub="Parallel, small">
+  <div class="step-header"><div class="phase-tag amber">🏗️ Build</div><h2>Jules takes the plain slices, Marcus pairs on the tricky ones</h2></div>
+  <div class="chat reveal"><div class="chat-header gemini">🐙 Jules · task: PR 2 "Preferences table + migration"</div><div class="chat-body">
+    <div class="msg ai"><div class="who">Jules</div><div class="bubble"><strong>Plan</strong><br>1. Add <code>Preference</code> entity (tenantId, userId, channel, optedOut).<br>2. Generate EF migration with <code>dotnet ef</code>.<br>3. Repository + 6 tests.<br><em>Approve plan?</em></div></div>
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">Approve. Use a composite key (tenantId, userId, channel).</div></div>
+    <div class="msg ai"><div class="who">Jules</div><div class="bubble">Done in the VM: 6 tests ✓, 118 lines. Published branch and opened PR #52.</div></div>
+  </div></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Slice</th><th>Who</th><th>Lines</th><th>Lead time</th></tr>
+    <tr><td>1 Flag + skeleton</td><td>Gemini CLI + Marcus</td><td>84</td><td>3 h</td></tr>
+    <tr><td>2 Preferences table</td><td>Jules</td><td>118</td><td>9 h</td></tr>
+    <tr><td>3 Preferences API</td><td>Jules</td><td>231</td><td>14 h</td></tr>
+    <tr><td>6 SendGrid + retries</td><td>Gemini CLI + Marcus (pairing)</td><td>262</td><td>1.5 d</td></tr>
+  </table></div>
+</section>
+
+<section class="step-panel" data-section="Build" data-title="Review" data-sub="Code Assist on GitHub">
+  <div class="step-header"><div class="phase-tag teal">🔍 Review</div><h2>Small PRs get real reviews</h2></div>
+  <div class="chat reveal"><div class="chat-header">🐙 PR #55 · SendGrid sender + retries (262 lines)</div><div class="chat-body">
+    <div class="msg ai"><div class="who">Gemini Code Assist</div><div class="bubble"><strong>Summary</strong>: adds <code>SendGridSender</code> with Polly retry (3×, jittered). <strong>High</strong>: retries on HTTP 400 too, which would resend invalid requests. Retry only on 429/5xx.</div></div>
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">Good catch. Fixed with a test for 400 → no retry.</div></div>
+    <div class="msg user"><div class="who">Priya</div><div class="bubble">Approved ✅. Reviewing 262 lines took 12 minutes. The 1,900-line PR on the last project took two days.</div></div>
+  </div></div>
+</section>
+
+<section class="step-panel" data-section="Measure" data-title="Try it: batch size" data-sub="One big PR vs nine small">
+  <div class="step-header"><div class="phase-tag purple">🎛️ Try it</div><h2>What batch size does to the DORA metrics</h2>
+  <p>Same feature, two ways to ship it. These numbers are illustrative, based on this team's history, not a benchmark.</p></div>
+  <div class="seg" id="b"><button data-v="big">1 PR · 1,700 lines</button><button data-v="small" class="on">9 PRs · ~190 lines each</button></div>
+  <div class="result" id="b-out"></div>
+</section>
+
+<section class="step-panel" data-section="Measure" data-title="Epic scorecard" data-sub="Against baseline">
+  <div class="step-header"><div class="phase-tag green">📈 Scorecard</div><h2>How the epic compares with the baseline</h2></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Metric</th><th>Baseline (Sim 1)</th><th>This epic</th><th>Read</th></tr>
+    <tr><td>Deployment frequency</td><td>2.1 / week</td><td>9 deploys in 6 days</td><td>✅ small batches</td></tr>
+    <tr><td>Change lead time</td><td>6.5 days</td><td>median 14 h</td><td>✅</td></tr>
+    <tr><td>Change failure rate</td><td>18%</td><td>1 of 9 (11%)</td><td>⚠️ the flag hid it from users</td></tr>
+    <tr><td>Failed deployment recovery</td><td>9 h</td><td>22 min (flag off, fix forward)</td><td>✅</td></tr>
+    <tr><td>Rework rate</td><td>22%</td><td>0 so far</td><td>Too early; check in 4 weeks</td></tr>
+  </table></div>
+  <div class="callout warn"><div class="icon">⚠️</div><p>One epic is anecdote, not evidence. Keep collecting for a quarter before drawing conclusions, and watch whether instability creeps up as volume grows.</p></div>
+  <div class="callout success"><div class="icon">✅</div><p>Next: <a href="GeminiDORA_Sim_Brownfield.html">Sim 3 · Brownfield + DORA lab</a>.</p></div>
+</section>
+
+    </div>
+  </main>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script src="assets/platform-kit.js?v=1"></script>
+<script>
+(function(){
+  const V={
+    big:['deny','One big PR','Review: 2 days, shallow (reviewers skim). Lead time: ~9 days from first commit. Deploy: one risky release; a bug in any part blocks all of it. If it fails, recovery means rolling back everything. Typical result on this team: CFR and rework go up.'],
+    small:['allow','Nine small PRs','Review: 10–20 min each, deeper. Lead time: hours per change. Each deploy is small and behind a flag, so a failure is contained and recovery is "flag off". Throughput and stability improve together.']};
+  const o=document.getElementById('b-out');const ic={allow:'✅',deny:'⚠️'};
+  function r(v){const a=V[v];o.className='result '+a[0];o.innerHTML='<div class="verdict">'+ic[a[0]]+' '+a[1]+'</div><div>'+a[2]+'</div>';}
+  document.querySelectorAll('#b button').forEach(x=>x.onclick=()=>{document.querySelectorAll('#b button').forEach(y=>y.classList.toggle('on',y===x));r(x.dataset.v);});
+  r('small');
+})();
+</script>
+</body>
+</html>

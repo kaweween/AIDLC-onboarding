@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Codex Setup Simulator</title>
+<meta name="description" content="Simulated walkthrough: install the Codex CLI, choose sandbox and approval settings, write AGENTS.md, add MCP, configure a Codex cloud environment and add the AI-DLC Codex harness.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<link rel="stylesheet" href="assets/platform-kit.css?v=1">
+</head>
+<body>
+<header class="sim-header codex">
+  <div class="icon">⚙️</div>
+  <div>
+    <h1>OpenAI Codex · Sim 1: Setup</h1>
+    <p>Ready <code>billing-platform</code> for Codex locally and in the cloud, with a sandbox and approval policy the whole team agrees on.</p>
+    <div class="stack-pills"><span class="pill">Codex CLI</span><span class="pill">config.toml</span><span class="pill">AGENTS.md</span><span class="pill">Cloud environment</span><span class="pill">AI-DLC $aidlc</span><span class="pill">Simulated output</span></div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+<div class="sim-body">
+  <nav class="sidebar" id="steps-nav" aria-label="Steps"></nav>
+  <main class="main-area">
+    <div class="progress-bar-container"><div class="progress-bar-outer"><div class="progress-bar-inner" id="progress"></div></div><div class="progress-label" id="progress-label">Step 1</div></div>
+    <div class="step-content-area">
+
+<section class="step-panel" data-section="Machine" data-title="Install & sign in" data-sub="npm or Homebrew">
+  <div class="step-header"><div class="phase-tag">📦 Install</div><h2>Install the CLI and sign in</h2></div>
+  <div class="terminal typer"><div class="terminal-header"><div class="terminal-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div><div class="terminal-title">bash</div><button class="run-btn">▶ Run</button></div><div class="terminal-body">
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">npm install -g @openai/codex</span>   <span class="t-comment"># or: brew install --cask codex</span></span>
+<span class="l t-success">added 1 package</span>
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">cd ~/src/billing-platform &amp;&amp; codex</span></span>
+<span class="l t-info">Sign in with ChatGPT  ·  or provide an API key</span>
+<span class="l t-success">Signed in (Contoso workspace). Trust this folder? [Yes] → project config in .codex/ will be used</span>
+  </div></div>
+  <div class="callout tip"><div class="icon">💡</div><p>On Windows, run Codex in WSL for the best sandbox support, unless your version's docs say native Windows is fully supported.</p></div>
+</section>
+
+<section class="step-panel" data-section="Policy" data-title="Sandbox × approvals" data-sub="Try the combinations">
+  <div class="step-header"><div class="phase-tag amber">🛡️ Policy</div><h2>Two dials: what it <em>can</em> do, and when it <em>asks</em></h2>
+  <p>Pick a combination and a request to see what happens. Exact menu names differ between CLI versions; the two dials stay the same.</p></div>
+  <div class="ctl-row">
+    <div><label>Sandbox</label><div class="seg" id="s-sb"><button data-v="ro">read-only</button><button data-v="ww" class="on">workspace-write</button><button data-v="fa">danger-full-access</button></div></div>
+    <div><label>Approvals</label><div class="seg" id="s-ap"><button data-v="untrusted">untrusted</button><button data-v="req" class="on">on-request</button><button data-v="never">never</button></div></div>
+  </div>
+  <div class="ctl-row"><div><label>Codex wants to…</label><select class="sel" id="s-act">
+    <option value="read">read src/ and run git log</option>
+    <option value="edit">edit src/Billing.Api/InvoicesController.cs</option>
+    <option value="test">run dotnet test</option>
+    <option value="net">run dotnet restore (network)</option>
+    <option value="out">write to ~/.ssh/config (outside workspace)</option>
+  </select></div></div>
+  <div class="result" id="s-out"></div>
+  <div class="callout warn"><div class="icon">⚠️</div><p>Team default: <strong>workspace-write + on-request</strong>. Use read-only to explore unfamiliar code. Keep danger-full-access + never for disposable containers only.</p></div>
+</section>
+
+<section class="step-panel" data-section="Policy" data-title="config.toml" data-sub="Team defaults">
+  <div class="step-header"><div class="phase-tag purple">🧾 Config</div><h2>Write the defaults down</h2></div>
+  <div class="doc"><div class="doc-bar">.codex/config.toml (project, committed)</div><div class="doc-body"><span class="md-k">sandbox_mode</span>    = <span class="md-s">"workspace-write"</span>
+<span class="md-k">approval_policy</span> = <span class="md-s">"on-request"</span>
+
+<span class="md-k">[sandbox_workspace_write]</span>
+<span class="md-k">network_access</span> = false            <span class="md-c"># restore once, then work offline</span>
+
+<span class="md-k">[profiles.explore]</span>               <span class="md-c"># codex --profile explore</span>
+<span class="md-k">sandbox_mode</span> = <span class="md-s">"read-only"</span>
+
+<span class="md-k">[mcp_servers.ado]</span>
+<span class="md-k">command</span> = <span class="md-s">"npx"</span>
+<span class="md-k">args</span>    = [<span class="md-s">"-y"</span>, <span class="md-s">"@azure-devops/mcp"</span>, <span class="md-s">"contoso"</span>]</div></div>
+  <div class="callout info"><div class="icon">ℹ️</div><p>Personal settings (model choice, your own MCP servers) go in <code>~/.codex/config.toml</code>. You can also add servers with <code>codex mcp add</code>. Check key names against <code>codex --help</code> and the config reference for your version.</p></div>
+</section>
+
+<section class="step-panel" data-section="Repo" data-title="AGENTS.md" data-sub="/init, then edit">
+  <div class="step-header"><div class="phase-tag purple">📝 Repo</div><h2>Draft AGENTS.md with /init, then keep only what matters</h2></div>
+  <div class="doc"><div class="doc-bar">AGENTS.md</div><div class="doc-body"><span class="md-h"># billing-platform</span>
+<span class="md-h">## Commands</span>
+- Build: <span class="md-c">dotnet build BillingPlatform.sln</span>
+- Test (required before finishing): <span class="md-c">dotnet test --filter Category!=Slow</span>
+<span class="md-h">## Conventions</span>
+- xUnit + FluentAssertions + NSubstitute; test first; never change a test to make it pass.
+- Never log PII (email, IBAN); use Redact().
+- Public API change ⇒ update api/openapi.yaml.
+<span class="md-h">## Review guidelines</span>
+- Flag PII in logs, missing tenant checks, and sync I/O in request paths as P1.
+- Ignore formatting; dotnet format handles it.</div></div>
+  <div class="callout tip"><div class="icon">💡</div><p><code>@codex review</code> on GitHub reads the "Review guidelines" section, so one file steers both coding and reviewing.</p></div>
+</section>
+
+<section class="step-panel" data-section="Cloud" data-title="Cloud environment" data-sub="Setup script, internet">
+  <div class="step-header"><div class="phase-tag teal">☁️ Cloud</div><h2>Give cloud tasks a working container</h2>
+  <p>In Codex settings → Environments, Marcus creates <code>billing-platform (dotnet)</code> for the repo.</p></div>
+  <div class="doc"><div class="doc-bar">Environment · setup script</div><div class="doc-body">dotnet --info | head -3
+dotnet restore BillingPlatform.sln
+dotnet build BillingPlatform.sln -c Debug --no-restore
+<span class="md-c"># fail fast if the env is broken, so tasks don't waste attempts</span></div></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Setting</th><th>Value</th><th>Why</th></tr>
+    <tr><td>Environment variables</td><td><code>ASPNETCORE_ENVIRONMENT=Test</code></td><td>Same as CI.</td></tr>
+    <tr><td>Secrets</td><td>None</td><td>Secrets exist only during setup. Tests use local fakes.</td></tr>
+    <tr><td>Agent internet access</td><td>Off (allowlist <code>api.nuget.org</code> if needed later)</td><td>Limits data exfiltration and prompt-injection risk.</td></tr>
+  </table></div>
+</section>
+
+<section class="step-panel" data-section="Method" data-title="AI-DLC harness" data-sub="aidlc config --harness codex">
+  <div class="step-header"><div class="phase-tag green">🧭 AI-DLC</div><h2>Add the method</h2></div>
+  <div class="terminal typer"><div class="terminal-header"><div class="terminal-dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div><div class="terminal-title">bash</div><button class="run-btn">▶ Run</button></div><div class="terminal-body">
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">aidlc config --harness codex</span></span>
+<span class="l t-output">Writing .codex/ (agents, hooks, tools)  .agents/skills/aidlc*/</span>
+<span class="l t-output">Merged .codex/config.toml (developer_instructions + hooks; your keys kept)</span>
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">aidlc config trust --harness codex --acknowledge --yes</span></span>
+<span class="l t-success">Recorded the trust answer.</span>
+<span class="l"><span class="t-prompt">$</span> <span class="t-cmd">codex</span></span>
+<span class="l"><span class="t-prompt">›</span> <span class="t-cmd">$aidlc --doctor</span></span>
+<span class="l t-success">✓ harness codex · ✓ skills · ✓ agents 14 · ✓ workspace aidlc/</span>
+  </div></div>
+</section>
+
+<section class="step-panel" data-section="Verify" data-title="Smoke test" data-sub="Local + cloud + review">
+  <div class="step-header"><div class="phase-tag green">✅ Verify</div><h2>One fix through all three surfaces</h2></div>
+  <div class="chat reveal"><div class="chat-header codex">◎ Codex</div><div class="chat-body">
+    <div class="msg user"><div class="who">Marcus (CLI)</div><div class="bubble">Fix the failing InvoiceNumber test. Write the regression test first.</div></div>
+    <div class="msg ai"><div class="who">Codex</div><div class="bubble">Ran <code>dotnet test</code>: 1 failure. Added the regression test, fixed <code>InvoiceNumber.cs:41</code>. 413/413 ✓. Diff ready.</div></div>
+    <div class="msg user"><div class="who">Marcus</div><div class="bubble">/review</div></div>
+    <div class="msg ai"><div class="who">Codex (review)</div><div class="bubble">No P0/P1 findings. P3: test name could say "for all tenants".</div></div>
+    <div class="msg user"><div class="who">Marcus (cloud)</div><div class="bubble">Same check in the cloud: "Run the fast tests and report timing." → environment billing-platform (dotnet)</div></div>
+    <div class="msg ai"><div class="who">Codex cloud</div><div class="bubble">Setup 1m12s · tests 413/413 ✓ in 48s. Environment works.</div></div>
+    <div class="msg user"><div class="who">Priya (GitHub PR #822)</div><div class="bubble">@codex review</div></div>
+    <div class="msg ai"><div class="who">Codex</div><div class="bubble">👍 No issues found against the review guidelines.</div></div>
+  </div></div>
+  <div class="callout success"><div class="icon">✅</div><p>Setup verified. Next: <a href="Codex_Sim_Greenfield.html">Sim 2 · Greenfield</a>.</p></div>
+</section>
+
+    </div>
+  </main>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script src="assets/platform-kit.js?v=1"></script>
+<script>
+(function(){
+  let sb='ww',ap='req';
+  const act=document.getElementById('s-act'),out=document.getElementById('s-out');
+  const ic={allow:'✅',ask:'✋',deny:'⛔'};
+  function decide(){
+    const a=act.value;
+    // what the sandbox permits without escalation
+    const allowed={ro:['read'],ww:['read','edit','test'],fa:['read','edit','test','net','out']}[sb];
+    const inSandbox=allowed.includes(a);
+    if(ap==='untrusted'){
+      if(a==='read') return ['allow','Runs','Trusted read-only commands run without asking.'];
+      return inSandbox?['ask','Asks you','untrusted asks before anything beyond a known-safe read.']:['ask','Asks you to escalate','Outside the sandbox: it asks to run with more access.'];
+    }
+    if(ap==='req'){
+      if(inSandbox) return ['allow','Runs','Allowed by the sandbox, so it just works.'];
+      return ['ask','Asks you to escalate','The sandbox would block it, so Codex asks for permission to run it outside the sandbox.'];
+    }
+    // never
+    if(inSandbox) return sb==='fa'?['allow','Runs, no questions','Full access and never ask: only for throwaway containers.']:['allow','Runs','Inside the sandbox.'];
+    return ['deny','Fails','Blocked by the sandbox, and with "never" Codex can\'t ask, so it has to work around it or report failure.'];
+  }
+  function r(){const v=decide();out.className='result '+v[0];out.innerHTML='<div class="verdict">'+ic[v[0]]+' '+v[1]+'</div><div>'+v[2]+'</div>';}
+  [['s-sb',v=>sb=v],['s-ap',v=>ap=v]].forEach(([id,set])=>document.querySelectorAll('#'+id+' button').forEach(b=>b.onclick=()=>{set(b.dataset.v);document.querySelectorAll('#'+id+' button').forEach(x=>x.classList.toggle('on',x===b));r();}));
+  act.onchange=r;r();
+})();
+</script>
+</body>
+</html>

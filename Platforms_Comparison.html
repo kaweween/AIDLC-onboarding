@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Platforms Compared</title>
+<meta name="description" content="Side-by-side comparison of Microsoft Agentic DevOps, Claude Code, OpenAI Codex and Google Gemini for the software lifecycle, with AI-DLC support, guardrails, automation and a platform chooser.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<link rel="stylesheet" href="assets/platform-kit.css?v=1">
+</head>
+<body>
+<header class="sim-header multi">
+  <div class="icon">⚖️</div>
+  <div>
+    <h1>AI Platforms for the SDLC: Compared</h1>
+    <p>Microsoft Agentic DevOps, Claude AI SDLC, OpenAI Codex and Google Gemini + DORA, compared concept by concept. All four tracks use the same scenarios, so you can compare like for like.</p>
+    <div class="stack-pills"><span class="pill">Checked November 2026</span><span class="pill">AI-DLC 2.11</span><span class="pill">Same personas · same briefs</span></div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+<div class="wrap">
+  <div class="callout warn"><div class="icon">⚠️</div><p>All four platforms ship changes monthly or faster. Treat this page as a map for choosing and onboarding, not a contract. Confirm plan limits, data terms and feature availability with each vendor.</p></div>
+
+  <h2 class="sec">Concept map</h2>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Concept</th><th class="ms">Microsoft Agentic DevOps</th><th class="claude">Claude AI SDLC</th><th class="codex">OpenAI Codex</th><th class="gemini">Google Gemini</th></tr>
+    <tr><td><strong>Interactive agent</strong></td><td>Copilot agent mode (VS Code, Visual Studio, JetBrains), Copilot CLI</td><td>Claude Code CLI, IDE extensions, desktop</td><td>Codex CLI, IDE extension</td><td>Gemini CLI, Code Assist agent mode</td></tr>
+    <tr><td><strong>Async / cloud agent</strong></td><td>Copilot coding agent (issue → draft PR)</td><td>Claude Code on the web (cloud sessions), <code>@claude</code> in Actions</td><td>Codex cloud tasks, multiple attempts</td><td>Jules (plan → VM → PR)</td></tr>
+    <tr><td><strong>Repo instructions</strong></td><td><code>.github/copilot-instructions.md</code>, <code>*.instructions.md</code>, <code>AGENTS.md</code></td><td><code>CLAUDE.md</code> (nested, <code>@</code> imports)</td><td><code>AGENTS.md</code> (nested, overrides)</td><td><code>GEMINI.md</code> (configurable to <code>AGENTS.md</code>)</td></tr>
+    <tr><td><strong>Reusable procedures</strong></td><td>Prompt files, custom agents (<code>*.agent.md</code>)</td><td>Skills, subagents, plugins</td><td>Skills (<code>.agents/skills</code>), custom prompts</td><td>Custom commands (<code>.toml</code>), extensions</td></tr>
+    <tr><td><strong>Guardrails</strong></td><td>Tool approvals, firewall for coding agent, branch rules, org policies</td><td>Permission modes, allow/ask/deny, managed settings, hooks</td><td>Sandbox modes × approval policy, cloud internet off by default</td><td>Approval modes, sandbox (container), checkpoints</td></tr>
+    <tr><td><strong>Deterministic hooks</strong></td><td>Hooks in VS Code agent mode and Copilot CLI</td><td>Hooks on many lifecycle events</td><td>Hooks / notify, depending on version</td><td>Hooks in recent versions; check your release</td></tr>
+    <tr><td><strong>MCP</strong></td><td>✅ VS Code + coding agent</td><td>✅ local, project, user</td><td>✅ config.toml</td><td>✅ settings.json</td></tr>
+    <tr><td><strong>PR review</strong></td><td>Copilot code review, CodeQL + Autofix</td><td><code>/code-review</code>, <code>/security-review</code>, <code>@claude</code></td><td><code>/review</code>, <code>@codex review</code>, auto reviews</td><td>Code Assist on GitHub (<code>/gemini review</code>)</td></tr>
+    <tr><td><strong>CI / headless</strong></td><td>Coding agent runs on Actions; Copilot CLI scripting</td><td><code>claude -p</code>, claude-code-action, Agent SDK</td><td><code>codex exec</code>, codex-action, Codex SDK</td><td><code>gemini -p</code>, run-gemini-cli</td></tr>
+    <tr><td><strong>Operations agent</strong></td><td><strong>Azure SRE Agent</strong> (incident → issue)</td><td>MCP to your observability tools + headless triage</td><td>MCP + <code>codex exec</code> triage</td><td>Gemini in Google Cloud; headless triage</td></tr>
+    <tr><td><strong>Measurement</strong></td><td>Copilot usage &amp; metrics dashboards</td><td>Usage analytics</td><td>Workspace usage analytics</td><td><strong>DORA</strong>: tool-neutral, use it for all four</td></tr>
+    <tr><td><strong>AI-DLC harness</strong></td><td class="y">✅ <code>--harness copilot</code> · <code>/aidlc</code></td><td class="y">✅ <code>--harness claude</code> · <code>/aidlc</code></td><td class="y">✅ <code>--harness codex</code> · <code>$aidlc</code></td><td class="p">⚠️ none; use the record + <code>AGENTS.md</code></td></tr>
+  </table></div>
+
+  <h2 class="sec">Same scenario, four platforms</h2>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Track</th><th>Onboarding</th><th>Sim 1 · Setup</th><th>Sim 2 · Greenfield</th><th>Sim 3 · Brownfield + Ops</th><th>Training</th></tr>
+    <tr><td class="ms"><strong>Microsoft</strong></td><td><a href="MSAD_Onboarding.html">Guide</a></td><td><a href="MSAD_Sim_Setup.html">Setup</a></td><td><a href="MSAD_Sim_Greenfield.html">Coding agent waves</a></td><td><a href="MSAD_Sim_Brownfield.html">SRE Agent loop</a></td><td><a href="MSAD_Training.html">Path</a></td></tr>
+    <tr><td><strong>Claude</strong></td><td><a href="Claude_Onboarding.html">Guide</a></td><td><a href="Claude_Sim_Setup.html">Setup</a></td><td><a href="Claude_Sim_Greenfield.html">Plan mode + worktrees</a></td><td><a href="Claude_Sim_Brownfield.html">Hooks + rewind</a></td><td><a href="Claude_Training.html">Path</a></td></tr>
+    <tr><td><strong>Codex</strong></td><td><a href="Codex_Onboarding.html">Guide</a></td><td><a href="Codex_Sim_Setup.html">Setup</a></td><td><a href="Codex_Sim_Greenfield.html">Cloud attempts</a></td><td><a href="Codex_Sim_Brownfield.html">Read-only + exec</a></td><td><a href="Codex_Training.html">Path</a></td></tr>
+    <tr><td><strong>Gemini + DORA</strong></td><td><a href="GeminiDORA_Onboarding.html">Guide</a></td><td><a href="GeminiDORA_Sim_Setup.html">Setup + baseline</a></td><td><a href="GeminiDORA_Sim_Greenfield.html">Small batches</a></td><td><a href="GeminiDORA_Sim_Brownfield.html">DORA lab</a></td><td><a href="GeminiDORA_Training.html">Path</a></td></tr>
+  </table></div>
+
+  <h2 class="sec">Which fits your team?</h2>
+  <p class="body">Answer four questions to get a starting suggestion. It's a conversation starter, not a verdict. Many organisations use more than one.</p>
+  <div class="ctl-row">
+    <div><label>Where is your code hosted?</label><select class="sel" id="q1"><option value="gh">GitHub</option><option value="ado">Azure Repos</option><option value="other">GitLab / other</option></select></div>
+    <div><label>Main cloud</label><select class="sel" id="q2"><option value="az">Azure</option><option value="gcp">Google Cloud</option><option value="aws">AWS</option><option value="mixed">Mixed / none</option></select></div>
+  </div>
+  <div class="ctl-row">
+    <div><label>How do your devs prefer to work?</label><select class="sel" id="q3"><option value="ide">In the IDE</option><option value="term">In the terminal</option><option value="async">Delegate and review later</option></select></div>
+    <div><label>Biggest gap right now</label><select class="sel" id="q4"><option value="method">A shared method with approvals</option><option value="ops">Incident response</option><option value="measure">Knowing if AI helps</option><option value="guard">Strong local guardrails</option></select></div>
+  </div>
+  <div class="result" id="pick"></div>
+
+  <h2 class="sec">What's the same everywhere</h2>
+  <div class="cards">
+    <div class="card green"><h4>People approve</h4><p>No platform should merge its own PR or deploy to production without a person. Branch protection is your universal guardrail.</p></div>
+    <div class="card blue"><h4>Context is a file</h4><p>Every agent reads a repo instructions file. <code>AGENTS.md</code> is the most portable. Keep it short and reviewed.</p></div>
+    <div class="card purple"><h4>Small batches win</h4><p>Agents make large diffs cheap. Reviewing them isn't. Cap PR size and open agent PRs per reviewer.</p></div>
+    <div class="card amber"><h4>Measure outcomes</h4><p>Use DORA's five metrics for any platform. Usage dashboards show activity, not results.</p></div>
+  </div>
+  <p class="body"><a href="index.html">⌂ Back to the hub</a></p>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script src="assets/platform-kit.js?v=1"></script>
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  function pick(){
+    const h=$('q1').value,c=$('q2').value,w=$('q3').value,g=$('q4').value;
+    const s={ms:0,claude:0,codex:0,gemini:0};const why=[];
+    if(h==='gh'){s.ms+=2;s.claude+=1;s.codex+=1;s.gemini+=1;why.push('GitHub hosting unlocks the Copilot coding agent and every vendor\'s PR integration.');}
+    if(h==='ado'){s.ms+=1;s.claude+=1;s.codex+=1;why.push('On Azure Repos, cloud PR agents are limited; IDE and CLI agents work with any Git host.');}
+    if(h==='other'){s.claude+=1;s.codex+=1;s.gemini+=1;why.push('Off GitHub, terminal agents that work with any Git host are the safest bet.');}
+    if(c==='az'){s.ms+=2;why.push('Azure SRE Agent covers operations on Azure.');}
+    if(c==='gcp'){s.gemini+=2;why.push('Gemini Code Assist licensing and data terms fit Google Cloud orgs.');}
+    if(c==='aws'){s.claude+=1;why.push('Claude is available through Amazon Bedrock, and AI-DLC comes from AWS Labs.');}
+    if(w==='ide'){s.ms+=1;s.gemini+=1;s.claude+=1;}
+    if(w==='term'){s.claude+=2;s.codex+=1;s.gemini+=1;why.push('Terminal-first teams get the most from Claude Code, Codex CLI or Gemini CLI.');}
+    if(w==='async'){s.codex+=2;s.ms+=1;s.gemini+=1;why.push('Delegation: Codex cloud attempts, the Copilot coding agent or Jules.');}
+    if(g==='method'){s.claude+=1;s.ms+=1;s.codex+=1;why.push('For a shared method, pick a platform with an AI-DLC harness (Copilot, Claude, Codex).');}
+    if(g==='ops'){s.ms+=2;why.push('Azure SRE Agent is the most complete operations agent here, for Azure workloads.');}
+    if(g==='measure'){s.gemini+=2;why.push('Start with DORA baselines. They apply whatever tool you choose.');}
+    if(g==='guard'){s.claude+=2;s.codex+=1;why.push('Claude Code hooks + managed settings, or Codex sandboxing, give the strongest local guardrails.');}
+    const names={ms:['Microsoft Agentic DevOps','MSAD_Onboarding.html'],claude:['Claude AI SDLC','Claude_Onboarding.html'],codex:['OpenAI Codex','Codex_Onboarding.html'],gemini:['Google Gemini + DORA','GeminiDORA_Onboarding.html']};
+    const ord=Object.keys(s).sort((a,b)=>s[b]-s[a]);
+    $('pick').className='result allow';
+    $('pick').innerHTML='<div class="verdict">Start with: <a href="'+names[ord[0]][1]+'">'+names[ord[0]][0]+'</a> · also look at <a href="'+names[ord[1]][1]+'">'+names[ord[1]][0]+'</a></div><ul style="margin:6px 0 0 18px">'+why.map(x=>'<li>'+x+'</li>').join('')+'</ul><div style="margin-top:6px">Whatever you choose, measure it with <a href="GeminiDORA_Onboarding.html#step-2">DORA</a>.</div>';
+  }
+  ['q1','q2','q3','q4'].forEach(id=>$(id).addEventListener('change',pick));pick();
+})();
+</script>
+</body>
+</html>

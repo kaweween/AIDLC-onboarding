@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gemini + DORA Training Path</title>
+<meta name="description" content="Training curriculum for Google's Gemini developer tools and DORA measurement: six modules with labs, a role matrix and a knowledge check.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<link rel="stylesheet" href="assets/platform-kit.css?v=1">
+</head>
+<body>
+<header class="sim-header gemini">
+  <div class="icon">🎓</div>
+  <div>
+    <h1>Google Gemini + DORA: Training Path</h1>
+    <p>Three modules on the Gemini tools and three on DORA measurement and capabilities. About 8.5 hours in total, with a lab in each module and a knowledge check at the end.</p>
+    <div class="stack-pills"><span class="pill">L100 → L300</span><span class="pill">~8.5 h</span><span class="pill">6 labs</span><span class="pill">12-question check</span></div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+<div class="wrap">
+  <div class="callout info"><div class="icon">ℹ️</div><p><strong>Before you start:</strong> read the <a href="GeminiDORA_Onboarding.html">Onboarding</a> guide. Labs need Gemini CLI, a Code Assist licence (or API key for a sandbox), and read access to your CI/CD and incident data for the DORA modules.</p></div>
+
+  <h2 class="sec">Modules · Gemini tools</h2>
+  <div class="module"><div class="mhead"><span class="lvl l100">L100</span><h4>M1 · Gemini CLI fundamentals</h4><span class="dur">90 min</span></div>
+    <ul><li>Install, auth options (Google login, API key, Vertex AI), <code>/init</code>, <code>@</code> file references.</li><li>Context: <code>GEMINI.md</code> hierarchy, <code>/memory</code>, using <code>AGENTS.md</code>.</li><li>Approvals, <code>--approval-mode</code>, sandboxing, checkpoints and <code>/restore</code>.</li></ul>
+    <div class="lab"><strong>Lab 1:</strong> Turn on checkpointing, make a deliberately bad change, and restore it. Then do the same fix in under 150 lines.</div></div>
+  <div class="module"><div class="mhead"><span class="lvl l200">L200</span><h4>M2 · Extending and automating</h4><span class="dur">90 min</span></div>
+    <ul><li>MCP servers in <code>settings.json</code>; extensions; custom commands in <code>.gemini/commands/*.toml</code>.</li><li>Headless <code>gemini -p</code>, JSON output, <code>run-gemini-cli</code> in GitHub Actions.</li><li>Untrusted input (logs, issues) and least privilege in CI.</li></ul>
+    <div class="lab"><strong>Lab 2:</strong> Write the <code>/smallpr</code> command from Sim 1 and a read-only failure-triage workflow step.</div></div>
+  <div class="module"><div class="mhead"><span class="lvl l200">L200</span><h4>M3 · Code Assist and Jules</h4><span class="dur">90 min</span></div>
+    <ul><li>Code Assist in the IDE: chat, agent mode, editions, Enterprise code customisation.</li><li>Code Assist on GitHub: <code>/gemini review</code>, summaries, <code>.gemini/styleguide.md</code>.</li><li>Jules: environment setup, plan approval, branches and PRs.</li></ul>
+    <div class="lab"><strong>Lab 3:</strong> Give Jules one small task, change its plan before approving, and review the PR with Code Assist.</div></div>
+
+  <h2 class="sec">Modules · DORA</h2>
+  <div class="module"><div class="mhead"><span class="lvl l100">L100</span><h4>M4 · The five DORA metrics</h4><span class="dur">60 min</span></div>
+    <ul><li>Throughput: change lead time, deployment frequency, failed deployment recovery time.</li><li>Instability: change failure rate, rework rate.</li><li>Team and system metrics, not individual targets. Avoiding Goodhart's law.</li></ul>
+    <div class="lab"><strong>Lab 4:</strong> Fill in the <a href="GeminiDORA_Sim_Brownfield.html#step-4">calculator</a> with your team's real numbers. Write down where each number came from.</div></div>
+  <div class="module"><div class="mhead"><span class="lvl l200">L200</span><h4>M5 · Instrumenting the metrics</h4><span class="dur">2 h</span></div>
+    <ul><li>Event sources: commits, PR merges, deploys, rollbacks, incidents, hotfix labels.</li><li>Defining "failure" and "rework" consistently. Medians, not averages.</li><li>Dashboards and review cadence (monthly trend, quarterly deep dive).</li></ul>
+    <div class="lab"><strong>Lab 5:</strong> Compute lead time and deployment frequency for the last 4 weeks from Git and pipeline data. A spreadsheet is fine.</div></div>
+  <div class="module"><div class="mhead"><span class="lvl l300">L300</span><h4>M6 · The DORA AI Capabilities Model in practice</h4><span class="dur">90 min</span></div>
+    <ul><li>AI as an amplifier: why throughput gains can come with more instability.</li><li>The seven capabilities and a tactic for each.</li><li>Running experiments: one capability, one metric, one quarter.</li></ul>
+    <div class="lab"><strong>Lab 6:</strong> Run the <a href="GeminiDORA_Sim_Brownfield.html#step-5">capability assessment</a> with your team and agree on three experiments.</div></div>
+
+  <h2 class="sec">Role matrix</h2>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Role</th><th>Required</th><th>Recommended</th><th>Outcome</th></tr>
+    <tr><td><strong>Developer</strong></td><td>M1–M3</td><td>M4</td><td>Uses Gemini tools in small batches.</td></tr>
+    <tr><td><strong>Architect</strong></td><td>M1, M2, M6</td><td>M3</td><td>Makes internal data AI-accessible; owns context files.</td></tr>
+    <tr><td><strong>Product Owner</strong></td><td>M4, M6</td><td>M3 (Jules tasks)</td><td>Slices work small; reads rework rate.</td></tr>
+    <tr><td><strong>SRE / Ops</strong></td><td>M2, M4, M5</td><td>M6</td><td>Instruments metrics and triage.</td></tr>
+    <tr><td><strong>Eng. lead</strong></td><td>M4–M6</td><td>M1</td><td>Runs the measured rollout and experiments.</td></tr>
+  </table></div>
+
+  <h2 class="sec">Your progress</h2>
+  <ul class="track" data-key="gemini-train" data-meter="gemini-train-m">
+    <li><div>M1 · Gemini CLI + Lab 1</div></li><li><div>M2 · Extend &amp; automate + Lab 2</div></li><li><div>M3 · Code Assist &amp; Jules + Lab 3</div></li><li><div>M4 · DORA metrics + Lab 4</div></li><li><div>M5 · Instrumenting + Lab 5</div></li><li><div>M6 · Capabilities + Lab 6</div></li><li><div>Knowledge check passed (10/12 or better)</div></li>
+  </ul>
+  <p class="track-meter" id="gemini-train-m"></p>
+
+  <h2 class="sec">Knowledge check</h2>
+  <div class="quiz">
+    <div class="q" data-why="Gemini CLI reads GEMINI.md by default; the context file name can be configured to include AGENTS.md."><p>1. How do you make Gemini CLI follow the repo's existing AGENTS.md?</p><button class="qo">Rename AGENTS.md to README.md</button><button class="qo" data-ok>Configure the context file name in settings.json to include AGENTS.md</button><button class="qo">It can't</button></div>
+    <div class="q" data-why="With checkpointing on, /restore returns files (and conversation) to a saved snapshot."><p>2. Gemini made a 600-line change you don't want. Fastest safe undo?</p><button class="qo" data-ok><code>/restore</code> to the checkpoint before the edit</button><button class="qo">git push --force</button><button class="qo">Ask it to "undo everything"</button></div>
+    <div class="q" data-why="Jules shows a plan for approval before coding in its VM."><p>3. What should you do before Jules writes code?</p><button class="qo">Nothing; it runs automatically</button><button class="qo" data-ok>Read and approve (or change) its plan</button><button class="qo">Give it production credentials</button></div>
+    <div class="q" data-why="Code Assist on GitHub uses .gemini/styleguide.md for review style."><p>4. Where do team review rules for Gemini Code Assist on GitHub go?</p><button class="qo">AGENTS.md only</button><button class="qo" data-ok><code>.gemini/styleguide.md</code></button><button class="qo">The PR description</button></div>
+    <div class="q" data-why="Throughput: lead time, deployment frequency, recovery time. Instability: CFR, rework rate."><p>5. Which are the two DORA <em>instability</em> metrics?</p><button class="qo">Lead time and deployment frequency</button><button class="qo" data-ok>Change failure rate and rework rate</button><button class="qo">Recovery time and lead time</button></div>
+    <div class="q" data-why="Rework rate counts unplanned deployments made to address user-facing bugs."><p>6. What does rework rate measure?</p><button class="qo">Lines rewritten by AI</button><button class="qo" data-ok>The share of deployments that are unplanned fixes for user-facing problems</button><button class="qo">How often PRs are reopened</button></div>
+    <div class="q" data-why="DORA's 2025 research describes AI as an amplifier of existing strengths and weaknesses."><p>7. DORA's 2025 one-line summary of AI's effect on teams?</p><button class="qo">AI replaces DevOps</button><button class="qo" data-ok>AI is an amplifier: it magnifies existing strengths and dysfunctions</button><button class="qo">AI has no measurable effect</button></div>
+    <div class="q" data-why="The seven: clear AI stance, healthy data ecosystems, AI-accessible internal data, strong version control, small batches, user-centric focus, quality internal platforms."><p>8. Which is NOT one of the seven DORA AI capabilities?</p><button class="qo">Working in small batches</button><button class="qo">Quality internal platforms</button><button class="qo" data-ok>Maximising lines of code generated per developer</button></div>
+    <div class="q" data-why="Faster but less stable is the amplifier warning sign; fix foundations before adding volume."><p>9. After the rollout, deployment frequency doubled and change failure rate rose from 12% to 25%. Best response?</p><button class="qo">Celebrate; throughput is up</button><button class="qo" data-ok>Shrink batches and strengthen tests and review before pushing more AI volume</button><button class="qo">Stop deploying</button></div>
+    <div class="q" data-why="DORA metrics describe a team's delivery system; individual targets invite gaming."><p>10. Should DORA metrics be individual performance goals?</p><button class="qo">Yes, per developer</button><button class="qo" data-ok>No, they describe team and system performance</button><button class="qo">Only for seniors</button></div>
+    <div class="q" data-why="A baseline before the change is the only way to attribute improvement."><p>11. When should you start measuring?</p><button class="qo">After the AI rollout</button><button class="qo" data-ok>Before the rollout, to set a baseline</button><button class="qo">Only after an incident</button></div>
+    <div class="q" data-why="Headless runs on logs should be read-only; logs can contain injected instructions."><p>12. Safest setup for Gemini CLI triage in CI?</p><button class="qo">--yolo with write access</button><button class="qo" data-ok>Headless, read-only, no production secrets, posting a summary</button><button class="qo">Let it redeploy on failure</button></div>
+  </div>
+
+  <h2 class="sec">Official learning</h2>
+  <p class="body">dora.dev has the research reports, capability guides and the Quick Check. Google Cloud Skills Boost and the Gemini Code Assist docs have hands-on Gemini labs. The Gemini CLI repo has a docs folder with tutorials. Catalogues change, so search them by name.</p>
+  <p class="body"><a href="GeminiDORA_Onboarding.html">← Onboarding</a> · <a href="Platforms_Comparison.html">Compare platforms →</a></p>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script src="assets/platform-kit.js?v=1"></script>
+</body>
+</html>

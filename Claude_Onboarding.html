@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude AI SDLC Onboarding</title>
+<meta name="description" content="Onboarding path for using Claude across the software lifecycle: Claude Code in the terminal, IDE, desktop and web, GitHub Actions, the Agent SDK, and AI-DLC's Claude harness.">
+<link rel="stylesheet" href="assets/aidlc-sim.css?v=211">
+<link rel="stylesheet" href="assets/platform-kit.css?v=1">
+</head>
+<body>
+<header class="sim-header claude">
+  <div class="icon">✳️</div>
+  <div>
+    <h1>Claude AI SDLC: Onboarding</h1>
+    <p>Use Claude Code as the agent for every phase: exploring code, planning, building with tests, reviewing, automating in CI and supporting operations. AI-DLC runs natively on it.</p>
+    <div class="stack-pills"><span class="pill">Claude Code (CLI · IDE · desktop · web)</span><span class="pill">Claude Code GitHub Actions</span><span class="pill">Agent SDK</span><span class="pill">AI-DLC Claude harness</span></div>
+  </div>
+  <a class="home-link" href="index.html">⌂ All guides</a>
+</header>
+<div class="sim-body">
+  <nav class="sidebar" id="steps-nav" aria-label="Steps"></nav>
+  <main class="main-area">
+    <div class="progress-bar-container"><div class="progress-bar-outer"><div class="progress-bar-inner" id="progress"></div></div><div class="progress-label" id="progress-label">Step 1</div></div>
+    <div class="step-content-area">
+
+<section class="step-panel" data-section="Orientation" data-title="What it is" data-sub="One agent, many surfaces">
+  <div class="step-header"><div class="phase-tag">✳️ Orientation</div><h2>An agent that reads, plans, edits, runs and checks</h2>
+  <p>Claude Code works in a loop: gather context, take an action (read a file, run a command, edit code), check the result, repeat. You set how much it may do without asking. Project files tell it how your team works.</p></div>
+  <div class="cards">
+    <div class="card coral"><h4>Terminal CLI</h4><p><code>claude</code> in your repo. The fullest feature set: plan mode, subagents, skills, hooks, MCP, checkpoints.</p></div>
+    <div class="card blue"><h4>IDE extensions</h4><p>VS Code (and forks) and JetBrains. Inline diffs, selection context, the same sessions and settings.</p></div>
+    <div class="card purple"><h4>Desktop &amp; web</h4><p>Run several sessions side by side, or in cloud containers that clone your repo, so you can hand off work and check from your phone.</p></div>
+    <div class="card green"><h4>GitHub Actions</h4><p><code>anthropics/claude-code-action</code>: mention <code>@claude</code> on an issue or PR, or run it on events and schedules.</p></div>
+    <div class="card amber"><h4>Headless &amp; Agent SDK</h4><p><code>claude -p</code> for scripts and CI. The Agent SDK (TypeScript/Python) for building your own agents on the same engine.</p></div>
+    <div class="card teal"><h4>Extensions</h4><p><code>CLAUDE.md</code>, skills, subagents, hooks, MCP servers and plugins that bundle them.</p></div>
+  </div>
+  <div class="callout info"><div class="icon">ℹ️</div><p><strong>This repo already runs AI-DLC on Claude Code.</strong> The <code>.claude/</code> folder here is the AI-DLC Claude harness: <code>/aidlc</code>, 14 agents, sensors and hooks. The <a href="AIDLC_Sim_Setup.html">AI-DLC sims</a> show it in depth. This track covers Claude Code itself, so you understand what AI-DLC builds on.</p></div>
+</section>
+
+<section class="step-panel" data-section="Orientation" data-title="Map to the lifecycle" data-sub="Which feature, which phase">
+  <div class="step-header"><div class="phase-tag teal">🗺️ Lifecycle map</div><h2>Claude across the four AI-DLC phases</h2></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Phase</th><th>Claude features</th><th>Human decision</th></tr>
+    <tr><td><strong>Ideation</strong></td><td>Claude (app) for research and writing. Claude Code reading the codebase to judge feasibility. MCP to your tracker and docs.</td><td>Approve intent and scope.</td></tr>
+    <tr><td><strong>Inception</strong></td><td><strong>Plan mode</strong> for a read-only investigation and a written plan. <code>/aidlc</code> for full requirements, design, ADRs and Units. Architect and reviewer subagents.</td><td>Approve requirements, design and the plan before any edit.</td></tr>
+    <tr><td><strong>Construction</strong></td><td>Edit with tests (TDD works well). Parallel sessions in git worktrees or cloud sessions. Hooks for format/lint/test. <code>/code-review</code>, <code>/security-review</code>. <code>@claude</code> on PRs.</td><td>Review diffs, approve PRs, merge.</td></tr>
+    <tr><td><strong>Operation</strong></td><td>MCP to logs and monitoring for triage. Headless <code>claude -p</code> in pipelines (for example to explain a failed deploy). Scheduled Actions for routine checks.</td><td>Approve any change to production.</td></tr>
+  </table></div>
+</section>
+
+<section class="step-panel" data-section="Get access" data-title="Accounts & policy" data-sub="Admin checklist">
+  <div class="step-header"><div class="phase-tag amber">🔑 Access</div><h2>What an admin sets up first</h2></div>
+  <ul class="track" data-key="claude-admin" data-meter="claude-admin-m">
+    <li><div><strong>How people sign in</strong>: Claude Team/Enterprise seats that include Claude Code, the Claude API (Console), or a cloud provider (Amazon Bedrock, Google Vertex AI, Microsoft Foundry) or an enterprise gateway.</div></li>
+    <li><div><strong>Managed settings</strong>: an org-wide policy file that users can't override. Use it for denied commands, allowed MCP servers and default permission mode.</div></li>
+    <li><div><strong>Deny list</strong>: for example <code>Bash(curl:*)</code>, <code>Read(./.env)</code>, <code>Read(./secrets/**)</code>.</div></li>
+    <li><div><strong>MCP allowlist</strong>: the servers your security team has reviewed.</div></li>
+    <li><div><strong>GitHub</strong>: install the Claude GitHub app on the repos where <code>@claude</code> may run. Store the API key or cloud credentials as repo/org secrets.</div></li>
+    <li><div><strong>Usage &amp; analytics</strong>: who uses it, spend, and accepted lines. Set spend limits per workspace.</div></li>
+    <li><div><strong>Branch protection</strong> on <code>main</code>: Claude's PRs follow the same review rules.</div></li>
+  </ul>
+  <p class="track-meter" id="claude-admin-m"></p>
+</section>
+
+<section class="step-panel" data-section="Get access" data-title="Repo files" data-sub="What Claude reads">
+  <div class="step-header"><div class="phase-tag purple">📁 Repo</div><h2>The files that shape Claude's behaviour</h2></div>
+  <div class="filetree"><div class="ft-header">billing-platform/</div>
+<pre><span class="ft-file">CLAUDE.md</span>                         <span class="ft-note">loaded every session: commands, conventions, gotchas</span>
+<span class="ft-file">.mcp.json</span>                         <span class="ft-note">project MCP servers (shared, approved per user)</span>
+<span class="ft-folder">.claude/</span>
+├── <span class="ft-file">settings.json</span>                 <span class="ft-note">permissions allow/ask/deny, hooks, env (committed)</span>
+├── <span class="ft-file">settings.local.json</span>           <span class="ft-note">personal overrides (gitignored)</span>
+├── <span class="ft-folder">agents/</span><span class="ft-file">code-reviewer.md</span>        <span class="ft-note">subagent: own context, tools, prompt</span>
+└── <span class="ft-folder">skills/</span><span class="ft-file">new-endpoint/SKILL.md</span>   <span class="ft-note">skill: instructions + scripts, loaded when relevant or via /new-endpoint</span>
+<span class="ft-folder">src/Billing.Api/</span><span class="ft-file">CLAUDE.md</span>          <span class="ft-note">nested: read when Claude works in that folder</span></pre></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Use…</th><th>When you want…</th></tr>
+    <tr><td><code>CLAUDE.md</code></td><td>Facts Claude needs every time (build/test commands, rules). Keep it short. Use <code>@path</code> imports for detail.</td></tr>
+    <tr><td>Skill</td><td>A repeatable procedure that loads only when needed (for example "add an endpoint", "write a migration").</td></tr>
+    <tr><td>Subagent</td><td>A focused worker with its own context window (reviewer, test writer, explorer), so the main conversation stays clean.</td></tr>
+    <tr><td>Hook</td><td>Something that must <em>always</em> happen, enforced by the harness, not by the model (format after edit, block edits to <code>migrations/</code>).</td></tr>
+    <tr><td>Plugin</td><td>A bundle of the above to share across repos via a marketplace.</td></tr>
+  </table></div>
+</section>
+
+<section class="step-panel" data-section="Your role" data-title="Role quick-starts" data-sub="Dev · PO · Architect · SRE · Lead">
+  <div class="step-header"><div class="phase-tag green">👥 Roles</div><h2>Your first week, by role</h2></div>
+  <div data-tabs>
+    <div class="tabs"><button class="tab-btn on" data-tab="dev">Developer</button><button class="tab-btn" data-tab="po">Product Owner</button><button class="tab-btn" data-tab="arch">Architect</button><button class="tab-btn" data-tab="sre">SRE / Ops</button><button class="tab-btn" data-tab="lead">Eng. lead</button></div>
+    <div class="tab-pane on" data-pane="dev"><ol class="check-list">
+      <li class="ok"><span class="ci">1</span><div>Do <a href="Claude_Sim_Setup.html">Setup</a>. Ask Claude to explain the repo, then run <code>/init</code> and edit the <code>CLAUDE.md</code> it drafts.</div></li>
+      <li class="ok"><span class="ci">2</span><div>Use <strong>explore → plan → code → commit</strong>: press <kbd>Shift+Tab</kbd> to reach plan mode, read the plan, then let it edit.</div></li>
+      <li class="ok"><span class="ci">3</span><div>Write the test first, ask Claude to make it pass, and don't let it change the test.</div></li>
+      <li class="ok"><span class="ci">4</span><div>Learn <kbd>Esc</kbd> (interrupt), <kbd>Esc Esc</kbd> / <code>/rewind</code> (go back), <code>/clear</code> between tasks.</div></li>
+    </ol></div>
+    <div class="tab-pane" data-pane="po"><ol class="check-list">
+      <li class="ok"><span class="ci">1</span><div>Answer AI-DLC requirement questions in your own Claude Code (or Copilot) session on the same repo.</div></li>
+      <li class="ok"><span class="ci">2</span><div>Use Claude (app or Code) to turn rough notes into stories with Given/When/Then criteria. Then edit them yourself.</div></li>
+      <li class="ok"><span class="ci">3</span><div>Ask Claude Code questions about the product's current behaviour. It reads the code, so you don't have to wait for a developer.</div></li>
+    </ol></div>
+    <div class="tab-pane" data-pane="arch"><ol class="check-list">
+      <li class="ok"><span class="ci">1</span><div>Own <code>CLAUDE.md</code>, the settings deny list and the subagent definitions.</div></li>
+      <li class="ok"><span class="ci">2</span><div>Write a "reviewer" subagent that checks for ADR conformance and contract drift.</div></li>
+      <li class="ok"><span class="ci">3</span><div>Approve AI-DLC design gates. Use plan mode for "what would it take to…" questions.</div></li>
+    </ol></div>
+    <div class="tab-pane" data-pane="sre"><ol class="check-list">
+      <li class="ok"><span class="ci">1</span><div>Connect read-only MCP servers for logs and metrics. Never connect production write access.</div></li>
+      <li class="ok"><span class="ci">2</span><div>Add a pipeline step that runs <code>claude -p</code> to summarise a failed deploy in the PR.</div></li>
+      <li class="ok"><span class="ci">3</span><div>Do the incident part of the <a href="Claude_Sim_Brownfield.html">Brownfield</a> sim.</div></li>
+    </ol></div>
+    <div class="tab-pane" data-pane="lead"><ol class="check-list">
+      <li class="ok"><span class="ci">1</span><div>Pick the default permission mode and deny list in managed settings.</div></li>
+      <li class="ok"><span class="ci">2</span><div>Decide which repos get <code>@claude</code> in GitHub, and who may trigger it.</div></li>
+      <li class="ok"><span class="ci">3</span><div>Track outcomes (lead time, change failure rate, review time) with the <a href="GeminiDORA_Onboarding.html">DORA</a> metrics, not lines generated.</div></li>
+    </ol></div>
+  </div>
+</section>
+
+<section class="step-panel" data-section="Your role" data-title="30-60-90 plan" data-sub="Team rollout">
+  <div class="step-header"><div class="phase-tag amber">📅 Rollout</div><h2>A 30-60-90 day rollout for one team</h2></div>
+  <div class="cards">
+    <div class="card green"><h4>Days 1–30 · Pair</h4><p>CLI or IDE in default permission mode. <code>CLAUDE.md</code> committed. Plan mode for anything over ~50 lines. <code>/code-review</code> before every PR. DORA baseline recorded.</p></div>
+    <div class="card blue"><h4>Days 31–60 · Automate</h4><p>Hooks for format, lint and tests. Two subagents, one skill. <code>@claude</code> on PRs. AI-DLC <code>classic</code> for one real epic.</p></div>
+    <div class="card purple"><h4>Days 61–90 · Parallelise</h4><p>Several sessions on separate worktrees or cloud sessions, one per Unit. Headless runs in CI. Compare metrics against the baseline.</p></div>
+  </div>
+  <div class="callout danger"><div class="icon">⛔</div><p><strong>Rules from day one:</strong> don't use <code>--dangerously-skip-permissions</code> outside a throwaway container. Secrets go in the deny list. A person reviews every diff that ships.</p></div>
+</section>
+
+<section class="step-panel" data-section="Reference" data-title="FAQ" data-sub="Common questions">
+  <div class="step-header"><div class="phase-tag">❓ FAQ</div><h2>Questions teams ask in week one</h2></div>
+  <div class="faq">
+    <details><summary>Which permission mode should I use?</summary><div><p><strong>Default</strong> asks before edits and commands. <strong>Accept edits</strong> auto-accepts file edits but still asks for commands. <strong>Plan</strong> is read-only until you approve a plan. Bypass modes skip prompts and belong only in isolated containers. Allow rules for safe commands (for example <code>Bash(dotnet test:*)</code>) cut down on prompts.</p></div></details>
+    <details><summary>CLAUDE.md is getting long. What do I do?</summary><div><p>Keep only what's needed every session. Move procedures into skills (loaded when relevant), move rules that must never be broken into hooks or the deny list, and use nested <code>CLAUDE.md</code> files per folder.</p></div></details>
+    <details><summary>Why use a subagent instead of just asking?</summary><div><p>A subagent works in its own context window and returns only a summary. Exploring a large codebase or reviewing a diff that way keeps your main conversation focused and cheaper.</p></div></details>
+    <details><summary>Does Claude Code send our code anywhere?</summary><div><p>Code it reads goes to the model provider you configured (Anthropic, Bedrock, Vertex AI or Foundry) under that provider's data terms. Commercial terms don't train on your data by default. Check your org's agreement.</p></div></details>
+    <details><summary>How is this different from running /aidlc?</summary><div><p>Plain Claude Code is flexible: you decide the steps. <code>/aidlc</code> adds a method on top: scopes, ordered stages, approval gates, review agents, guards and an audit record. Use plain Claude Code for small tasks and AI-DLC for features and projects.</p></div></details>
+    <details><summary>Can two people work in the same repo with Claude at once?</summary><div><p>Yes. Use separate branches or git worktrees per session. AI-DLC lets several people answer and approve on one shared record.</p></div></details>
+  </div>
+</section>
+
+<section class="step-panel" data-section="Reference" data-title="Next steps" data-sub="Sims, training, docs">
+  <div class="step-header"><div class="phase-tag green">➡️ Next</div><h2>Keep going</h2></div>
+  <div class="grid">
+    <a class="tile" href="Claude_Sim_Setup.html"><div class="em">⚙️</div><h3>Sim 1 · Setup</h3><p>Install, CLAUDE.md, permissions, hooks, MCP, GitHub app, AI-DLC.</p></a>
+    <a class="tile" href="Claude_Sim_Greenfield.html"><div class="em">🌱</div><h3>Sim 2 · Greenfield</h3><p>Plan mode, TDD, parallel sessions, review, <code>@claude</code>.</p></a>
+    <a class="tile" href="Claude_Sim_Brownfield.html"><div class="em">🏢</div><h3>Sim 3 · Brownfield + Ops</h3><p>Explore subagent, guard hooks, rewind, headless CI triage.</p></a>
+    <a class="tile" href="Claude_Training.html"><div class="em">🎓</div><h3>Training</h3><p>Modules, labs and knowledge checks.</p></a>
+    <a class="tile" href="Platforms_Comparison.html"><div class="em">⚖️</div><h3>Compare platforms</h3><p>Microsoft vs Claude vs Codex vs Gemini.</p></a>
+  </div>
+  <div class="callout info"><div class="icon">ℹ️</div><p><strong>Official docs:</strong> <a href="https://docs.claude.com/en/docs/claude-code/overview">Claude Code docs</a> · <a href="https://github.com/anthropics/claude-code-action">claude-code-action</a> · <a href="https://docs.claude.com/en/api/agent-sdk/overview">Agent SDK</a>. Claude Code ships updates often. Content checked November 2026, so confirm command names and settings keys in the docs.</p></div>
+</section>
+
+    </div>
+  </main>
+</div>
+<script src="assets/aidlc-sim.js?v=211"></script>
+<script src="assets/platform-kit.js?v=1"></script>
+</body>
+</html>
